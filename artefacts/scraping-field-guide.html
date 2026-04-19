@@ -1,0 +1,2605 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web Scraping: A Field Guide, Edition II</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0eb;
+    --bg-deep: #efe9e1;
+    --ink: #2d2d2d;
+    --ink-soft: #6b6b6b;
+    --muted: #999999;
+    --rule: #e5ddd5;
+    --rust: #c4825a;
+    --rust-deep: #b07149;
+    --moss: #4a7c59;
+    --paper: #ffffff;
+    --hover: #fef9f5;
+    --border-light: #f0ebe6;
+    --code-bg: #ffffff;
+    --code-fg: #2d2d2d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  html, body { background: var(--bg); color: var(--ink); }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(0,0,0,0.015) 1px, transparent 1px),
+      radial-gradient(circle at 80% 70%, rgba(0,0,0,0.012) 1px, transparent 1px);
+    background-size: 3px 3px, 5px 5px;
+    z-index: 100; opacity: 0.6;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+
+  /* ============ MASTHEAD ============ */
+  header.masthead {
+    border-bottom: 1px solid var(--ink);
+    padding: 18px 0 14px;
+  }
+  .masthead-inner {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 16px; flex-wrap: wrap;
+  }
+  .imprint, .vol {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .vol span { color: var(--rust); }
+
+  /* ============ TOC FLOATING ============ */
+  .toc {
+    position: fixed;
+    right: 24px; top: 50%;
+    transform: translateY(-50%);
+    z-index: 90;
+    display: flex; flex-direction: column;
+    gap: 8px;
+  }
+  .toc a {
+    width: 8px; height: 8px;
+    background: var(--rule);
+    border-radius: 50%;
+    display: block;
+    transition: all 200ms;
+    position: relative;
+  }
+  .toc a:hover { background: var(--rust); transform: scale(1.4); }
+  .toc a.active { background: var(--ink); transform: scale(1.4); }
+  .toc a span {
+    position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+    background: var(--ink); color: var(--paper);
+    padding: 3px 10px; font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    white-space: nowrap; opacity: 0; pointer-events: none;
+    transition: opacity 200ms;
+  }
+  .toc a:hover span { opacity: 1; }
+  @media (max-width: 920px) { .toc { display: none; } }
+
+  /* ============ HERO ============ */
+  .hero {
+    border-bottom: 4px double var(--ink);
+    padding: 56px 0 48px;
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-variation-settings: 'SOFT' 0, 'opsz' 144;
+    font-size: clamp(52px, 9vw, 120px);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    margin-bottom: 24px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-variation-settings: 'SOFT' 100, 'opsz' 144;
+    color: var(--rust);
+  }
+  .hero .standfirst {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(18px, 2.4vw, 24px);
+    line-height: 1.45;
+    max-width: 720px;
+    color: var(--ink-soft);
+    margin-bottom: 28px;
+  }
+  .hero-meta {
+    display: flex; gap: 32px; flex-wrap: wrap;
+    border-top: 1px solid var(--rule);
+    padding-top: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .hero-meta strong { color: var(--ink); font-weight: 500; }
+
+  .read-path {
+    margin-top: 28px;
+    padding: 20px 22px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    border-left: 5px solid var(--rust);
+  }
+  .read-path h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--rust);
+    margin-bottom: 10px;
+  }
+  .read-path p {
+    font-family: 'Fraunces', serif;
+    font-weight: 400; font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 720px;
+  }
+
+  /* ============ SECTION FRAMING ============ */
+  section { padding: 72px 0; border-bottom: 1px solid var(--rule); }
+  .sec-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--rust);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .sec-label::before { content: ''; width: 32px; height: 1px; background: var(--rust); }
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-variation-settings: 'SOFT' 30, 'opsz' 96;
+    font-size: clamp(34px, 5vw, 58px);
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+    max-width: 820px;
+  }
+  h2 em { font-style: italic; color: var(--rust); }
+  .lead {
+    font-family: 'Fraunces', serif;
+    font-weight: 300; font-size: 19px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 700px;
+    margin-bottom: 36px;
+  }
+  h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500; font-size: 26px;
+    line-height: 1.15; margin-bottom: 12px;
+  }
+  p { margin-bottom: 14px; max-width: 700px; }
+  code, .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: rgba(181, 78, 31, 0.08);
+    padding: 1px 5px;
+    border-radius: 2px;
+    color: var(--rust-deep);
+  }
+
+  /* ============ PIPELINE ============ */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    margin: 32px 0 0;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+  }
+  .stage {
+    padding: 18px 12px 14px;
+    border-right: 1px solid var(--rule);
+    cursor: pointer;
+    transition: background 160ms;
+    position: relative;
+    min-height: 110px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .stage:last-child { border-right: none; }
+  .stage:hover { background: var(--hover); }
+  .stage.active { background: var(--rust); color: #fff; }
+  .stage.active .stage-num,
+  .stage.active .stage-name { color: #fff; }
+  .stage.active .stage-hint { color: rgba(255,255,255,0.8); }
+  .stage-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--rust);
+    letter-spacing: 0.1em; margin-bottom: 8px;
+  }
+  .stage-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 500; font-size: 17px;
+    margin-bottom: 6px;
+  }
+  .stage-hint { font-size: 11px; color: var(--muted); line-height: 1.3; }
+
+  .pipeline-detail {
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    border-top: none;
+    padding: 24px 28px;
+    min-height: 180px;
+  }
+  .pipeline-detail h4 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500; font-size: 22px;
+    margin-bottom: 8px;
+  }
+  .pipeline-detail .detail-desc {
+    font-family: 'Fraunces', serif;
+    font-weight: 300; font-size: 16px;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+  }
+  .tool-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    padding: 4px 10px; border-radius: 2px;
+    color: var(--ink);
+  }
+  .chip.accent { border-color: var(--rust); color: var(--rust); background: rgba(181,78,31,0.05); }
+
+  @media (max-width: 720px) {
+    .pipeline { grid-template-columns: repeat(2, 1fr); }
+    .stage { border-bottom: 1px solid var(--rule); }
+  }
+
+  /* ============ DECISION GEOMETRY (SVG diagram) ============ */
+  .geometry {
+    margin-top: 28px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 32px;
+  }
+  .geometry svg { width: 100%; height: auto; }
+  .geometry .legend {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding-top: 24px;
+    border-top: 1px dashed var(--rule);
+  }
+  .legend-item h5 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--rust);
+    margin-bottom: 6px;
+  }
+  .legend-item p {
+    font-size: 13.5px; color: var(--ink-soft);
+    line-height: 1.5; margin: 0;
+  }
+  @media (max-width: 720px) {
+    .geometry .legend { grid-template-columns: 1fr; gap: 16px; }
+  }
+
+  /* ============ TIER CARDS ============ */
+  .tiers-intro {
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    font-family: 'Fraunces', serif;
+    font-size: 16.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .tiers-intro strong { color: var(--ink); font-weight: 500; }
+
+  .tier-card {
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .tier-head {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 18px;
+    align-items: center;
+    padding: 18px 26px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-deep);
+  }
+  .tier-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #fff;
+    background: var(--rust);
+    padding: 5px 8px;
+    text-align: center;
+    letter-spacing: 0.08em;
+  }
+  .tier-tag.tag-4 { background: var(--rust); }
+  .tier-head h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 24px;
+    margin-bottom: 2px;
+  }
+  .tier-head .tagline {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--rust-deep);
+    font-size: 14px;
+  }
+  .tier-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+    letter-spacing: 0.08em;
+  }
+  .tier-meta div { line-height: 1.6; }
+  .tier-meta strong { color: var(--ink); font-weight: 500; }
+
+  .tier-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .tier-body > div { padding: 22px 26px; }
+  .tier-body > div:first-child { border-right: 1px solid var(--rule); }
+
+  .when-list { list-style: none; margin-top: 8px; }
+  .when-list li {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 14px;
+    padding: 4px 0;
+    color: var(--ink-soft);
+  }
+  .when-list li::before {
+    content: '→';
+    color: var(--rust);
+    font-weight: 500;
+    flex: 0 0 14px;
+  }
+  .when-list.not li::before { content: '✕'; color: var(--muted); }
+
+  .when-list-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 4px;
+    margin-top: 14px;
+  }
+  .when-list-label:first-child { margin-top: 0; }
+  .when-list-label.muted { color: var(--muted); }
+
+  .top-picks {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 10px;
+  }
+  .pick-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .pick {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 10px;
+    font-size: 13.5px;
+    line-height: 1.4;
+    padding: 6px 0;
+    border-bottom: 1px dotted var(--rule);
+  }
+  .pick:last-child { border-bottom: none; }
+  .pick-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    color: var(--rust-deep);
+    font-size: 13px;
+  }
+  .pick-name.crown::before { content: '★ '; color: var(--rust); }
+  .pick-desc { color: var(--ink-soft); }
+
+  /* Code block with copy button */
+  .code-block {
+    margin-top: 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(45,45,45,0.04);
+  }
+  .code-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 14px;
+    background: var(--hover);
+    border-bottom: 1px solid var(--border-light);
+  }
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 10px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 140ms;
+  }
+  .copy-btn:hover { color: var(--rust); border-color: var(--rust); }
+  .copy-btn.copied { color: var(--rust); border-color: var(--rust); }
+  .code-block pre {
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0;
+  }
+  .code-block code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--code-fg);
+    background: transparent;
+    padding: 0;
+  }
+  .code-block .kw { color: var(--rust); }
+  .code-block .str { color: var(--moss); }
+  .code-block .com { color: var(--muted); font-style: italic; }
+  .code-block .fn { color: var(--rust-deep); }
+
+  @media (max-width: 720px) {
+    .tier-head { grid-template-columns: 1fr; gap: 8px; }
+    .tier-meta { text-align: left; }
+    .tier-body { grid-template-columns: 1fr; }
+    .tier-body > div:first-child { border-right: none; border-bottom: 1px solid var(--rule); }
+    .pick { grid-template-columns: 1fr; gap: 2px; }
+  }
+
+  /* ============ COMPOSITION DIAGRAM ============ */
+  .composition {
+    margin-top: 28px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 32px;
+  }
+  .composition svg { width: 100%; height: auto; }
+  .comp-caption {
+    margin-top: 18px;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 16px;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+
+  /* ============ DECISION FLOW ============ */
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 36px 32px;
+    margin-top: 24px;
+  }
+  .flow-q {
+    font-family: 'Fraunces', serif;
+    font-weight: 400; font-size: 22px;
+    line-height: 1.3; margin-bottom: 18px;
+  }
+  .flow-q .q-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--rust);
+    letter-spacing: 0.15em;
+    display: block; margin-bottom: 6px;
+  }
+  .flow-sub {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 22px;
+    max-width: 600px;
+  }
+  .flow-options { display: grid; gap: 10px; }
+  .flow-opt {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    padding: 14px 18px;
+    text-align: left;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    transition: all 140ms;
+    line-height: 1.4;
+  }
+  .flow-opt:hover {
+    background: var(--hover);
+    color: var(--ink);
+    border-color: var(--rust);
+  }
+  .flow-opt .opt-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--rust);
+    margin-right: 10px;
+  }
+  .flow-opt:hover .opt-letter { color: var(--rust); }
+
+  .flow-progress { display: flex; gap: 4px; margin-bottom: 24px; }
+  .flow-progress div { flex: 1; height: 3px; background: var(--rule); transition: background 200ms; }
+  .flow-progress div.done { background: var(--rust); }
+  .flow-progress div.current { background: var(--ink); }
+
+  .flow-result {
+    background: var(--bg-deep);
+    color: var(--ink);
+    padding: 32px;
+    margin: 12px -32px -36px;
+    border-top: 2px solid var(--rust);
+  }
+  .flow-result h4 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400; font-style: italic;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .flow-result .reco {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-variation-settings: 'SOFT' 30;
+    font-size: 30px;
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+  .flow-result .reco em { font-style: italic; color: var(--rust); }
+  .flow-result .stack {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--rule);
+    padding-top: 16px;
+    margin-top: 16px;
+  }
+  .flow-result .stack-row { display: block; margin-bottom: 4px; }
+  .flow-result .stack-key { color: var(--rust); }
+  .flow-restart {
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    padding: 10px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 18px;
+  }
+  .flow-restart:hover { background: var(--hover); }
+
+  /* ============ GOTCHAS ============ */
+  .gotchas { margin-top: 24px; }
+  .gotcha {
+    border-top: 1px solid var(--rule);
+    padding: 22px 0;
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 24px;
+    cursor: pointer;
+    transition: background 140ms;
+  }
+  .gotcha:hover { background: rgba(181,78,31,0.03); }
+  .gotcha:last-child { border-bottom: 1px solid var(--rule); }
+  .gotcha-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--rust);
+    letter-spacing: 0.1em;
+    padding-top: 2px;
+  }
+  .gotcha-num::before { content: 'TRAP'; display: block; font-size: 9px; color: var(--muted); letter-spacing: 0.2em; margin-bottom: 4px; }
+  .gotcha h4 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .gotcha .symptom {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .gotcha .symptom span { color: var(--rust); }
+  .gotcha p {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin-bottom: 0;
+    max-width: 760px;
+  }
+  @media (max-width: 600px) {
+    .gotcha { grid-template-columns: 1fr; gap: 4px; }
+  }
+
+  /* ============ ANTIBOT LADDER ============ */
+  .ladder {
+    margin-top: 28px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 28px;
+  }
+  .ladder svg { width: 100%; height: auto; }
+
+  /* ============ FOOTER ============ */
+  footer {
+    padding: 48px 0 64px;
+    text-align: center;
+    border-top: 4px double var(--ink);
+  }
+  footer .marque {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-variation-settings: 'SOFT' 100;
+    font-size: 24px;
+    color: var(--rust);
+    margin-bottom: 8px;
+  }
+  footer .col {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .callout {
+    border-left: 3px solid var(--rust);
+    padding: 10px 0 10px 18px;
+    margin: 20px 0;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 740px;
+  }
+
+  .concept-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 24px;
+  }
+  @media (max-width: 720px) {
+    .concept-grid { grid-template-columns: 1fr; gap: 20px; }
+  }
+
+  .concept-h {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 10px;
+    margin-top: 20px;
+  }
+  .concept-h:first-child { margin-top: 0; }
+
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .ref-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .ref-table td {
+    padding: 7px 10px;
+    border-bottom: 1px dotted var(--rule);
+    vertical-align: top;
+    line-height: 1.4;
+    color: var(--ink-soft);
+  }
+  .ref-table td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--rust-deep);
+    white-space: nowrap;
+  }
+  .ref-table tr:last-child td { border-bottom: none; }
+
+  /* ============ HERO EXTRACTION LADDER ============ */
+  .hero-ladder {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 8px; margin: 16px 0 0;
+  }
+  .hl-step {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Fraunces', serif;
+    font-size: 15px; color: var(--ink);
+  }
+  .hl-n {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--rust);
+    letter-spacing: 0.1em;
+  }
+  .hl-arr { color: var(--rule); font-size: 13px; }
+
+  /* ============ METHOD STEPS (long-form concepts) ============ */
+  .priority-order {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 6px;
+    background: var(--bg-deep);
+    border: 1px solid var(--rule);
+    padding: 14px 22px;
+    margin: 24px 0 28px;
+  }
+  .po-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 12px; flex: 0 0 auto;
+  }
+  .po-step {
+    font-family: 'Fraunces', serif;
+    font-size: 14px; color: var(--ink);
+    flex: 0 0 auto;
+  }
+  .po-step .po-n {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--rust);
+    letter-spacing: 0.1em; margin-right: 5px;
+  }
+  .po-arr { color: var(--rule); margin: 0 6px; }
+
+  .method-step {
+    display: grid;
+    grid-template-columns: 84px 1fr;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+  .step-num-block {
+    background: var(--rust);
+    padding: 22px 12px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    gap: 5px; text-align: center;
+  }
+  .step-try {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px; letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+  }
+  .step-n {
+    font-family: 'Fraunces', serif;
+    font-size: 36px; font-weight: 300;
+    line-height: 1; color: var(--paper);
+  }
+  .step-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #fff;
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 2px 5px; margin-top: 3px;
+  }
+  .step-body { padding: 22px 28px; }
+  .step-body h3 { font-size: 22px; margin-bottom: 4px; }
+  .step-why {
+    font-family: 'Fraunces', serif; font-weight: 300;
+    font-size: 15px; color: var(--ink-soft);
+    line-height: 1.5; margin-bottom: 18px; max-width: 660px;
+  }
+  .step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 720px) {
+    .method-step { grid-template-columns: 1fr; }
+    .step-num-block { flex-direction: row; padding: 12px 20px; justify-content: flex-start; gap: 12px; }
+    .step-n { font-size: 28px; }
+    .step-grid { grid-template-columns: 1fr; gap: 16px; }
+    .hero-ladder { gap: 6px; }
+    .hl-step { font-size: 13px; }
+    .po-step { font-size: 12px; }
+  }
+
+  /* ============ LAYER MAP ============ */
+  .layer-map {
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    margin: 28px 0;
+    overflow: hidden;
+  }
+  .lm-shortcut {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: center;
+    padding: 18px 24px;
+    background: rgba(181,78,31,0.05);
+    border-bottom: 1px solid var(--rule);
+  }
+  .lm-shortcut-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--rust);
+    margin-bottom: 3px;
+  }
+  .lm-shortcut-title {
+    font-family: 'Fraunces', serif; font-size: 16px;
+    font-weight: 500; margin-bottom: 3px;
+  }
+  .lm-shortcut-note { font-size: 13px; color: var(--muted); }
+  .lm-shortcut-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+  .lm-divider {
+    text-align: center; padding: 8px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-deep);
+  }
+  .lm-row {
+    display: grid;
+    grid-template-columns: 148px 1fr;
+    border-bottom: 1px solid var(--rule);
+  }
+  .lm-row:last-child { border-bottom: none; }
+  .lm-label {
+    padding: 16px 14px;
+    border-right: 1px solid var(--rule);
+    background: var(--bg-deep);
+    display: flex; flex-direction: column; justify-content: center; gap: 3px;
+  }
+  .lm-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .lm-tag.req { color: var(--rust); }
+  .lm-tag.opt { color: var(--muted); }
+  .lm-name { font-family: 'Fraunces', serif; font-weight: 500; font-size: 16px; }
+  .lm-pick { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .lm-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+  .lm-body-split {
+    padding: 16px 20px;
+    display: grid; grid-template-columns: 1fr 24px 1fr;
+    gap: 12px; align-items: center;
+  }
+  .lm-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .lm-tool {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    background: var(--bg); border: 1px solid var(--rule);
+    padding: 4px 10px; color: var(--ink);
+  }
+  .lm-tool.accent { border-color: var(--rust); color: var(--rust); background: rgba(181,78,31,0.05); }
+  .lm-or {
+    text-align: center; font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--muted); letter-spacing: 0.08em;
+  }
+  .lm-note { font-size: 13px; color: var(--muted); line-height: 1.4; }
+  .lm-connector {
+    text-align: center; padding: 6px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--muted); letter-spacing: 0.1em;
+    background: var(--bg-deep); border-bottom: 1px solid var(--rule);
+  }
+
+  /* ============ STACK RECIPES ============ */
+  .stack-recipes {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 14px; margin: 16px 0 0;
+  }
+  .recipe { border: 1px solid var(--ink); background: var(--paper); overflow: hidden; }
+  .recipe-head {
+    background: var(--rust); color: #fff;
+    padding: 11px 16px; display: flex; align-items: baseline; gap: 10px;
+  }
+  .recipe-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: rgba(255,255,255,0.85); letter-spacing: 0.1em;
+  }
+  .recipe-name { font-family: 'Fraunces', serif; font-weight: 500; font-size: 16px; }
+  .recipe-body { padding: 14px 16px; }
+  .recipe-when { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.45; }
+  .recipe-layers { display: flex; flex-direction: column; gap: 5px; }
+  .recipe-layer { display: flex; align-items: baseline; gap: 10px; font-size: 13.5px; }
+  .rl-name {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    color: var(--rust); letter-spacing: 0.1em; text-transform: uppercase;
+    width: 86px; flex: 0 0 86px;
+  }
+  .rl-val { color: var(--ink-soft); }
+
+  @media (max-width: 720px) {
+    .lm-shortcut { grid-template-columns: 1fr; gap: 12px; }
+    .lm-row { grid-template-columns: 1fr; }
+    .lm-label { border-right: none; border-bottom: 1px solid var(--rule); }
+    .lm-body-split { grid-template-columns: 1fr; }
+    .lm-or { display: none; }
+    .stack-recipes { grid-template-columns: 1fr; }
+    .cluster-glance { flex-direction: column; }
+  }
+
+  /* ---- Chapter III: decision tree + clusters + summary (added) ---- */
+  .decision-tree { border: 1px solid var(--rule); border-radius: 12px; background: var(--paper);
+    overflow: hidden; margin: 8px 0 24px; }
+  .dt-step { padding: 14px 18px; border-left: 3px solid var(--rust); border-bottom: 1px solid var(--border-light); }
+  .dt-step:last-child { border-bottom: none; }
+  .dt-q { font-weight: 500; color: var(--ink); display: flex; align-items: baseline; gap: 10px; }
+  .dt-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--rust);
+    border: 1px solid var(--rule); border-radius: 5px; padding: 1px 7px; }
+  .dt-out { margin-top: 6px; padding-left: 30px; color: var(--ink-soft); }
+  .dt-out strong { color: var(--ink); }
+  .dt-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted); margin-left: 10px; }
+  .dt-tag.cheap { color: var(--moss); }
+  .dt-tag.last { color: var(--rust-deep); }
+  .dt-esc { margin-top: 6px; padding-left: 30px; font-size: 13.5px; color: var(--muted); }
+  .cluster-glance { display: flex; gap: 14px; margin: 0 0 24px; }
+  .cluster { flex: 1; min-width: 240px; background: var(--paper); border: 1px solid var(--rule);
+    border-radius: 12px; padding: 16px 18px; }
+  .cluster.build { border-top: 3px solid var(--moss); }
+  .cluster.buy { border-top: 3px solid var(--rust); }
+  .cluster-h { font-family: 'Fraunces', serif; font-size: 17px; color: var(--ink);
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .cluster-h span { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--muted); }
+  .cluster-items { margin-top: 8px; color: var(--ink-soft); font-size: 14.5px; }
+  .role-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--rust-deep); margin: 0 0 8px; }
+  .summary-table { width: 100%; border-collapse: collapse; margin: 0 0 8px; background: var(--paper);
+    border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; font-size: 14px; }
+  .summary-table th, .summary-table td { text-align: left; padding: 10px 14px;
+    border-bottom: 1px solid var(--border-light); }
+  .summary-table thead th { font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+    text-transform: uppercase; letter-spacing: .08em; color: var(--muted); background: var(--hover); }
+  .summary-table tbody tr:last-child td { border-bottom: none; }
+  .summary-table td:first-child { font-weight: 500; color: var(--ink); }
+  details.map-fold, details.tool-ref { margin: 8px 0 0; }
+  details.map-fold > summary, details.tool-ref > summary {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--rust-deep); cursor: pointer; padding: 10px 0; list-style: none; }
+  details.map-fold > summary::-webkit-details-marker,
+  details.tool-ref > summary::-webkit-details-marker { display: none; }
+  details.map-fold > summary::before, details.tool-ref > summary::before { content: '▸ '; color: var(--rust); }
+  details[open].map-fold > summary::before, details[open].tool-ref > summary::before { content: '▾ '; }
+</style>
+</head>
+<body>
+
+<!-- floating TOC -->
+<nav class="toc">
+  <a href="#pipeline-section" data-label="Pipeline"><span>Pipeline</span></a>
+  <a href="#geometry" data-label="Locate"><span>Locate</span></a>
+  <a href="#tiers" data-label="Choose"><span>Choose &amp; Compose</span></a>
+  <a href="#gotchas-section" data-label="Traps"><span>Traps</span></a>
+  <a href="#concepts-section" data-label="Extract"><span>Find · Extract</span></a>
+  <a href="#discover-section" data-label="Discover"><span>Discover</span></a>
+</nav>
+
+<header class="masthead">
+  <div class="wrap masthead-inner">
+    <div class="imprint">The Builder's Field Guide</div>
+    <div class="vol">Vol. 01 &nbsp;·&nbsp; <span>Web Scraping</span> &nbsp;·&nbsp; Edition II · 2026</div>
+  </div>
+</header>
+
+<!-- ====== HERO ====== -->
+<section class="hero" style="padding-top: 56px;">
+  <div class="wrap">
+    <h1>The scraper<br>is a <em>stack</em>.</h1>
+    <p class="standfirst">A single-read guide to the tool categories of modern web scraping — including the AI browser-agent category that rewrote the playbook in 2025, and the seven traps that quietly break production scrapers.</p>
+    <div class="hero-meta">
+      <div><strong>7</strong> &nbsp; Pipeline stages</div>
+      <div><strong>6</strong> &nbsp; Tool categories</div>
+      <div><strong>5</strong> &nbsp; Decision questions</div>
+      <div><strong>8</strong> &nbsp; Production traps</div>
+    </div>
+    <div class="read-path">
+      <h4>New to scraping? Try extraction methods in this order</h4>
+      <p>Work top to bottom — stop when one works. Most sites yield at step 1 or 2. <a href="#concepts-section" style="color:var(--rust);">Jump to the Concepts section</a> for code on each.</p>
+      <div class="hero-ladder">
+        <span class="hl-step"><span class="hl-n">01</span>&thinsp;Network / XHR</span>
+        <span class="hl-arr">→</span>
+        <span class="hl-step"><span class="hl-n">02</span>&thinsp;JSON-LD</span>
+        <span class="hl-arr">→</span>
+        <span class="hl-step"><span class="hl-n">03</span>&thinsp;CSS Selectors</span>
+        <span class="hl-arr">→</span>
+        <span class="hl-step"><span class="hl-n">04</span>&thinsp;XPath</span>
+        <span class="hl-arr">→</span>
+        <span class="hl-step"><span class="hl-n">05</span>&thinsp;ARIA Locators</span>
+      </div>
+      <p style="margin-top:14px; font-size:13px; color:var(--muted); max-width:none;">Full guide: Pipeline → Decision Geometry → Tool Categories → Decision Flow → Production Traps → Concepts.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== PIPELINE ====== -->
+<section id="pipeline-section">
+  <div class="wrap">
+    <div class="sec-label">Chapter I — The Mental Model</div>
+    <h2>A scraper is a <em>pipeline</em>, not a library.</h2>
+    <p class="lead">Every scraper passes through these seven stages. Tools live at one or two of them. The mistake everyone makes is collapsing all seven into "scraping" and then comparing Scrapy to Playwright as if they were alternatives. They're not — they live at different stages.</p>
+
+    <div class="pipeline" id="pipeline">
+      <div class="stage" data-stage="0"><div><div class="stage-num">01</div><div class="stage-name">Discover</div></div><div class="stage-hint">Find URLs</div></div>
+      <div class="stage" data-stage="1"><div><div class="stage-num">02</div><div class="stage-name">Fetch</div></div><div class="stage-hint">Get raw bytes</div></div>
+      <div class="stage" data-stage="2"><div><div class="stage-num">03</div><div class="stage-name">Render</div></div><div class="stage-hint">Execute JS</div></div>
+      <div class="stage" data-stage="3"><div><div class="stage-num">04</div><div class="stage-name">Parse</div></div><div class="stage-hint">HTML → tree</div></div>
+      <div class="stage" data-stage="4"><div><div class="stage-num">05</div><div class="stage-name">Extract</div></div><div class="stage-hint">Pull fields</div></div>
+      <div class="stage" data-stage="5"><div><div class="stage-num">06</div><div class="stage-name">Store</div></div><div class="stage-hint">Persist, dedupe</div></div>
+      <div class="stage" data-stage="6"><div><div class="stage-num">07</div><div class="stage-name">Orchestrate</div></div><div class="stage-hint">Schedule, retry</div></div>
+    </div>
+    <div class="pipeline-detail" id="pipeline-detail">
+      <h4>Click any stage</h4>
+      <p class="detail-desc">Each stage has its own set of tools, tradeoffs, and failure modes. Try <span class="mono">04 · Parse</span> or <span class="mono">07 · Orchestrate</span>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== DECISION GEOMETRY ====== -->
+<section id="geometry">
+  <div class="wrap">
+    <div class="sec-label">Chapter II — Locate Your Site</div>
+    <h2>Three axes determine <em>your stack</em>.</h2>
+    <p class="lead">Before picking a library, locate yourself in three dimensions. Every meaningful scraping decision is a point in this space — and most "should I use X or Y?" debates are arguments about the wrong axis.</p>
+
+    <div class="geometry">
+      <svg viewBox="0 0 800 380" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+        <!-- axes -->
+        <line x1="80" y1="320" x2="720" y2="320" stroke="#2d2d2d" stroke-width="1.5"/>
+        <line x1="80" y1="320" x2="80" y2="60" stroke="#2d2d2d" stroke-width="1.5"/>
+        <line x1="80" y1="320" x2="240" y2="200" stroke="#2d2d2d" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+        <!-- axis labels -->
+        <text x="730" y="325" font-size="11" fill="#2d2d2d">DATA LOCATION →</text>
+        <text x="80" y="50" text-anchor="middle" font-size="11" fill="#2d2d2d">↑ ANTI-BOT PRESSURE</text>
+        <text x="245" y="195" font-size="11" fill="#2d2d2d">↗ MAINT.</text>
+
+        <!-- bottom axis ticks -->
+        <text x="80" y="345" font-size="10" fill="#999999">HTML</text>
+        <text x="280" y="345" font-size="10" fill="#999999">JS-RENDERED</text>
+        <text x="500" y="345" font-size="10" fill="#999999">AGENT-NEEDED</text>
+        <text x="680" y="345" font-size="10" fill="#999999">VARIED</text>
+
+        <!-- left axis ticks -->
+        <text x="40" y="325" font-size="10" fill="#999999">OPEN</text>
+        <text x="40" y="220" font-size="10" fill="#999999">FRICTION</text>
+        <text x="40" y="120" font-size="10" fill="#999999">FORTRESS</text>
+
+        <!-- zone: tier 1 - bottom-left -->
+        <rect x="80" y="240" width="180" height="80" fill="#c4825a" fill-opacity="0.08" stroke="#c4825a" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="90" y="260" font-size="11" font-weight="500" fill="#c4825a">BUILDING BLOCKS</text>
+        <text x="90" y="276" font-size="10" fill="#6b6b6b">httpx + parsel</text>
+        <text x="90" y="290" font-size="10" fill="#6b6b6b">JSON-LD first</text>
+
+        <!-- zone: tier 2/3 - middle -->
+        <rect x="260" y="180" width="200" height="100" fill="#c4825a" fill-opacity="0.12" stroke="#c4825a" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="270" y="200" font-size="11" font-weight="500" fill="#c4825a">BROWSER + FRAMEWORK</text>
+        <text x="270" y="216" font-size="10" fill="#6b6b6b">Playwright</text>
+        <text x="270" y="230" font-size="10" fill="#6b6b6b">+ Scrapy / Crawlee</text>
+
+        <!-- zone: tier 4c - upper-mid -->
+        <rect x="380" y="100" width="200" height="100" fill="#4a7c59" fill-opacity="0.12" stroke="#4a7c59" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="390" y="120" font-size="11" font-weight="500" fill="#4a7c59">INFRASTRUCTURE</text>
+        <text x="390" y="136" font-size="10" fill="#6b6b6b">Browserbase</text>
+        <text x="390" y="150" font-size="10" fill="#6b6b6b">+ stealth + proxies</text>
+
+        <!-- zone: tier 4d - upper-right -->
+        <rect x="540" y="140" width="180" height="120" fill="#2d2d2d" fill-opacity="0.08" stroke="#2d2d2d" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="550" y="160" font-size="11" font-weight="500" fill="#2d2d2d">AI AGENTS</text>
+        <text x="550" y="176" font-size="10" fill="#6b6b6b">Browser Use</text>
+        <text x="550" y="190" font-size="10" fill="#6b6b6b">Stagehand · Skyvern</text>
+
+        <!-- arrows showing relationship -->
+        <path d="M 200 280 Q 300 280 280 250" fill="none" stroke="#999999" stroke-width="1" marker-end="url(#arrow)"/>
+        <path d="M 380 200 Q 440 130 480 130" fill="none" stroke="#999999" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#999999"/>
+          </marker>
+        </defs>
+      </svg>
+
+      <div class="legend">
+        <div class="legend-item">
+          <h5>→ Data Location</h5>
+          <p>Is the data in initial HTML, rendered by JS, behind interaction, or wildly varied across sites? Determines whether you need a browser.</p>
+        </div>
+        <div class="legend-item">
+          <h5>↑ Anti-Bot Pressure</h5>
+          <p>Open sites need nothing. Friction sites need proxies and delays. Fortress sites (Cloudflare, Datadome) need residential IPs + stealth.</p>
+        </div>
+        <div class="legend-item">
+          <h5>↗ Maintenance Appetite</h5>
+          <p>Hand-wired control, framework defaults, or pay-to-skip. Pushes you up the build→buy ladder of tool categories regardless of the other two axes.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== TIERS ====== -->
+<section id="tiers">
+  <div class="wrap">
+    <div class="sec-label">Chapter III — Choose &amp; Compose Your Stack</div>
+    <h2>Pick by <em>stage</em>, not by category.</h2>
+    <p class="lead">A scraper is 2–4 tool categories stacked. Most confusion — "Playwright vs Scrapy?", "Browserbase vs Browser Use?" — comes from comparing tools that fill <em>different</em> stages. They're not alternatives. Here's the full map.</p>
+
+    <div class="sec-label">The shape of every scraper</div>
+    <p class="lead" style="margin-bottom:20px;"><strong>One spine you climb only when forced — plus one add-on when volume is high, and one bypass if you'd rather pay.</strong> Remember that sentence and you have this chapter. The six categories aren't a flat menu; they play three different roles.</p>
+
+    <div class="role-label">① The spine — climb only when the rung below fails</div>
+    <div class="decision-tree">
+      <div class="dt-step">
+        <div class="dt-q"><span class="dt-num">1</span>Data already in the HTML (or a hidden JSON/XHR API)?</div>
+        <div class="dt-out">→ <strong>Building Blocks</strong> · httpx + parser<span class="dt-tag cheap">cheapest · try first</span></div>
+      </div>
+      <div class="dt-step">
+        <div class="dt-q"><span class="dt-num">2</span>Page only appears after JavaScript runs?</div>
+        <div class="dt-out">→ <strong>Browser Automation</strong> · Playwright<span class="dt-tag">RAM-heavy · 50–100× slower</span></div>
+      </div>
+      <div class="dt-step">
+        <div class="dt-q"><span class="dt-num">3</span>Local browser gets fingerprinted / blocked?</div>
+        <div class="dt-out">→ <strong>Browser Infrastructure</strong> · Browserbase…<span class="dt-tag">+ residential proxies · $/session</span></div>
+      </div>
+      <div class="dt-step">
+        <div class="dt-q"><span class="dt-num">4</span>Layouts vary wildly, selectors keep breaking?</div>
+        <div class="dt-out">→ <strong>AI Browser Agents</strong><span class="dt-tag last">last resort · LLM cost</span></div>
+      </div>
+    </div>
+
+    <div class="cluster-glance">
+      <div class="cluster build">
+        <div class="cluster-h">② The add-on <span>for scale</span></div>
+        <div class="cluster-items"><strong>Frameworks</strong> — Scrapy, Crawlee. Bolt onto <em>any</em> spine rung once you hit ~10k+ pages on a schedule: queue, retry, dedupe, rate-limit for free. Not harder fetching — <em>orchestration</em>.</div>
+      </div>
+      <div class="cluster buy">
+        <div class="cluster-h">③ The bypass <span>pay to skip</span></div>
+        <div class="cluster-items"><strong>Managed APIs</strong> — Firecrawl, Jina. Skip the spine entirely: URL in, clean data out, ~$0.001–0.01/page. Great for prototypes and &lt;100k pages/month; the bill grows with volume.</div>
+      </div>
+    </div>
+
+    <details class="map-fold">
+      <summary>See the full stack as one map</summary>
+    <div class="layer-map">
+
+      <div class="lm-shortcut">
+        <div>
+          <div class="lm-shortcut-label">Shortcut — skip everything below</div>
+          <div class="lm-shortcut-title">Managed Extraction APIs</div>
+          <div class="lm-shortcut-note">URL in, clean structured data out. No setup, no infrastructure. Best for &lt;100k pages/month or fast prototypes.</div>
+        </div>
+        <div class="lm-shortcut-tools">
+          <span class="lm-tool accent">Firecrawl</span>
+          <span class="lm-tool">Jina Reader</span>
+          <span class="lm-tool">Diffbot</span>
+        </div>
+      </div>
+
+      <div class="lm-divider">— or build your own stack, stage by stage —</div>
+
+      <div class="lm-row">
+        <div class="lm-label">
+          <span class="lm-tag opt">Optional</span>
+          <span class="lm-name">AI Agent</span>
+        </div>
+        <div class="lm-body">
+          <div class="lm-tools">
+            <span class="lm-tool accent">Browser Use</span>
+            <span class="lm-tool accent">Stagehand</span>
+            <span class="lm-tool">Skyvern</span>
+          </div>
+          <div class="lm-note">LLM reads the page and decides what to click or extract. Add this when you have many different site layouts and selectors keep breaking.</div>
+        </div>
+      </div>
+
+      <div class="lm-connector">↓ drives</div>
+
+      <div class="lm-row">
+        <div class="lm-label">
+          <span class="lm-tag opt">Optional</span>
+          <span class="lm-name">Orchestration</span>
+        </div>
+        <div class="lm-body">
+          <div class="lm-tools">
+            <span class="lm-tool accent">Scrapy</span>
+            <span class="lm-tool accent">Crawlee</span>
+            <span class="lm-tool">plain script</span>
+          </div>
+          <div class="lm-note">Queue, retry, dedupe, rate-limit. Earns its keep above 10k pages. A plain script is fine for anything smaller.</div>
+        </div>
+      </div>
+
+      <div class="lm-connector">↓ coordinates</div>
+
+      <div class="lm-row" style="background:rgba(181,78,31,0.02);">
+        <div class="lm-label" style="background:rgba(181,78,31,0.07);">
+          <span class="lm-tag req">Required</span>
+          <span class="lm-name">Fetch + Render</span>
+          <span class="lm-pick">pick one →</span>
+        </div>
+        <div class="lm-body-split">
+          <div>
+            <div class="lm-tools">
+              <span class="lm-tool accent">httpx</span>
+              <span class="lm-tool">parsel</span>
+              <span class="lm-tool">lxml</span>
+            </div>
+            <div class="lm-note" style="margin-top:6px;">Static HTML — 50–100× faster, no cost. Try this first. Check the Network tab for a hidden XHR before reaching for a browser.</div>
+          </div>
+          <div class="lm-or">or</div>
+          <div>
+            <div class="lm-tools">
+              <span class="lm-tool accent">Playwright</span>
+              <span class="lm-tool">patchright</span>
+              <span class="lm-tool">camoufox</span>
+            </div>
+            <div class="lm-note" style="margin-top:6px;">JS-rendered pages. Use when disabling JavaScript makes the page blank and there's no XHR to call directly.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lm-connector">↓ runs on &nbsp;·&nbsp; Playwright only</div>
+
+      <div class="lm-row">
+        <div class="lm-label">
+          <span class="lm-tag opt">Optional</span>
+          <span class="lm-name">Infrastructure</span>
+          <span class="lm-pick">pick one →</span>
+        </div>
+        <div class="lm-body-split">
+          <div>
+            <div class="lm-tools"><span class="lm-tool">Local Chrome</span></div>
+            <div class="lm-note" style="margin-top:6px;">Free. Works until the site fingerprints your browser or IP range.</div>
+          </div>
+          <div class="lm-or">or</div>
+          <div>
+            <div class="lm-tools">
+              <span class="lm-tool accent">Browserbase</span>
+              <span class="lm-tool">Hyperbrowser</span>
+              <span class="lm-tool">Steel</span>
+            </div>
+            <div class="lm-note" style="margin-top:6px;">Cloud Chrome + residential proxies + stealth. Same Playwright code — different where Chrome runs.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    </details>
+
+    <div class="sec-label" style="margin-top:52px;">Where the tree lands you — four common stacks</div>
+    <p class="lead" style="margin-bottom:16px;">Each recipe is where the decision tree above drops you. Pick the simplest that matches; add categories only when you need them.</p>
+
+    <div class="stack-recipes">
+      <div class="recipe">
+        <div class="recipe-head">
+          <span class="recipe-letter">A</span>
+          <span class="recipe-name">Static scraper</span>
+        </div>
+        <div class="recipe-body">
+          <div class="recipe-when">Data is in the initial HTML. No JS required. No heavy bot protection.</div>
+          <div class="recipe-layers">
+            <div class="recipe-layer"><span class="rl-name">Fetch</span><span class="rl-val">httpx async</span></div>
+            <div class="recipe-layer"><span class="rl-name">Extract</span><span class="rl-val">parsel — CSS selectors or JSON-LD</span></div>
+            <div class="recipe-layer"><span class="rl-name">Scale</span><span class="rl-val">Script → Scrapy when &gt;10k pages</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="recipe">
+        <div class="recipe-head">
+          <span class="recipe-letter">B</span>
+          <span class="recipe-name">JS-rendered pages</span>
+        </div>
+        <div class="recipe-body">
+          <div class="recipe-when">Page goes blank without JS. No accessible XHR endpoint. Moderate or no bot protection.</div>
+          <div class="recipe-layers">
+            <div class="recipe-layer"><span class="rl-name">Fetch+Render</span><span class="rl-val">Playwright + patchright</span></div>
+            <div class="recipe-layer"><span class="rl-name">Extract</span><span class="rl-val">Playwright locators or parsel</span></div>
+            <div class="recipe-layer"><span class="rl-name">Scale</span><span class="rl-val">Scrapy or Crawlee</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="recipe">
+        <div class="recipe-head">
+          <span class="recipe-letter">C</span>
+          <span class="recipe-name">Fortress site</span>
+        </div>
+        <div class="recipe-body">
+          <div class="recipe-when">Cloudflare / Datadome / Akamai wall. Local browsers get fingerprinted and blocked.</div>
+          <div class="recipe-layers">
+            <div class="recipe-layer"><span class="rl-name">Fetch+Render</span><span class="rl-val">Playwright + patchright</span></div>
+            <div class="recipe-layer"><span class="rl-name">Infra</span><span class="rl-val">Browserbase — cloud + residential proxies</span></div>
+            <div class="recipe-layer"><span class="rl-name">Challenges</span><span class="rl-val">Solver service (CapSolver / 2Captcha) for captcha · proof-of-work</span></div>
+            <div class="recipe-layer"><span class="rl-name">Scale</span><span class="rl-val">Scrapy or Crawlee</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="recipe">
+        <div class="recipe-head">
+          <span class="recipe-letter">D</span>
+          <span class="recipe-name">Varied or agentic</span>
+        </div>
+        <div class="recipe-body">
+          <div class="recipe-when">Many different site layouts, or task needs navigation + form-filling + extraction in sequence.</div>
+          <div class="recipe-layers">
+            <div class="recipe-layer"><span class="rl-name">Agent</span><span class="rl-val">Browser Use or Stagehand</span></div>
+            <div class="recipe-layer"><span class="rl-name">Fetch+Render</span><span class="rl-val">Playwright</span></div>
+            <div class="recipe-layer"><span class="rl-name">Infra</span><span class="rl-val">Browserbase</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-label" style="margin-top:52px;">Tool Reference</div>
+    <p class="lead" style="margin-bottom:24px;">Reference, not reading — expand a category only when you'll actually use it.</p>
+
+    <details class="tool-ref">
+      <summary>Open the detailed tool reference — 6 categories, with code</summary>
+    <div class="tiers-intro">
+      <strong>How to scan:</strong> match "When to use" to your situation, read the picks and code, skip the rest.
+    </div>
+
+    <!-- TIER 1 -->
+    <article class="tier-card">
+      <div class="tier-head">
+        <div class="tier-tag">01</div>
+        <div>
+          <h3>Building Blocks</h3>
+          <div class="tagline">HTTP + parser, hand-wired.</div>
+        </div>
+        <div class="tier-meta">
+          <div>SPEED · <strong>fastest</strong></div>
+          <div>COST · <strong>$0</strong></div>
+          <div>STAGE · fetch + parse</div>
+        </div>
+      </div>
+      <div class="tier-body">
+        <div>
+          <div class="when-list-label">When to use</div>
+          <ul class="when-list">
+            <li>Data is in the initial HTML response</li>
+            <li>You want full control over each request</li>
+            <li>You're scraping a single, well-structured site</li>
+          </ul>
+          <div class="when-list-label muted">When not to</div>
+          <ul class="when-list not">
+            <li>Page needs JavaScript to populate</li>
+            <li>You'd reinvent retry / queue / dedupe logic</li>
+          </ul>
+          <div style="margin-top: 16px;" class="when-list-label">Top picks</div>
+          <div class="pick-list">
+            <div class="pick"><span class="pick-name crown">httpx</span><span class="pick-desc">Async HTTP, modern default</span></div>
+            <div class="pick"><span class="pick-name crown">parsel</span><span class="pick-desc">Scrapy's parser, lxml speed + clean API</span></div>
+            <div class="pick"><span class="pick-name">lxml</span><span class="pick-desc">XPath support, very fast</span></div>
+            <div class="pick"><span class="pick-name">selectolax</span><span class="pick-desc">Fastest HTML parser, CPU-bound jobs</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="top-picks">→ Real code · JSON-LD first, selector fallback</div>
+          <div class="code-block">
+            <div class="code-head">
+              <span class="code-lang">Python</span>
+              <button class="copy-btn" data-code="t1">Copy</button>
+            </div>
+<pre><code id="code-t1"><span class="kw">import</span> httpx, json
+<span class="kw">from</span> parsel <span class="kw">import</span> Selector
+
+r = httpx.<span class="fn">get</span>(<span class="str">"https://example.com/product/123"</span>, timeout=10)
+sel = <span class="fn">Selector</span>(text=r.text)
+
+<span class="com"># Try JSON-LD first — free, structured, SEO-maintained</span>
+<span class="kw">for</span> script <span class="kw">in</span> sel.css(<span class="str">'script[type="application/ld+json"]::text'</span>):
+    data = json.<span class="fn">loads</span>(script.<span class="fn">get</span>())
+    <span class="kw">if</span> data.<span class="fn">get</span>(<span class="str">"@type"</span>) == <span class="str">"Product"</span>:
+        <span class="fn">print</span>(data[<span class="str">"name"</span>], data[<span class="str">"offers"</span>][<span class="str">"price"</span>])
+        <span class="kw">break</span>
+<span class="kw">else</span>:
+    <span class="com"># Fallback to selectors only if JSON-LD missing</span>
+    name = sel.css(<span class="str">"h1.product-title::text"</span>).<span class="fn">get</span>()
+    price = sel.css(<span class="str">".price::text"</span>).<span class="fn">get</span>()</code></pre>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- TIER 2 -->
+    <article class="tier-card">
+      <div class="tier-head">
+        <div class="tier-tag">02</div>
+        <div>
+          <h3>Browser Automation</h3>
+          <div class="tagline">When the page won't render without JavaScript.</div>
+        </div>
+        <div class="tier-meta">
+          <div>SPEED · <strong>50–100× slower</strong></div>
+          <div>COST · <strong>RAM-heavy</strong></div>
+          <div>STAGE · render</div>
+        </div>
+      </div>
+      <div class="tier-body">
+        <div>
+          <div class="when-list-label">When to use</div>
+          <ul class="when-list">
+            <li>Disabling JS makes the page go blank</li>
+            <li>You need to click / scroll / wait for hydration</li>
+            <li>No underlying API exists in the Network tab</li>
+          </ul>
+          <div class="when-list-label muted">When not to</div>
+          <ul class="when-list not">
+            <li>The page populates via an XHR you can call directly</li>
+            <li>RAM + concurrency budget is tight (~500MB each)</li>
+          </ul>
+          <div style="margin-top: 16px;" class="when-list-label">Top picks</div>
+          <div class="pick-list">
+            <div class="pick"><span class="pick-name crown">Playwright</span><span class="pick-desc">Modern default · async · auto-wait</span></div>
+            <div class="pick"><span class="pick-name">patchright</span><span class="pick-desc">Stealth-patched Playwright fork</span></div>
+            <div class="pick"><span class="pick-name">camoufox</span><span class="pick-desc">Fingerprint-evading Firefox build</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="top-picks">→ Real code · Playwright async</div>
+          <div class="code-block">
+            <div class="code-head">
+              <span class="code-lang">Python</span>
+              <button class="copy-btn" data-code="t2">Copy</button>
+            </div>
+<pre><code id="code-t2"><span class="kw">from</span> playwright.async_api <span class="kw">import</span> async_playwright
+
+<span class="kw">async with</span> <span class="fn">async_playwright</span>() <span class="kw">as</span> p:
+    browser = <span class="kw">await</span> p.chromium.<span class="fn">launch</span>()
+    page = <span class="kw">await</span> browser.<span class="fn">new_page</span>()
+    <span class="kw">await</span> page.<span class="fn">goto</span>(<span class="str">"https://example.com/products"</span>)
+    <span class="kw">await</span> page.<span class="fn">wait_for_selector</span>(<span class="str">".product-card"</span>)
+
+    cards = <span class="kw">await</span> page.<span class="fn">query_selector_all</span>(<span class="str">".product-card"</span>)
+    <span class="kw">for</span> card <span class="kw">in</span> cards:
+        name = <span class="kw">await</span> (<span class="kw">await</span> card.<span class="fn">query_selector</span>(<span class="str">".name"</span>)).<span class="fn">inner_text</span>()
+        <span class="fn">print</span>(name)
+
+    <span class="kw">await</span> browser.<span class="fn">close</span>()</code></pre>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- TIER 3 -->
+    <article class="tier-card">
+      <div class="tier-head">
+        <div class="tier-tag">03</div>
+        <div>
+          <h3>Frameworks</h3>
+          <div class="tagline">When you'd otherwise reinvent the wheels.</div>
+        </div>
+        <div class="tier-meta">
+          <div>SPEED · <strong>battle-tested</strong></div>
+          <div>COST · learning curve</div>
+          <div>STAGE · orchestrate</div>
+        </div>
+      </div>
+      <div class="tier-body">
+        <div>
+          <div class="when-list-label">When to use</div>
+          <ul class="when-list">
+            <li>10k+ pages, recurring schedule</li>
+            <li>Multiple sites, similar pipeline shape</li>
+            <li>You need queue, retry, dedupe for free</li>
+          </ul>
+          <div class="when-list-label muted">When not to</div>
+          <ul class="when-list not">
+            <li>One-off &lt; 1k pages — script is enough</li>
+            <li>Extraction is primarily LLM-based</li>
+          </ul>
+          <div style="margin-top: 16px;" class="when-list-label">Top picks</div>
+          <div class="pick-list">
+            <div class="pick"><span class="pick-name crown">Scrapy</span><span class="pick-desc">Production-grade, massive middleware ecosystem</span></div>
+            <div class="pick"><span class="pick-name">Crawlee</span><span class="pick-desc">Modern asyncio, integrated headless support</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="top-picks">→ Real code · A minimal Scrapy spider</div>
+          <div class="code-block">
+            <div class="code-head">
+              <span class="code-lang">Python</span>
+              <button class="copy-btn" data-code="t3">Copy</button>
+            </div>
+<pre><code id="code-t3"><span class="kw">import</span> scrapy
+
+<span class="kw">class</span> <span class="fn">ProductSpider</span>(scrapy.Spider):
+    name = <span class="str">"products"</span>
+    start_urls = [<span class="str">"https://example.com/category"</span>]
+
+    <span class="kw">def</span> <span class="fn">parse</span>(self, response):
+        <span class="kw">for</span> p <span class="kw">in</span> response.css(<span class="str">".product-card"</span>):
+            <span class="kw">yield</span> {
+                <span class="str">"name"</span>:  p.css(<span class="str">"h3::text"</span>).<span class="fn">get</span>(),
+                <span class="str">"price"</span>: p.css(<span class="str">".price::text"</span>).<span class="fn">get</span>(),
+                <span class="str">"url"</span>:   p.css(<span class="str">"a::attr(href)"</span>).<span class="fn">get</span>(),
+            }
+        next_page = response.css(<span class="str">"a.next::attr(href)"</span>).<span class="fn">get</span>()
+        <span class="kw">if</span> next_page:
+            <span class="kw">yield</span> response.<span class="fn">follow</span>(next_page, self.parse)</code></pre>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- TIER 04 -->
+    <article class="tier-card">
+      <div class="tier-head">
+        <div class="tier-tag tag-4">04</div>
+        <div>
+          <h3>Managed Extraction APIs</h3>
+          <div class="tagline">URL in, clean data out. Pay-per-page.</div>
+        </div>
+        <div class="tier-meta">
+          <div>SPEED · fast prototyping</div>
+          <div>COST · <strong>$0.001 – $0.01 / page</strong></div>
+          <div>STAGE · fetch + render + parse + extract</div>
+        </div>
+      </div>
+      <div class="tier-body">
+        <div>
+          <div class="when-list-label">When to use</div>
+          <ul class="when-list">
+            <li>Prototyping fast — get data in minutes</li>
+            <li>Modest volume (&lt;100k pages/month)</li>
+            <li>Want LLM extraction without writing the stack</li>
+          </ul>
+          <div class="when-list-label muted">When not to</div>
+          <ul class="when-list not">
+            <li>Millions of pages — the bill explodes</li>
+            <li>Data is plainly structured (selectors are free)</li>
+          </ul>
+          <div style="margin-top: 16px;" class="when-list-label">Top picks</div>
+          <div class="pick-list">
+            <div class="pick"><span class="pick-name crown">Firecrawl</span><span class="pick-desc">URL → markdown / structured JSON via LLM schema</span></div>
+            <div class="pick"><span class="pick-name">Jina Reader</span><span class="pick-desc"><span class="mono">r.jina.ai/&lt;url&gt;</span> → instant clean markdown</span></div>
+            <div class="pick"><span class="pick-name">Diffbot</span><span class="pick-desc">Old guard, mature knowledge-graph extraction</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="top-picks">→ Real code · Firecrawl with a schema</div>
+          <div class="code-block">
+            <div class="code-head">
+              <span class="code-lang">Python</span>
+              <button class="copy-btn" data-code="t4a">Copy</button>
+            </div>
+<pre><code id="code-t4a"><span class="kw">from</span> firecrawl <span class="kw">import</span> FirecrawlApp
+
+app = <span class="fn">FirecrawlApp</span>(api_key=<span class="str">"fc-..."</span>)
+
+result = app.<span class="fn">scrape_url</span>(
+    <span class="str">"https://example.com/product/123"</span>,
+    params={
+        <span class="str">"formats"</span>: [<span class="str">"markdown"</span>, <span class="str">"extract"</span>],
+        <span class="str">"extract"</span>: {
+            <span class="str">"schema"</span>: {
+                <span class="str">"name"</span>:     <span class="str">"string"</span>,
+                <span class="str">"price"</span>:    <span class="str">"number"</span>,
+                <span class="str">"in_stock"</span>: <span class="str">"boolean"</span>,
+            }
+        }
+    }
+)
+<span class="fn">print</span>(result[<span class="str">"extract"</span>])</code></pre>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- TIER 05 -->
+    <article class="tier-card">
+      <div class="tier-head">
+        <div class="tier-tag tag-4">05</div>
+        <div>
+          <h3>Browser Infrastructure</h3>
+          <div class="tagline">"AWS for headless Chrome." Not a scraper — what runs underneath one.</div>
+        </div>
+        <div class="tier-meta">
+          <div>SPEED · same as Playwright</div>
+          <div>COST · <strong>per session-hour</strong></div>
+          <div>STAGE · render + anti-bot</div>
+        </div>
+      </div>
+      <div class="tier-body">
+        <div>
+          <div class="when-list-label">When to use</div>
+          <ul class="when-list">
+            <li>Self-managing browsers + proxies is becoming a tax</li>
+            <li>You need session replay for debugging at scale</li>
+            <li>Residential proxies + captcha solving included</li>
+          </ul>
+          <div class="when-list-label muted">When not to</div>
+          <ul class="when-list not">
+            <li>You're not even running a browser yet (building blocks fit)</li>
+            <li>Predictable low volume — local browsers are free</li>
+          </ul>
+          <div style="margin-top: 16px;" class="when-list-label">Top picks</div>
+          <div class="pick-list">
+            <div class="pick"><span class="pick-name crown">Browserbase</span><span class="pick-desc">Most established · Playwright-compatible · session replay</span></div>
+            <div class="pick"><span class="pick-name">Hyperbrowser</span><span class="pick-desc">Competing infra, similar shape</span></div>
+            <div class="pick"><span class="pick-name">Steel</span><span class="pick-desc">Self-hostable open-source alternative</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="top-picks">→ Real code · Playwright over Browserbase</div>
+          <div class="code-block">
+            <div class="code-head">
+              <span class="code-lang">Python</span>
+              <button class="copy-btn" data-code="t4c">Copy</button>
+            </div>
+<pre><code id="code-t4c"><span class="kw">from</span> browserbase <span class="kw">import</span> Browserbase
+<span class="kw">from</span> playwright.sync_api <span class="kw">import</span> sync_playwright
+
+bb = <span class="fn">Browserbase</span>(api_key=<span class="str">"bb_..."</span>)
+session = bb.sessions.<span class="fn">create</span>(project_id=<span class="str">"proj_..."</span>)
+
+<span class="com"># Same Playwright code — but runs on Browserbase's infra,</span>
+<span class="com"># with residential proxies + stealth handled automatically</span>
+<span class="kw">with</span> <span class="fn">sync_playwright</span>() <span class="kw">as</span> p:
+    browser = p.chromium.<span class="fn">connect_over_cdp</span>(session.connect_url)
+    page = browser.contexts[0].pages[0]
+    page.<span class="fn">goto</span>(<span class="str">"https://protected-site.com"</span>)
+    <span class="fn">print</span>(page.<span class="fn">title</span>())</code></pre>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- TIER 06 -->
+    <article class="tier-card">
+      <div class="tier-head">
+        <div class="tier-tag tag-4">06</div>
+        <div>
+          <h3>AI Browser Agents</h3>
+          <div class="tagline">Describe the task in English. The LLM drives the browser.</div>
+        </div>
+        <div class="tier-meta">
+          <div>SPEED · <strong>slow per page</strong></div>
+          <div>COST · <strong>LLM + browser</strong></div>
+          <div>STAGE · everything end-to-end</div>
+        </div>
+      </div>
+      <div class="tier-body">
+        <div>
+          <div class="when-list-label">When to use</div>
+          <ul class="when-list">
+            <li>Templates vary wildly — selectors keep breaking</li>
+            <li>Tasks involve navigation + form-filling + extraction</li>
+            <li>Self-healing matters more than per-page cost</li>
+          </ul>
+          <div class="when-list-label muted">When not to</div>
+          <ul class="when-list not">
+            <li>High-volume scrapes where cost dominates</li>
+            <li>Stable single-site extraction (overkill)</li>
+          </ul>
+          <div style="margin-top: 16px;" class="when-list-label">Top picks</div>
+          <div class="pick-list">
+            <div class="pick"><span class="pick-name crown">Browser Use</span><span class="pick-desc">Python · highest Mind2Web score · most-adopted</span></div>
+            <div class="pick"><span class="pick-name">Stagehand</span><span class="pick-desc">TypeScript · built by Browserbase · act/extract/observe</span></div>
+            <div class="pick"><span class="pick-name">Skyvern</span><span class="pick-desc">Vision-based · no selectors · resilient to redesigns</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="top-picks">→ Real code · Browser Use with natural language</div>
+          <div class="code-block">
+            <div class="code-head">
+              <span class="code-lang">Python</span>
+              <button class="copy-btn" data-code="t4d">Copy</button>
+            </div>
+<pre><code id="code-t4d"><span class="kw">from</span> browser_use <span class="kw">import</span> Agent
+<span class="kw">from</span> langchain_anthropic <span class="kw">import</span> ChatAnthropic
+
+agent = <span class="fn">Agent</span>(
+    task=(
+        <span class="str">"Go to example.com/products. "</span>
+        <span class="str">"Find all items under $50. "</span>
+        <span class="str">"Return name and price as JSON."</span>
+    ),
+    llm=<span class="fn">ChatAnthropic</span>(model=<span class="str">"claude-sonnet-4-5"</span>),
+)
+
+result = <span class="kw">await</span> agent.<span class="fn">run</span>()
+<span class="fn">print</span>(result.final_result)</code></pre>
+          </div>
+        </div>
+      </div>
+    </article>
+    </details>
+
+  </div>
+</section>
+
+<!-- ====== COMPOSITION ====== -->
+<section id="compose">
+  <div class="wrap">
+    <div class="sec-label">Composition — how the stack fits together</div>
+    <h2>Tool categories <em>stack</em>. Most production scrapers use three.</h2>
+    <p class="lead">A common point of confusion: "Browserbase vs Browser Use vs Playwright — which is best?" Wrong question. They're three different categories filling different stages of the same stack. Here's how they actually compose.</p>
+
+    <div class="composition">
+      <svg viewBox="0 0 800 360" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+        <!-- Layer stack -->
+        <!-- Layer: Your task -->
+        <rect x="100" y="20" width="600" height="55" fill="#c4825a" stroke="#e5ddd5" stroke-width="1.5"/>
+        <text x="120" y="42" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="0.1em">YOUR TASK</text>
+        <text x="120" y="60" font-size="13" font-family="Fraunces, serif" font-style="italic" fill="#ffffff">"Extract product info from 50 retailer sites every night"</text>
+
+        <!-- Category: AI browser agent -->
+        <rect x="100" y="85" width="600" height="55" fill="#b07149" stroke="#e5ddd5" stroke-width="1.5"/>
+        <text x="120" y="107" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="0.1em">AI BROWSER AGENT</text>
+        <text x="120" y="125" font-size="13" font-family="Fraunces, serif" font-style="italic" fill="#ffffff">Browser Use · Stagehand · Skyvern — translates task → browser actions</text>
+
+        <!-- Category: Browser automation -->
+        <rect x="100" y="150" width="600" height="55" fill="#4a7c59" stroke="#e5ddd5" stroke-width="1.5"/>
+        <text x="120" y="172" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="0.1em">BROWSER AUTOMATION</text>
+        <text x="120" y="190" font-size="13" font-family="Fraunces, serif" font-style="italic" fill="#ffffff">Playwright — drives the actual browser</text>
+
+        <!-- Category: Browser infrastructure -->
+        <rect x="100" y="215" width="600" height="55" fill="#e7decd" stroke="#e5ddd5" stroke-width="1.5"/>
+        <text x="120" y="237" font-size="11" font-weight="700" fill="#2d2d2d" letter-spacing="0.1em">BROWSER INFRASTRUCTURE</text>
+        <text x="120" y="255" font-size="13" font-family="Fraunces, serif" font-style="italic" fill="#2d2d2d">Browserbase — runs Chrome, rotates residential proxies, solves captchas</text>
+
+        <!-- Target -->
+        <rect x="100" y="280" width="600" height="55" fill="#ffffff" stroke="#c4825a" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="120" y="302" font-size="11" font-weight="700" fill="#2d2d2d" letter-spacing="0.1em">TARGET SITES</text>
+        <text x="120" y="320" font-size="13" font-family="Fraunces, serif" font-style="italic" fill="#2d2d2d">The retailers · with their own anti-bot stacks</text>
+
+        <!-- Arrows between layers -->
+        <path d="M 740 47 L 740 85" stroke="#2d2d2d" stroke-width="1.5" marker-end="url(#a2)"/>
+        <path d="M 740 112 L 740 150" stroke="#2d2d2d" stroke-width="1.5" marker-end="url(#a2)"/>
+        <path d="M 740 177 L 740 215" stroke="#2d2d2d" stroke-width="1.5" marker-end="url(#a2)"/>
+        <path d="M 740 242 L 740 280" stroke="#2d2d2d" stroke-width="1.5" marker-end="url(#a2)"/>
+
+        <defs>
+          <marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#2d2d2d"/>
+          </marker>
+        </defs>
+
+        <!-- Side notes -->
+        <text x="70" y="42" font-size="10" fill="#999999" text-anchor="end">Goal</text>
+        <text x="70" y="107" font-size="10" fill="#999999" text-anchor="end">Brain</text>
+        <text x="70" y="172" font-size="10" fill="#999999" text-anchor="end">Driver</text>
+        <text x="70" y="237" font-size="10" fill="#999999" text-anchor="end">Engine</text>
+        <text x="70" y="302" font-size="10" fill="#999999" text-anchor="end">Road</text>
+      </svg>
+      <p class="comp-caption">Read top-to-bottom: a task flows down through reasoning, driving, and infrastructure to reach the site. Each category can be swapped independently.</p>
+    </div>
+
+    <div class="callout">Choose categories, not products. A site change usually only forces you to swap one — keeping the others reduces blast radius.</div>
+  </div>
+</section>
+
+<!-- ====== DECISION FLOW ====== -->
+<section id="flow-section">
+  <div class="wrap">
+    <div class="sec-label">Converge — or let the guide pick your stack</div>
+    <h2>Five questions, in <em>this order</em>.</h2>
+    <p class="lead">Answer in sequence. The output is a recommended stack with the specific tools and what to watch for. Re-run it for each project; the answers shift more than you'd expect.</p>
+
+    <div class="flow" id="flow"></div>
+  </div>
+</section>
+
+<!-- ====== GOTCHAS ====== -->
+<section id="gotchas-section">
+  <div class="wrap">
+    <div class="sec-label">Chapter IV — Traps in Production</div>
+    <h2>Eight traps that <em>quietly</em> break scrapers.</h2>
+    <p class="lead">Each of these costs roughly a month of debugging to learn the hard way. Read them now and save yourself the tuition.</p>
+
+    <div class="gotchas">
+
+      <div class="gotcha">
+        <div class="gotcha-num">01</div>
+        <div>
+          <h4>Reaching for a browser before checking for an API.</h4>
+          <div class="symptom">SYMPTOM · <span>Playwright everywhere · slow + expensive</span></div>
+          <p>Open DevTools → Network → XHR. The page rendering with JavaScript is almost always calling a JSON endpoint internally. Hitting that endpoint with <span class="mono">httpx</span> is faster, cheaper, more stable, less detectable. Browsers should be the last resort, not the first reach.</p>
+        </div>
+      </div>
+
+      <div class="gotcha">
+        <div class="gotcha-num">02</div>
+        <div>
+          <h4>Skipping JSON-LD entirely.</h4>
+          <div class="symptom">SYMPTOM · <span>Hand-written selectors for fields already structured</span></div>
+          <p>Roughly 80% of e-commerce sites publish <span class="mono">schema.org/Product</span> as JSON-LD in the page head — the site owner maintains it for SEO. Free, structured, durable. Always try JSON-LD first. Selectors second. LLM extraction last.</p>
+        </div>
+      </div>
+
+      <div class="gotcha">
+        <div class="gotcha-num">03</div>
+        <div>
+          <h4>Sync HTTP at scale.</h4>
+          <div class="symptom">SYMPTOM · <span>10-hour jobs that should be 6 minutes</span></div>
+          <p>A sync scraper spends 95% of its time blocked on network. Switching <span class="mono">requests</span> for <span class="mono">httpx</span> async and firing 100 concurrent calls is the single biggest performance win available, and the code is almost identical.</p>
+        </div>
+      </div>
+
+      <div class="gotcha">
+        <div class="gotcha-num">04</div>
+        <div>
+          <h4>Vanilla Playwright on protected sites.</h4>
+          <div class="symptom">SYMPTOM · <span>"Just a moment..." Cloudflare page · empty results</span></div>
+          <p>Default Chromium has tell-tale fingerprints (<span class="mono">navigator.webdriver</span>, missing plugins, CDP traces) that Datadome and Cloudflare detect in milliseconds. You need <span class="mono">patchright</span>, <span class="mono">camoufox</span>, or a managed stealth browser. And the trap runs deeper than the browser: plain HTTP clients are fingerprinted at the <em>network</em> layer too (TLS/JA4, HTTP/2), so a bare <span class="mono">httpx</span> call is just as visible — for direct API hits under pressure, reach for a TLS-impersonating client (<span class="mono">curl_cffi</span>). The deeper rule: anti-bot scores every layer <em>together</em> — TLS, headers, JS, IP, timezone — so a spoofed user-agent over a Python TLS fingerprint is <em>more</em> detectable, not less. Present one coherent identity across all layers, or none.</p>
+        </div>
+      </div>
+
+      <div class="gotcha">
+        <div class="gotcha-num">05</div>
+        <div>
+          <h4>Datacentre proxies on serious sites.</h4>
+          <div class="symptom">SYMPTOM · <span>Cheap proxies that get blocked instantly</span></div>
+          <p>AWS, GCP, DigitalOcean IPs are pre-flagged by every major anti-bot vendor. Residential and ISP proxies (Bright Data, Oxylabs, Smartproxy) cost $5–$15 per GB, and that's the line item you can't skip. Budget for it on day one, not month two.</p>
+        </div>
+      </div>
+
+      <div class="gotcha">
+        <div class="gotcha-num">06</div>
+        <div>
+          <h4>Cancel-as-insert ghost rows.</h4>
+          <div class="symptom">SYMPTOM · <span>Duplicate records · phantom inventory · "off-by-one" reports</span></div>
+          <p>Many source systems model cancellations or refunds as inserts of a new row instead of updates to the original. Naive incremental scrapers see both rows as real and inventory or counts double. Always check the source's update semantics before trusting any incremental refresh.</p>
+        </div>
+      </div>
+
+      <div class="gotcha">
+        <div class="gotcha-num">07</div>
+        <div>
+          <h4>Treating LLM extraction as primary.</h4>
+          <div class="symptom">SYMPTOM · <span>$2k/month bills for what selectors do for $0</span></div>
+          <p>LLMs are seconds-per-page and cents-per-call. Selectors are microseconds and free. The right pattern: deterministic methods first, LLM only on novelty. Even better — capture the selector path the LLM implicitly used and reuse it next time. Self-healing selectors collapse your cost.</p>
+        </div>
+      </div>
+
+      <div class="gotcha">
+        <div class="gotcha-num">08</div>
+        <div>
+          <h4>Anti-bot drift.</h4>
+          <div class="symptom">SYMPTOM · <span>Scraper that worked in March returns empty pages in June</span></div>
+          <p>Stealth patches age. Fingerprint surfaces shift. Detection vendors update weekly. A scraper that ran clean in spring will silently start returning empty pages in summer. Build monitoring (success rate per domain, response-size distribution, captcha-encounter rate) into the pipeline from day one. Drift is the rule, not the exception.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ====== CONCEPTS ====== -->
+<section id="concepts-section">
+  <div class="wrap">
+    <div class="sec-label">Chapter V — Find Your Data · Extracting Fields</div>
+    <h2>Five ways to <em>extract</em> fields from a page.</h2>
+    <p class="lead">This is the <strong>Extract</strong> ladder — pulling fields out of a page you <em>already have</em>. (Finding the page's URL in the first place is a different problem — <strong>Discover</strong>, the next chapter.) Try these in order; each that works lets you skip everything below. Most scrapers never pass step three.</p>
+
+    <div class="priority-order">
+      <span class="po-label">Try in order →</span>
+      <span class="po-step"><span class="po-n">01</span>Network / XHR</span>
+      <span class="po-arr">→</span>
+      <span class="po-step"><span class="po-n">02</span>JSON-LD</span>
+      <span class="po-arr">→</span>
+      <span class="po-step"><span class="po-n">03</span>CSS Selectors</span>
+      <span class="po-arr">→</span>
+      <span class="po-step"><span class="po-n">04</span>XPath</span>
+      <span class="po-arr">→</span>
+      <span class="po-step"><span class="po-n">05</span>ARIA Locators</span>
+    </div>
+
+    <!-- STEP 01: Network / XHR -->
+    <div class="method-step">
+      <div class="step-num-block">
+        <span class="step-try">Try</span>
+        <span class="step-n">01</span>
+        <span class="step-badge">First</span>
+      </div>
+      <div class="step-body">
+        <h3>Network / XHR</h3>
+        <p class="step-why">Before writing any parsing code, check whether the page fetches its data from a hidden JSON API. If it does, you can call that endpoint directly — no HTML, no selectors, no browser needed. This is almost always the cleanest data you'll find.</p>
+        <div class="step-grid">
+          <div>
+            <div class="concept-h">How to spot it</div>
+            <ol style="font-size:13.5px; color:var(--ink-soft); padding-left:18px; line-height:1.9; margin-bottom:16px;">
+              <li>Open DevTools → <strong>Network</strong> tab</li>
+              <li>Filter to <strong>Fetch / XHR</strong></li>
+              <li>Reload — watch for JSON responses</li>
+              <li>Click a request → <strong>Response</strong> tab to inspect it</li>
+              <li>If it has your data: right-click → <strong>Copy as cURL</strong></li>
+            </ol>
+            <div class="concept-h">Use when</div>
+            <ul class="when-list" style="margin-top:4px;">
+              <li>Fetch/XHR calls appear in DevTools</li>
+              <li>Response is structured JSON</li>
+              <li>Pagination is a query parameter</li>
+            </ul>
+            <div class="when-list-label muted">Skip when</div>
+            <ul class="when-list not" style="margin-top:4px;">
+              <li>No XHR visible — data is server-rendered HTML</li>
+              <li>Endpoint requires rotating session tokens</li>
+            </ul>
+          </div>
+          <div>
+            <div class="concept-h">Call the endpoint directly (no browser)</div>
+            <div class="code-block">
+              <div class="code-head">
+                <span class="code-lang">Python</span>
+                <button class="copy-btn" data-code="lf-net-httpx">Copy</button>
+              </div>
+<pre><code id="code-lf-net-httpx"><span class="kw">import</span> httpx
+
+<span class="com"># Copy headers from DevTools → request headers</span>
+r = httpx.<span class="fn">get</span>(
+    <span class="str">"https://example.com/api/v2/products"</span>,
+    params={<span class="str">"page"</span>: 1, <span class="str">"limit"</span>: 50},
+    headers={
+        <span class="str">"accept"</span>: <span class="str">"application/json"</span>,
+        <span class="str">"x-requested-with"</span>: <span class="str">"XMLHttpRequest"</span>,
+    },
+)
+<span class="kw">for</span> item <span class="kw">in</span> r.<span class="fn">json</span>()[<span class="str">"data"</span>]:
+    <span class="fn">print</span>(item[<span class="str">"name"</span>], item[<span class="str">"price"</span>])</code></pre>
+            </div>
+            <div class="concept-h" style="margin-top:16px;">Or capture responses inside Playwright</div>
+            <div class="code-block">
+              <div class="code-head">
+                <span class="code-lang">Python</span>
+                <button class="copy-btn" data-code="lf-net-pw">Copy</button>
+              </div>
+<pre><code id="code-lf-net-pw">captured = []
+
+<span class="kw">async def</span> <span class="fn">on_response</span>(resp):
+    <span class="kw">if</span> <span class="str">"/api/products"</span> <span class="kw">in</span> resp.url <span class="kw">and</span> resp.status == 200:
+        <span class="kw">try</span>: captured.<span class="fn">append</span>(<span class="kw">await</span> resp.<span class="fn">json</span>())
+        <span class="kw">except</span> Exception: <span class="kw">pass</span>
+
+page.<span class="fn">on</span>(<span class="str">"response"</span>, on_response)
+<span class="kw">await</span> page.<span class="fn">goto</span>(<span class="str">"https://example.com/shop"</span>)
+<span class="kw">await</span> page.<span class="fn">wait_for_load_state</span>(<span class="str">"networkidle"</span>)
+<span class="fn">print</span>(captured)</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 02: JSON-LD -->
+    <div class="method-step">
+      <div class="step-num-block">
+        <span class="step-try">Try</span>
+        <span class="step-n">02</span>
+        <span class="step-badge">Second</span>
+      </div>
+      <div class="step-body">
+        <h3>JSON-LD</h3>
+        <p class="step-why">Many sites — especially e-commerce — embed perfectly structured data in a <code>&lt;script type="application/ld+json"&gt;</code> tag for search engines. That same data is free for you to read. No selector needed — just <code>json.loads()</code>.</p>
+        <div class="step-grid">
+          <div>
+            <div class="concept-h">How to spot it</div>
+            <p style="font-size:13.5px; color:var(--ink-soft); margin-bottom:14px;">DevTools → Elements → search <code>ld+json</code>. Look for a JSON object with <code>"@type": "Product"</code>, <code>"Article"</code>, <code>"Recipe"</code>, etc.</p>
+            <div class="concept-h">Common schema.org types</div>
+            <table class="ref-table">
+              <thead><tr><th>Type</th><th>Typical page</th><th>Key fields</th></tr></thead>
+              <tbody>
+                <tr><td>Product</td><td>e-commerce PDP</td><td>name, offers.price, sku</td></tr>
+                <tr><td>Article</td><td>news / blog</td><td>headline, author, datePublished</td></tr>
+                <tr><td>Recipe</td><td>food site</td><td>name, recipeIngredient, cookTime</td></tr>
+                <tr><td>BreadcrumbList</td><td>any</td><td>itemListElement[].name</td></tr>
+                <tr><td>Event</td><td>event listings</td><td>name, startDate, location</td></tr>
+              </tbody>
+            </table>
+            <div class="concept-h">Why it outlasts selectors</div>
+            <ul class="when-list" style="margin-top:4px;">
+              <li>Structured — no guessing element positions</li>
+              <li>SEO-maintained by site owner, stays accurate</li>
+              <li>Survives CSS and layout redesigns</li>
+            </ul>
+          </div>
+          <div>
+            <div class="concept-h">Extraction pattern (parsel)</div>
+            <div class="code-block">
+              <div class="code-head">
+                <span class="code-lang">Python</span>
+                <button class="copy-btn" data-code="lf-jsonld">Copy</button>
+              </div>
+<pre><code id="code-lf-jsonld"><span class="kw">import</span> httpx, json
+<span class="kw">from</span> parsel <span class="kw">import</span> Selector
+
+r = httpx.<span class="fn">get</span>(<span class="str">"https://example.com/product/42"</span>)
+sel = <span class="fn">Selector</span>(text=r.text)
+
+<span class="kw">for</span> blob <span class="kw">in</span> sel.css(
+    <span class="str">'script[type="application/ld+json"]::text'</span>
+).<span class="fn">getall</span>():
+    data = json.<span class="fn">loads</span>(blob)
+    <span class="kw">if</span> data.<span class="fn">get</span>(<span class="str">"@type"</span>) == <span class="str">"Product"</span>:
+        name  = data[<span class="str">"name"</span>]
+        price = data[<span class="str">"offers"</span>][<span class="str">"price"</span>]
+        sku   = data.<span class="fn">get</span>(<span class="str">"sku"</span>, <span class="str">""</span>)
+        <span class="fn">print</span>(name, price, sku)
+        <span class="kw">break</span></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 03: CSS Selectors -->
+    <div class="method-step">
+      <div class="step-num-block">
+        <span class="step-try">Try</span>
+        <span class="step-n">03</span>
+        <span class="step-badge">Third</span>
+      </div>
+      <div class="step-body">
+        <h3>CSS Selectors</h3>
+        <p class="step-why">The workhorse of web scraping. CSS selectors target HTML elements by tag, class, ID, or attribute. They work on static HTML without a browser — fast and cheap. Most scrapers live here.</p>
+        <div class="step-grid">
+          <div>
+            <div class="concept-h">Core syntax</div>
+            <table class="ref-table">
+              <thead><tr><th>Selector</th><th>Matches</th></tr></thead>
+              <tbody>
+                <tr><td>div</td><td>Any &lt;div&gt; element</td></tr>
+                <tr><td>.card</td><td>class includes "card"</td></tr>
+                <tr><td>#main</td><td>id="main"</td></tr>
+                <tr><td>[data-id="42"]</td><td>data-id equals "42"</td></tr>
+                <tr><td>div.card</td><td>&lt;div&gt; that also has class card</td></tr>
+                <tr><td>ul &gt; li</td><td>Direct &lt;li&gt; children of &lt;ul&gt;</td></tr>
+                <tr><td>h2 + p</td><td>&lt;p&gt; immediately after &lt;h2&gt;</td></tr>
+                <tr><td>:nth-child(2n)</td><td>Every even child</td></tr>
+              </tbody>
+            </table>
+            <div class="concept-h">parsel extras (not standard CSS)</div>
+            <table class="ref-table">
+              <thead><tr><th>Selector</th><th>Returns</th></tr></thead>
+              <tbody>
+                <tr><td>h1::text</td><td>Text content of &lt;h1&gt;</td></tr>
+                <tr><td>a::attr(href)</td><td>Value of href attribute</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <div class="concept-h">parsel example</div>
+            <div class="code-block">
+              <div class="code-head">
+                <span class="code-lang">Python</span>
+                <button class="copy-btn" data-code="lf-css-parsel">Copy</button>
+              </div>
+<pre><code id="code-lf-css-parsel"><span class="kw">import</span> httpx
+<span class="kw">from</span> parsel <span class="kw">import</span> Selector
+
+r = httpx.<span class="fn">get</span>(<span class="str">"https://example.com/products"</span>)
+sel = <span class="fn">Selector</span>(text=r.text)
+
+<span class="kw">for</span> card <span class="kw">in</span> sel.css(<span class="str">".product-card"</span>):
+    name  = card.css(<span class="str">"h3::text"</span>).<span class="fn">get</span>()
+    price = card.css(<span class="str">".price::text"</span>).<span class="fn">get</span>()
+    url   = card.css(<span class="str">"a::attr(href)"</span>).<span class="fn">get</span>()
+    <span class="fn">print</span>(name, price, url)</code></pre>
+            </div>
+            <div class="concept-h" style="margin-top:16px;">Playwright CSS extras</div>
+            <div class="code-block">
+              <div class="code-head">
+                <span class="code-lang">Python</span>
+                <button class="copy-btn" data-code="lf-css-pw">Copy</button>
+              </div>
+<pre><code id="code-lf-css-pw"><span class="com"># Playwright adds :has-text(), :visible, :has()</span>
+in_stock = page.<span class="fn">locator</span>(
+    <span class="str">".product-card:has-text('In stock'):visible"</span>
+)
+<span class="fn">print</span>(<span class="kw">await</span> in_stock.<span class="fn">count</span>())
+
+<span class="com"># Attribute selectors — more stable than generated class names</span>
+items = page.<span class="fn">locator</span>(<span class="str">"[data-product-id]"</span>)
+<span class="kw">async for</span> item <span class="kw">in</span> items.<span class="fn">all</span>():
+    pid = <span class="kw">await</span> item.<span class="fn">get_attribute</span>(<span class="str">"data-product-id"</span>)
+    <span class="fn">print</span>(pid)</code></pre>
+            </div>
+            <div class="callout" style="margin-top:14px; font-size:14px;">Avoid class names like <code>sc-a7f3b</code> — they change every deploy. Prefer <code>[data-*]</code> attributes or structural selectors.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 04: XPath -->
+    <div class="method-step">
+      <div class="step-num-block">
+        <span class="step-try">Try</span>
+        <span class="step-n">04</span>
+        <span class="step-badge">Fourth</span>
+      </div>
+      <div class="step-body">
+        <h3>XPath</h3>
+        <p class="step-why">XPath is a full query language for HTML trees. Reach for it when CSS falls short: selecting elements by text content, traversing <em>up</em> to a parent, or picking table cells by their header name.</p>
+        <div class="step-grid">
+          <div>
+            <div class="concept-h">Syntax reference</div>
+            <table class="ref-table">
+              <thead><tr><th>Expression</th><th>Meaning</th></tr></thead>
+              <tbody>
+                <tr><td>//div</td><td>Any &lt;div&gt; anywhere in the document</td></tr>
+                <tr><td>@href</td><td>The href attribute value</td></tr>
+                <tr><td>text()</td><td>Direct text nodes of the element</td></tr>
+                <tr><td>[@class='card']</td><td>Exact class attribute match</td></tr>
+                <tr><td>[contains(@class,'card')]</td><td>Class contains "card"</td></tr>
+                <tr><td>[contains(text(),'Price')]</td><td>Text contains "Price"</td></tr>
+                <tr><td>[1] / [last()]</td><td>First / last match</td></tr>
+                <tr><td>parent::div</td><td>Nearest &lt;div&gt; parent</td></tr>
+                <tr><td>ancestor::article[1]</td><td>Nearest &lt;article&gt; ancestor</td></tr>
+                <tr><td>following-sibling::dd[1]</td><td>First &lt;dd&gt; after this node</td></tr>
+              </tbody>
+            </table>
+            <div class="concept-h">When CSS can't, XPath can</div>
+            <ul class="when-list" style="margin-top:4px;">
+              <li>Selecting a parent or ancestor element</li>
+              <li>Matching by visible text (<code>text()='...'</code>)</li>
+              <li>Table cells selected by header name</li>
+            </ul>
+          </div>
+          <div>
+            <div class="concept-h">parsel example</div>
+            <div class="code-block">
+              <div class="code-head">
+                <span class="code-lang">Python</span>
+                <button class="copy-btn" data-code="lf-xpath">Copy</button>
+              </div>
+<pre><code id="code-lf-xpath"><span class="kw">from</span> parsel <span class="kw">import</span> Selector
+
+sel = <span class="fn">Selector</span>(text=html)
+
+<span class="com"># Select by text — CSS can't do this natively</span>
+price = sel.<span class="fn">xpath</span>(
+    <span class="str">'//dt[contains(text(),"Price")]'</span>
+    <span class="str">'/following-sibling::dd[1]/text()'</span>
+).<span class="fn">get</span>()
+
+<span class="com"># Walk UP to the containing card</span>
+sold_out = sel.<span class="fn">xpath</span>(
+    <span class="str">'//span[text()="Sold Out"]/ancestor::article[1]'</span>
+)
+<span class="kw">for</span> card <span class="kw">in</span> sold_out:
+    <span class="fn">print</span>(card.<span class="fn">xpath</span>(<span class="str">'.//h3/text()'</span>).<span class="fn">get</span>())
+
+<span class="com"># Attribute extraction</span>
+hrefs = sel.<span class="fn">xpath</span>(<span class="str">'//a[@rel="nofollow"]/@href'</span>).<span class="fn">getall</span>()</code></pre>
+            </div>
+            <div class="concept-h" style="margin-top:16px;">Playwright XPath</div>
+            <div class="code-block">
+              <div class="code-head">
+                <span class="code-lang">Python</span>
+                <button class="copy-btn" data-code="lf-xpath-pw">Copy</button>
+              </div>
+<pre><code id="code-lf-xpath-pw"><span class="com"># Prefix with "xpath=" in Playwright locators</span>
+heading = <span class="kw">await</span> page.<span class="fn">locator</span>(<span class="str">"xpath=//h1"</span>).<span class="fn">inner_text</span>()
+
+<span class="com"># Table cell selected by header text</span>
+cell = page.<span class="fn">locator</span>(
+    <span class="str">"xpath=//th[text()='Price']/following-sibling::td[1]"</span>
+)
+<span class="fn">print</span>(<span class="kw">await</span> cell.<span class="fn">inner_text</span>())</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 05: ARIA Locators -->
+    <div class="method-step">
+      <div class="step-num-block">
+        <span class="step-try">Try</span>
+        <span class="step-n">05</span>
+        <span class="step-badge">Playwright</span>
+      </div>
+      <div class="step-body">
+        <h3>ARIA &amp; Role Locators</h3>
+        <p class="step-why">Playwright's <code>get_by_*</code> methods find elements by what they <em>mean</em> — role, label, visible text, or placeholder — not how they look. They survive CSS refactors and are Playwright's recommended default for form interactions and navigation.</p>
+        <div class="step-grid">
+          <div>
+            <div class="concept-h">get_by_* methods</div>
+            <table class="ref-table">
+              <thead><tr><th>Method</th><th>Finds by</th></tr></thead>
+              <tbody>
+                <tr><td>get_by_role("button", name="Submit")</td><td>ARIA role + accessible name</td></tr>
+                <tr><td>get_by_label("Email")</td><td>&lt;label&gt; text or aria-label attr</td></tr>
+                <tr><td>get_by_text("Add to cart")</td><td>Any visible text content</td></tr>
+                <tr><td>get_by_placeholder("Search...")</td><td>Input placeholder</td></tr>
+                <tr><td>get_by_alt_text("Logo")</td><td>Image alt attribute</td></tr>
+                <tr><td>get_by_test_id("submit-btn")</td><td>data-testid attribute</td></tr>
+              </tbody>
+            </table>
+            <div class="concept-h">Locator precedence rule</div>
+            <ul class="when-list" style="margin-top:4px;">
+              <li><strong>1st:</strong> <code>get_by_role</code> — most semantically stable</li>
+              <li><strong>2nd:</strong> <code>get_by_label</code> / <code>get_by_text</code></li>
+              <li><strong>3rd:</strong> <code>get_by_test_id</code> — needs eng cooperation</li>
+              <li><strong>Last:</strong> CSS / XPath — only when above won't work</li>
+            </ul>
+          </div>
+          <div>
+            <div class="concept-h">Login + navigation example</div>
+            <div class="code-block">
+              <div class="code-head">
+                <span class="code-lang">Python</span>
+                <button class="copy-btn" data-code="lf-aria">Copy</button>
+              </div>
+<pre><code id="code-lf-aria"><span class="kw">from</span> playwright.async_api <span class="kw">import</span> async_playwright
+
+<span class="kw">async with</span> <span class="fn">async_playwright</span>() <span class="kw">as</span> p:
+    page = <span class="kw">await</span> (
+        <span class="kw">await</span> p.chromium.<span class="fn">launch</span>()
+    ).<span class="fn">new_page</span>()
+    <span class="kw">await</span> page.<span class="fn">goto</span>(<span class="str">"https://example.com/login"</span>)
+
+    <span class="com"># Form — survives CSS refactors</span>
+    <span class="kw">await</span> page.<span class="fn">get_by_label</span>(<span class="str">"Email"</span>).<span class="fn">fill</span>(<span class="str">"user@example.com"</span>)
+    <span class="kw">await</span> page.<span class="fn">get_by_label</span>(<span class="str">"Password"</span>).<span class="fn">fill</span>(<span class="str">"secret"</span>)
+    <span class="kw">await</span> page.<span class="fn">get_by_role</span>(
+        <span class="str">"button"</span>, name=<span class="str">"Sign in"</span>
+    ).<span class="fn">click</span>()
+
+    <span class="kw">await</span> page.<span class="fn">wait_for_url</span>(<span class="str">"**/dashboard"</span>)
+    h1 = <span class="kw">await</span> page.<span class="fn">get_by_role</span>(
+        <span class="str">"heading"</span>, level=1
+    ).<span class="fn">inner_text</span>()
+    <span class="fn">print</span>(h1)
+
+    <span class="com"># Nav links — chain locators</span>
+    nav = page.<span class="fn">get_by_role</span>(<span class="str">"navigation"</span>)
+    <span class="kw">for</span> link <span class="kw">in</span> <span class="kw">await</span> nav.<span class="fn">get_by_role</span>(<span class="str">"link"</span>).<span class="fn">all</span>():
+        <span class="fn">print</span>(<span class="kw">await</span> link.<span class="fn">inner_text</span>())</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ====== DISCOVER ====== -->
+<section id="discover-section">
+  <div class="wrap">
+    <div class="sec-label">Chapter VI — Discover · Finding the URL</div>
+    <h2>You can't fetch a URL you don't <em>have</em>.</h2>
+    <p class="lead">Most guides start at Fetch and assume a URL in hand. Often you don't have one — you have an <em>identity</em> (a name, an address, a registration number) and must find the site first. That's <strong>Discover</strong>, pipeline stage 1, and it's where enrichment projects actually begin.</p>
+
+    <div class="role-label">From identity → website — three hops</div>
+    <div class="decision-tree">
+      <div class="dt-step">
+        <div class="dt-q"><span class="dt-num">1</span>Resolve a clean identity</div>
+        <div class="dt-out">name + address + state. A business register (e.g. ABN Lookup) fills gaps and canonicalises the name — it returns identity + location, <em>not</em> a website.</div>
+      </div>
+      <div class="dt-step">
+        <div class="dt-q"><span class="dt-num">2</span>Find a candidate site</div>
+        <div class="dt-out">search <strong>name + address + state</strong> — a maps/places API returns the official site directly (its website field); a web-search API gives the top organic result. <em>Search the name + location, never the registration number — a number has nothing to match on.</em></div>
+      </div>
+      <div class="dt-step">
+        <div class="dt-q"><span class="dt-num">3</span>Verify it's the right one</div>
+        <div class="dt-out">does the page mention the name <em>and</em> match the suburb / postcode? A multi-signal match is the accept test — and the step people skip, where wrong data enters.</div>
+      </div>
+    </div>
+
+    <div class="role-label">When the business is gone — a trust-ordered fallback</div>
+    <p class="lead" style="margin-bottom:14px;">A defunct business may have no live site. Don't fail — climb a fallback chain, and <strong>tag how far down you had to go</strong> as provenance.</p>
+    <div class="decision-tree">
+      <div class="dt-step">
+        <div class="dt-q"><span class="dt-num">1</span>Its own site, still live?</div>
+        <div class="dt-out">→ use it<span class="dt-tag cheap">highest trust</span></div>
+      </div>
+      <div class="dt-step">
+        <div class="dt-q"><span class="dt-num">2</span>An archived snapshot?</div>
+        <div class="dt-out">→ fetch the old homepage from a web archive (Wayback Machine)<span class="dt-tag">high</span></div>
+      </div>
+      <div class="dt-step">
+        <div class="dt-q"><span class="dt-num">3</span>A parent company?</div>
+        <div class="dt-out">→ resolve the parent's site and infer from it<span class="dt-tag last">lower · holding-co risk</span></div>
+        <div class="dt-esc">↳ a diversified parent's industry ≠ the subsidiary's — mark provenance "inferred from parent"</div>
+      </div>
+      <div class="dt-step">
+        <div class="dt-q"><span class="dt-num">4</span>Nothing left?</div>
+        <div class="dt-out">→ infer from name + address text alone<span class="dt-tag last">lowest · flag it</span></div>
+      </div>
+    </div>
+
+    <div class="tiers-intro" style="margin-top:24px;">
+      <strong>Stack note:</strong> Discover is search/API-heavy on <em>open</em> sites — it lives on the cheapest spine rung (a places/search API + httpx + a parser). No browser or stealth needed. Cache results per entity; a false match is the costly failure, so verification (hop 3) is not optional.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="marque">— end of guide —</div>
+    <div class="col">Edition II · Read once · Save · Share · Refer back when stacks shift</div>
+  </div>
+</footer>
+
+<script>
+// ============================
+// PIPELINE INTERACTIVITY
+// ============================
+const stageData = [
+  { name: "01 · Discover", desc: "Finding the URLs worth fetching. Often skipped in tutorials, where the URL is given. In real scrapers this is half the work.", tools: ["sitemap.xml", "RSS feeds", "search APIs", "category crawls"], accent: "sitemap.xml" },
+  { name: "02 · Fetch", desc: "Sending an HTTP request, receiving bytes. The bedrock. Async clients keep many fetches in flight while waiting on slow servers.", tools: ["httpx", "aiohttp", "requests", "curl"], accent: "httpx" },
+  { name: "03 · Render", desc: "Executing the page's JavaScript so client-side content appears in the DOM. Required only when data isn't in the initial response. 50–100× slower than HTTP.", tools: ["Playwright", "Selenium", "patchright", "camoufox"], accent: "Playwright" },
+  { name: "04 · Parse", desc: "Turning HTML string into a navigable tree. Where lxml beats BeautifulSoup by an order of magnitude — and selectolax beats lxml again.", tools: ["parsel", "lxml", "BeautifulSoup", "selectolax"], accent: "parsel" },
+  { name: "05 · Extract", desc: "Pulling specific fields out of the tree. JSON-LD is free when it exists; selectors are next; LLMs are the expensive fallback.", tools: ["JSON-LD", "CSS selectors", "XPath", "LLM extraction"], accent: "JSON-LD" },
+  { name: "06 · Store", desc: "Persisting the result + deduplicating reruns. Append-only with timestamps beats in-place updates — you get free history and replay.", tools: ["SQLite", "Postgres", "Parquet", "S3", "JSONL"], accent: "SQLite" },
+  { name: "07 · Orchestrate", desc: "Scheduling, throttling, retrying, concurrency caps, error handling. The stage where frameworks (Scrapy, Crawlee) earn their keep with years of refined defaults.", tools: ["Scrapy", "Crawlee", "Celery", "Dramatiq", "cron"], accent: "Scrapy" }
+];
+
+const stageEls = document.querySelectorAll('.stage');
+const detail = document.getElementById('pipeline-detail');
+stageEls.forEach(el => {
+  el.addEventListener('click', () => {
+    stageEls.forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    const d = stageData[parseInt(el.dataset.stage)];
+    detail.innerHTML = `
+      <h4>${d.name}</h4>
+      <p class="detail-desc">${d.desc}</p>
+      <div class="tool-chips">
+        ${d.tools.map(t => `<span class="chip ${t === d.accent ? 'accent' : ''}">${t}</span>`).join('')}
+      </div>
+    `;
+  });
+});
+
+// ============================
+// COPY-TO-CLIPBOARD
+// ============================
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const codeEl = document.getElementById('code-' + btn.dataset.code);
+    const text = codeEl.innerText;
+    try {
+      await navigator.clipboard.writeText(text);
+      btn.textContent = '✓ Copied';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 1600);
+    } catch (e) {
+      btn.textContent = 'Press ⌘C';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1600);
+    }
+  });
+});
+
+// ============================
+// DECISION FLOW
+// ============================
+const questions = [
+  {
+    q: "What does your target page look like in DevTools?",
+    sub: "Open the page with JavaScript disabled. What happens to the data you want?",
+    options: [
+      { letter: "A", label: "All data is already in the initial HTML", value: "html" },
+      { letter: "B", label: "Page goes blank — JS hydrates it", value: "js" },
+      { letter: "C", label: "There's a JSON XHR endpoint I can see", value: "api" },
+      { letter: "D", label: "Many sites, each with a different layout", value: "varied" }
+    ]
+  },
+  {
+    q: "How much volume, how often?",
+    sub: "Across all targets, per run.",
+    options: [
+      { letter: "A", label: "Under 1,000 pages — one-off or rare", value: "small" },
+      { letter: "B", label: "10k – 500k pages, recurring nightly or weekly", value: "medium" },
+      { letter: "C", label: "Millions of pages, sustained", value: "large" }
+    ]
+  },
+  {
+    q: "How aggressive is the site's bot defense?",
+    sub: "Try fetching one page with a normal browser user-agent. What happens?",
+    options: [
+      { letter: "A", label: "Just works — nothing blocks me", value: "open" },
+      { letter: "B", label: "Rate limits, occasional captchas", value: "friction" },
+      { letter: "C", label: "Cloudflare / Datadome / Akamai wall", value: "fortress" }
+    ]
+  },
+  {
+    q: "What's your maintenance appetite?",
+    sub: "Honest answer — not aspirational.",
+    options: [
+      { letter: "A", label: "I want full control, happy to wire it myself", value: "diy" },
+      { letter: "B", label: "Sensible framework defaults, still self-host", value: "framework" },
+      { letter: "C", label: "Pay-to-skip is fine if it saves a week", value: "managed" }
+    ]
+  },
+  {
+    q: "What's your team's primary language?",
+    sub: "Affects agent choice if you go that way.",
+    options: [
+      { letter: "A", label: "Python", value: "py" },
+      { letter: "B", label: "TypeScript / JavaScript", value: "ts" },
+      { letter: "C", label: "Other / language-agnostic", value: "other" }
+    ]
+  }
+];
+
+let answers = [];
+let qIdx = 0;
+const flowEl = document.getElementById('flow');
+
+function renderFlow() {
+  if (qIdx >= questions.length) { renderResult(); return; }
+  const q = questions[qIdx];
+  const progress = questions.map((_, i) => {
+    if (i < qIdx) return '<div class="done"></div>';
+    if (i === qIdx) return '<div class="current"></div>';
+    return '<div></div>';
+  }).join('');
+
+  flowEl.innerHTML = `
+    <div class="flow-progress">${progress}</div>
+    <div class="flow-q">
+      <span class="q-num">Question ${String(qIdx+1).padStart(2,'0')} of ${String(questions.length).padStart(2,'0')}</span>
+      ${q.q}
+    </div>
+    <p class="flow-sub">${q.sub}</p>
+    <div class="flow-options">
+      ${q.options.map(o => `<button class="flow-opt" data-value="${o.value}"><span class="opt-letter">${o.letter}</span>${o.label}</button>`).join('')}
+    </div>
+  `;
+  flowEl.querySelectorAll('.flow-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      answers.push(btn.dataset.value);
+      qIdx++;
+      renderFlow();
+    });
+  });
+}
+
+function renderResult() {
+  const [where, volume, protection, appetite, lang] = answers;
+
+  // Fetch + render
+  let fetcher;
+  if (where === 'api') fetcher = 'Call the JSON XHR directly with <span class="stack-key">httpx</span> async. Skip rendering entirely.';
+  else if (where === 'html') fetcher = '<span class="stack-key">httpx</span> async + <span class="stack-key">parsel</span> selectors. JSON-LD first.';
+  else if (where === 'js') fetcher = '<span class="stack-key">Playwright</span> with stealth patches (<span class="stack-key">patchright</span>) if site is protected.';
+  else fetcher = '<span class="stack-key">Playwright</span> as driver; consider an AI agent on top.';
+
+  // Extraction
+  let extractor;
+  if (where === 'varied') {
+    extractor = 'AI agent (<span class="stack-key">Browser Use</span> or <span class="stack-key">Skyvern</span>) — selectors break too fast to maintain.';
+  } else {
+    extractor = 'JSON-LD → CSS/XPath selectors → LLM fallback (cache the LLM\'s selector path for reuse).';
+  }
+
+  // Orchestration
+  let orchestrator;
+  if (volume === 'small') orchestrator = 'No framework — a script is enough. Move to one if it grows.';
+  else if (volume === 'medium') orchestrator = '<span class="stack-key">Scrapy</span> or <span class="stack-key">Crawlee</span> for queue + retry + dedupe.';
+  else orchestrator = '<span class="stack-key">Scrapy</span> + distributed runners, or pay a managed platform.';
+
+  // Anti-bot
+  let antibot;
+  if (protection === 'open') antibot = 'Rotate user-agents. Throttle per-domain. That\'s likely enough.';
+  else if (protection === 'friction') antibot = 'Datacentre proxies + delays + sane concurrency caps.';
+  else antibot = 'Residential proxies (Bright Data / Oxylabs) + stealth browser (<span class="stack-key">patchright</span> / <span class="stack-key">camoufox</span>), OR managed infra (<span class="stack-key">Browserbase</span>) that bundles both. Add a solver service (<span class="stack-key">CapSolver</span> / <span class="stack-key">2Captcha</span>) when captchas or proof-of-work challenges appear. Keep every signal consistent — TLS, headers, IP, timezone scored together.';
+
+  // Agent choice based on language
+  let agent;
+  if (where === 'varied' || appetite === 'managed') {
+    if (lang === 'py') agent = '<span class="stack-key">Browser Use</span> (Python · best Mind2Web scores).';
+    else if (lang === 'ts') agent = '<span class="stack-key">Stagehand</span> (TypeScript · by Browserbase).';
+    else agent = '<span class="stack-key">Skyvern</span> (vision-based · language-agnostic API).';
+  } else {
+    agent = null;
+  }
+
+  // Headline
+  let headline;
+  if (appetite === 'managed' && protection === 'fortress') {
+    headline = 'Go <em>fully managed</em>.';
+  } else if (where === 'varied') {
+    headline = 'Use an <em>AI browser agent</em>.';
+  } else if (appetite === 'diy') {
+    headline = 'Build it <em>from blocks</em>.';
+  } else {
+    headline = 'Frame it with <em>Scrapy or Crawlee</em>.';
+  }
+
+  // Build the stack rows
+  let rows = '';
+  if (appetite === 'managed' && protection === 'fortress') {
+    rows += `<span class="stack-row"><span class="stack-key">Managed extract:</span> Firecrawl or Diffbot.</span>`;
+    rows += `<span class="stack-row"><span class="stack-key">Fallback infra:</span> Browserbase + Playwright.</span>`;
+  } else {
+    rows += `<span class="stack-row"><span class="stack-key">Fetch + Render:</span> ${fetcher}</span>`;
+    rows += `<span class="stack-row"><span class="stack-key">Extract:</span> ${extractor}</span>`;
+    rows += `<span class="stack-row"><span class="stack-key">Orchestrate:</span> ${orchestrator}</span>`;
+  }
+  rows += `<span class="stack-row"><span class="stack-key">Anti-bot:</span> ${antibot}</span>`;
+  if (agent) rows += `<span class="stack-row"><span class="stack-key">Agent:</span> ${agent}</span>`;
+
+  // Watch-for note
+  let warn = '';
+  if (where === 'varied') warn = 'Agent runs are slow and expensive per page. Cache selector paths the agent discovers; fall back to deterministic extraction next time.';
+  else if (protection === 'fortress') warn = 'Anti-bot drift is real. Build success-rate monitoring per domain from day one.';
+  else if (volume === 'large') warn = 'At this scale, residential proxies are the dominant bill. Forecast it before committing.';
+  else warn = 'Always check for a JSON XHR before reaching for a browser — it often makes browser automation unnecessary.';
+
+  flowEl.innerHTML = `
+    <div class="flow-progress">${questions.map(() => '<div class="done"></div>').join('')}</div>
+    <div class="flow-q" style="color: var(--muted); font-size: 14px;">
+      <span class="q-num">Recommendation</span>
+      Based on your five answers
+    </div>
+    <div class="flow-result">
+      <h4>Stack recommendation</h4>
+      <div class="reco">${headline}</div>
+      <div class="stack">${rows}</div>
+      <div class="stack" style="border-top: 1px dashed var(--rule); padding-top: 14px; margin-top: 14px;">
+        <span class="stack-row"><span class="stack-key">Watch for:</span> ${warn}</span>
+      </div>
+      <button class="flow-restart" id="restart">↻ Start over</button>
+    </div>
+  `;
+  document.getElementById('restart').addEventListener('click', () => {
+    answers = []; qIdx = 0; renderFlow();
+  });
+}
+
+renderFlow();
+
+// ============================
+// TOC ACTIVE STATE
+// ============================
+const tocLinks = document.querySelectorAll('.toc a');
+const sections = ['pipeline-section','geometry','tiers','gotchas-section','concepts-section','discover-section'].map(id => document.getElementById(id));
+
+function updateToc() {
+  let active = 0;
+  const mid = window.scrollY + window.innerHeight / 3;
+  sections.forEach((s, i) => {
+    if (s && s.offsetTop <= mid) active = i;
+  });
+  tocLinks.forEach((l, i) => l.classList.toggle('active', i === active));
+}
+window.addEventListener('scroll', updateToc, { passive: true });
+updateToc();
+</script>
+</body>
+</html>

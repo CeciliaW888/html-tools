@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Tools</title>
+  <style>
+    :root {
+      --bg: #06070d;
+      --bg-soft: #0d1020;
+      --panel: rgba(10, 14, 28, 0.76);
+      --panel-strong: rgba(14, 18, 34, 0.94);
+      --line: rgba(221, 194, 132, 0.22);
+      --text: #f6efdc;
+      --muted: #b9b09a;
+      --gold: #ddc284;
+      --gold-strong: #f3d69e;
+      --sky: #89a5ff;
+      --crimson: #9b4d43;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      --radius: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top, rgba(137, 165, 255, 0.18), transparent 35%),
+        radial-gradient(circle at 80% 20%, rgba(221, 194, 132, 0.15), transparent 22%),
+        linear-gradient(180deg, #080910 0%, #04050a 100%);
+      color: var(--text);
+      font-family: "Georgia", "Iowan Old Style", "Palatino Linotype", serif;
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background:
+        radial-gradient(circle at 20% 25%, rgba(255, 255, 255, 0.08) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 72% 35%, rgba(255, 255, 255, 0.06) 0 1px, transparent 1.4px),
+        radial-gradient(circle at 58% 72%, rgba(255, 255, 255, 0.08) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 33% 82%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1.6px);
+      opacity: 0.65;
+    }
+
+    body::after {
+      background:
+        linear-gradient(120deg, transparent 0 35%, rgba(221, 194, 132, 0.06) 50%, transparent 65%),
+        linear-gradient(transparent 0 96%, rgba(255, 255, 255, 0.02) 100%);
+      mix-blend-mode: screen;
+    }
+
+    .shell {
+      width: min(1160px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      min-height: 76vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+      gap: 24px;
+      align-items: stretch;
+      padding: 18px 0 40px;
+    }
+
+    .hero-card,
+    .tool-card,
+    .note-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      border-radius: 34px;
+      padding: 34px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(243, 214, 158, 0.18), transparent 28%),
+        radial-gradient(circle at 80% 18%, rgba(137, 165, 255, 0.18), transparent 22%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.02), transparent 55%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(221, 194, 132, 0.26);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.72rem;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    .hero-title {
+      font-size: clamp(3.3rem, 8vw, 6.6rem);
+      line-height: 0.94;
+      letter-spacing: 0.02em;
+      margin-top: 18px;
+      text-transform: uppercase;
+      text-wrap: balance;
+    }
+
+    .hero-copy {
+      margin-top: 20px;
+      max-width: 40rem;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .button,
+    .ghost-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 999px;
+      text-decoration: none;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .button {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-strong) 100%);
+      color: #1c1205;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .ghost-button {
+      color: var(--text);
+      border: 1px solid rgba(221, 194, 132, 0.24);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .button:hover,
+    .ghost-button:hover,
+    .tool-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .hero-side {
+      display: grid;
+      gap: 18px;
+    }
+
+    .note-card {
+      border-radius: 26px;
+      padding: 22px;
+      background: var(--panel-strong);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .note-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -10% 0 auto;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(243, 214, 158, 0.14), transparent 68%);
+      pointer-events: none;
+    }
+
+    .note-card h2,
+    .section-title {
+      font-size: 1.1rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .note-card p {
+      margin-top: 12px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .section {
+      margin-top: 18px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .section-copy {
+      max-width: 38rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .tool-card {
+      display: flex;
+      flex-direction: column;
+      border-radius: 30px;
+      padding: 22px;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+      transition: transform 180ms ease, border-color 180ms ease;
+    }
+
+    .tool-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top right, rgba(243, 214, 158, 0.14), transparent 26%),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.02), transparent 55%);
+      pointer-events: none;
+    }
+
+    .tool-preview {
+      height: 220px;
+      border-radius: 22px;
+      border: 1px solid rgba(221, 194, 132, 0.14);
+      background:
+        radial-gradient(circle at 50% 25%, rgba(243, 214, 158, 0.32), transparent 18%),
+        radial-gradient(circle at 30% 62%, rgba(137, 165, 255, 0.16), transparent 20%),
+        linear-gradient(180deg, rgba(17, 20, 38, 0.92), rgba(8, 10, 18, 0.98));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tool-preview::before {
+      content: "";
+      position: absolute;
+      inset: 18px 22px auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(243, 214, 158, 0.46), transparent);
+    }
+
+    .tool-preview::after {
+      content: "✦";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3.8rem;
+      color: rgba(243, 214, 158, 0.85);
+      text-shadow: 0 0 28px rgba(243, 214, 158, 0.45);
+    }
+
+    .tool-meta {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .tool-name {
+      font-size: 1.55rem;
+      letter-spacing: 0.03em;
+    }
+
+    .tool-pill {
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(221, 194, 132, 0.2);
+      color: var(--gold);
+      font-size: 0.76rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .tool-desc {
+      margin-top: 10px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .tool-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .tool-tags span {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: #cbc1ab;
+      font-size: 0.82rem;
+    }
+
+    .footer-note {
+      margin-top: 34px;
+      padding: 18px 0 4px;
+      color: #9e957f;
+      line-height: 1.7;
+      border-top: 1px solid rgba(221, 194, 132, 0.12);
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-card {
+        padding: 24px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        width: min(100% - 20px, 1160px);
+      }
+
+      .hero-title {
+        font-size: clamp(2.7rem, 17vw, 4.3rem);
+      }
+
+      .section-header {
+        align-items: start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <article class="hero-card">
+        <div class="eyebrow">Single-file browser tools</div>
+        <h1 class="hero-title">A growing gallery for beautiful little web instruments.</h1>
+        <p class="hero-copy">
+          HTML Tools is a collection of static, readable, self-contained browser tools. Each piece is designed to be useful,
+          inspectable, and easy to remix. The first entry is a mythology-inspired motion study lab for learning cinematic
+          timing, reveal patterns, glow treatment, and parallax staging.
+        </p>
+        <div class="hero-actions">
+          <a class="button" href="./tools/motion-lab/">Open Motion Lab</a>
+          <a class="ghost-button" href="https://developer.mozilla.org/en-US/docs/Web/HTML" target="_blank" rel="noreferrer">Built with plain HTML, CSS, JS</a>
+        </div>
+      </article>
+
+      <aside class="hero-side">
+        <section class="note-card">
+          <h2>Design intent</h2>
+          <p>
+            The collection should feel like a cabinet of crafted study artefacts, not a generic tools page. Warm metallic accents,
+            deep night backgrounds, and clear card structure leave room for many future tools without forcing a build system.
+          </p>
+        </section>
+        <section class="note-card">
+          <h2>What’s here now</h2>
+          <p>
+            Motion Lab teaches four reusable motion scenes: title reveal, celestial parallax, rune pulse, and cinematic quote pacing.
+            It includes playback and lighting controls so the scenes can be studied instead of just watched.
+          </p>
+        </section>
+      </aside>
+    </section>
+
+    <section class="section" aria-labelledby="tools-heading">
+      <div class="section-header">
+        <div>
+          <h2 id="tools-heading" class="section-title">Tool Gallery</h2>
+          <p class="section-copy">
+            The homepage is ready to scale into a collection. Each tool card can carry a preview, a short learning promise, and a
+            clean launch path into a single-file page.
+          </p>
+        </div>
+      </div>
+
+      <div class="tools-grid">
+        <a class="tool-card" href="./tools/motion-lab/">
+          <div class="tool-preview" aria-hidden="true"></div>
+          <div class="tool-meta">
+            <h3 class="tool-name">Motion Lab</h3>
+            <span class="tool-pill">Interactive study</span>
+          </div>
+          <p class="tool-desc">
+            A mythology-inspired motion design playground for practicing dramatic reveals, layered parallax depth, glowing symbols,
+            and cinematic pacing with editable copy and live controls.
+          </p>
+          <div class="tool-tags" aria-label="Tool topics">
+            <span>Motion timing</span>
+            <span>Parallax</span>
+            <span>Glow systems</span>
+            <span>Study artefact</span>
+          </div>
+        </a>
+
+        <a class="tool-card" href="./artefacts/">
+          <div class="tool-preview" aria-hidden="true"></div>
+          <div class="tool-meta">
+            <h3 class="tool-name">Artefact Gallery</h3>
+            <span class="tool-pill">Collection</span>
+          </div>
+          <p class="tool-desc">
+            Interactive HTML artefacts built across sessions — investing deep-dives, work references, and learning guides.
+            Each one replaces a wall of markdown with something you would actually read.
+          </p>
+          <div class="tool-tags" aria-label="Gallery topics">
+            <span>Investing</span>
+            <span>Work &amp; Analytics</span>
+            <span>Learning</span>
+            <span>Reference</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      Static by default. Single file per tool. Read the source, tweak the variables, and keep adding to the gallery.
+    </p>
+  </main>
+</body>
+</html>

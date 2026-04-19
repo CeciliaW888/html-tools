@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Australian Geography Units — ABS ASGS & friends</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f1720; --bg-2:#13202c; --surface:#172533; --surface-2:#1d3040;
+  --border:#2a3f52; --border-strong:#3a566e;
+  --text:#eaf1f7; --muted:#9bb2c6; --faint:#6f8aa1;
+  --accent:#46c2a8; --accent-2:#5aa9e6; --brass:#d8a657; --rose:#e8716d;
+  --mb:#7c5cff; --sa1:#5aa9e6; --sa2:#46c2a8; --sa3:#7bd389; --sa4:#d8a657;
+  --st:#e8956d; --au:#e8716d;
+  --shadow:0 10px 40px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;background:
+    radial-gradient(1200px 600px at 80% -10%, #1b3346 0%, transparent 60%),
+    radial-gradient(900px 500px at -10% 20%, #15283a 0%, transparent 55%),
+    var(--bg);
+  color:var(--text);line-height:1.55;min-height:100vh;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:38px 22px 90px}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* Header */
+header{margin-bottom:30px}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(2rem,4.4vw,3.1rem);
+  line-height:1.06;letter-spacing:-.01em;margin-bottom:14px}
+h1 em{font-style:italic;color:var(--brass)}
+.lede{font-size:1.06rem;color:var(--muted);max-width:760px}
+.lede b{color:var(--text);font-weight:600}
+
+/* Tabs */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:30px 0 24px;
+  border-bottom:1px solid var(--border);padding-bottom:0}
+.tab{appearance:none;border:0;background:transparent;color:var(--muted);
+  font-family:inherit;font-size:.92rem;font-weight:600;cursor:pointer;
+  padding:11px 16px;border-radius:10px 10px 0 0;position:relative;transition:.18s;
+  white-space:nowrap}
+.tab:hover{color:var(--text);background:var(--surface)}
+.tab.active{color:var(--text);background:var(--surface)}
+.tab.active::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;
+  background:var(--accent);border-radius:2px}
+.tab .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:middle}
+
+.panel{display:none;animation:fade .35s ease}
+.panel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Generic card */
+.card{background:linear-gradient(180deg,var(--surface),var(--bg-2));
+  border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+.section-title{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:600;margin-bottom:6px}
+.section-sub{color:var(--muted);margin-bottom:20px;max-width:780px}
+
+/* ---- MAIN STRUCTURE: ladder + detail ---- */
+.split{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:22px}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+
+.ladder{display:flex;flex-direction:column;gap:9px}
+.rung{display:flex;align-items:center;gap:14px;cursor:pointer;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:12px 14px;transition:.18s;position:relative;text-align:left;width:100%;
+  font-family:inherit;color:inherit}
+.rung:hover{border-color:var(--border-strong);transform:translateX(3px)}
+.rung.active{border-color:var(--lc);box-shadow:0 0 0 1px var(--lc), 0 8px 24px rgba(0,0,0,.3)}
+.rung .swatch{width:14px;height:42px;border-radius:6px;background:var(--lc);flex:0 0 auto}
+.rung .rinfo{flex:1;min-width:0}
+.rung .rname{font-weight:600;font-size:.98rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rung .rabbr{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--faint);
+  border:1px solid var(--border);border-radius:5px;padding:1px 6px}
+.rung .rmeta{font-size:.8rem;color:var(--muted);margin-top:2px}
+.rung .bar{height:6px;border-radius:4px;background:var(--lc);margin-top:7px;opacity:.85}
+.rung .nest-pill{font-size:.66rem;font-family:'JetBrains Mono',monospace;color:var(--faint)}
+
+.detail{background:var(--surface-2);border:1px solid var(--border);border-radius:14px;
+  padding:22px;align-self:start;position:sticky;top:18px;min-height:340px}
+.detail .dtag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;
+  font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dc);
+  border:1px solid var(--dc);border-radius:20px;padding:4px 11px;margin-bottom:14px}
+.detail h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.7rem;margin-bottom:4px}
+.detail .dsmall{color:var(--muted);font-size:.9rem;margin-bottom:18px}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.stat{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:11px 13px}
+.stat .k{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin-bottom:3px}
+.stat .v{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:1.05rem;color:var(--text)}
+.detail .ddesc{color:var(--text);font-size:.95rem;margin-bottom:14px}
+.detail .dnote{background:rgba(70,194,168,.08);border-left:3px solid var(--accent);
+  border-radius:0 8px 8px 0;padding:10px 13px;font-size:.86rem;color:var(--muted)}
+.detail .dnote b{color:var(--text)}
+
+/* nesting hint banner */
+.nest-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:var(--surface);border:1px dashed var(--border-strong);border-radius:12px;
+  padding:12px 16px;margin-top:18px;font-size:.86rem;color:var(--muted)}
+.nest-banner .chain{font-family:'JetBrains Mono',monospace;color:var(--accent-2);font-size:.8rem}
+
+/* ---- card grids (non-abs / other) ---- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:16px}
+.unit{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;
+  transition:.18s}
+.unit:hover{border-color:var(--border-strong);transform:translateY(-3px);box-shadow:var(--shadow)}
+.unit .utop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.unit .uname{font-weight:600;font-size:1.02rem}
+.unit .uabbr{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--bg);
+  background:var(--uc,#5aa9e6);border-radius:6px;padding:2px 7px;font-weight:600}
+.unit .ucount{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--muted);margin-bottom:8px}
+.unit .udesc{font-size:.88rem;color:var(--muted)}
+.unit .ufoot{margin-top:11px;padding-top:10px;border-top:1px solid var(--border);
+  font-size:.78rem;display:flex;align-items:center;gap:7px}
+.pill{font-size:.68rem;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:20px;font-weight:600}
+.pill.yes{background:rgba(123,211,137,.14);color:#9be0a8;border:1px solid rgba(123,211,137,.3)}
+.pill.no{background:rgba(232,113,109,.13);color:#f0a09d;border:1px solid rgba(232,113,109,.3)}
+
+/* compare table */
+.tbl{width:100%;border-collapse:collapse;margin-top:6px;font-size:.9rem}
+.tbl th,.tbl td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--border)}
+.tbl th{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);font-weight:600}
+.tbl td.mono{font-family:'JetBrains Mono',monospace;color:var(--accent-2)}
+.tbl tr:hover td{background:var(--surface)}
+
+/* remoteness ramp */
+.ramp{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.ra{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);
+  border-radius:11px;padding:12px 15px}
+.ra .rabar{height:30px;border-radius:6px;flex:0 0 auto}
+.ra .rtxt{flex:1}
+.ra .rt{font-weight:600}
+.ra .rd{font-size:.83rem;color:var(--muted)}
+
+/* callout */
+.callout{display:flex;gap:16px;align-items:flex-start;margin-top:22px;
+  background:linear-gradient(180deg,rgba(216,166,87,.09),rgba(216,166,87,.03));
+  border:1px solid rgba(216,166,87,.3);border-radius:14px;padding:18px 20px}
+.callout .ico{font-size:1.5rem;line-height:1}
+.callout h4{font-family:'Fraunces',serif;font-size:1.15rem;font-weight:600;margin-bottom:5px;color:var(--brass)}
+.callout p{font-size:.92rem;color:var(--muted)}
+.callout p b{color:var(--text)}
+
+footer{margin-top:46px;padding-top:20px;border-top:1px solid var(--border);
+  color:var(--faint);font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+footer a{color:var(--accent-2);text-decoration:none}
+.tip{position:relative;border-bottom:1px dotted var(--accent);cursor:help;color:var(--text)}
+.tip:hover::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 9px);
+  transform:translateX(-50%);background:#0a1118;color:var(--text);border:1px solid var(--border-strong);
+  border-radius:9px;padding:9px 12px;font-family:'Inter',sans-serif;font-weight:400;font-size:.8rem;
+  line-height:1.45;width:max-content;max-width:270px;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.55);
+  white-space:normal;text-align:left;pointer-events:none}
+.tip:hover::before{content:"";position:absolute;left:50%;bottom:calc(100% + 3px);transform:translateX(-50%);
+  border:6px solid transparent;border-top-color:var(--border-strong);z-index:60;pointer-events:none}
+
+/* glossary */
+.glossary{margin-top:30px;background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:4px 20px;box-shadow:var(--shadow)}
+.glossary summary{cursor:pointer;font-family:'Fraunces',serif;font-size:1.2rem;font-weight:600;
+  padding:16px 0;list-style:none;display:flex;align-items:center;gap:10px;user-select:none}
+.glossary summary::-webkit-details-marker{display:none}
+.glossary summary .chev{color:var(--accent);transition:.2s;font-family:'JetBrains Mono',monospace}
+.glossary[open] summary .chev{transform:rotate(90deg)}
+.glist{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:6px 0 22px}
+.gitem{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.gitem .gk{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--accent-2);font-size:.85rem;margin-bottom:3px}
+.gitem .gv{font-size:.85rem;color:var(--muted)}
+.hoverhint{font-size:.8rem;color:var(--faint);margin-top:12px}
+.hoverhint b{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Australian Statistical Geography · ASGS Edition 3 (2021)</div>
+  <h1>How Australia is <em>cut into areas</em> — and who cuts it</h1>
+  <p class="lede">The ABS builds one tidy <b>nesting</b> hierarchy (Mesh Block → SA1 → … → Australia)
+  and then <b>approximates</b> everyone else's boundaries — postcodes, councils, electorates, suburbs —
+  on top of it. That's why a <b>postcode never lines up perfectly</b> with statistical data.
+  Click around to see how each unit compares.</p>
+  <p class="hoverhint">💡 <b>Hover</b> any underlined acronym for its definition, or open the glossary at the foot of the page.</p>
+</header>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-p="main"><span class="dot" style="background:var(--sa2)"></span>Main structure (nests)</button>
+  <button class="tab" data-p="nonabs"><span class="dot" style="background:var(--brass)"></span>Non-ABS areas (approximated)</button>
+  <button class="tab" data-p="themes"><span class="dot" style="background:var(--accent-2)"></span>Remoteness &amp; SEIFA</button>
+  <button class="tab" data-p="auth"><span class="dot" style="background:var(--rose)"></span>Other authorities</button>
+</div>
+
+<!-- ===== MAIN STRUCTURE ===== -->
+<section class="panel active" id="panel-main">
+  <div class="card">
+    <div class="section-title">The Main Structure — one clean hierarchy</div>
+    <p class="section-sub">Each level is built entirely from the one below, with no overlaps and no gaps.
+    Every Mesh Block sits in exactly one SA1, every SA1 in exactly one SA2, and so on. Click a level for detail.
+    Bars show <b>typical population</b> on a log scale.</p>
+    <div class="split">
+      <div class="ladder" id="ladder"></div>
+      <div class="detail" id="detail"></div>
+    </div>
+    <div class="nest-banner">
+      <span>✅ Perfect nesting:</span>
+      <span class="chain">Mesh Block ⊂ SA1 ⊂ SA2 ⊂ SA3 ⊂ SA4 ⊂ State/Territory ⊂ Australia</span>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="ico">🔎</div>
+    <div>
+      <h4>The key idea</h4>
+      <p>The <b>SA1</b> is the workhorse: it's the smallest area with full census data, and it's where
+      <b>SEIFA</b> (incl. IRSAD) and <b>Remoteness</b> are actually computed. Everything coarser — suburb,
+      postcode, LGA — is a <b>population-weighted roll-up</b> of SA1s. The <b>Mesh Block</b> is smaller still,
+      but only releases dwelling/person counts (privacy), so it's used as the building block, not for analysis.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NON-ABS ===== -->
+<section class="panel" id="panel-nonabs">
+  <div class="card">
+    <div class="section-title">Non-ABS structures — borrowed boundaries</div>
+    <p class="section-sub">These belong to <i>other</i> authorities (Australia Post, councils, electoral
+    commissions, state gazetteers). The ABS re-creates them by <b>gluing together whole Mesh Blocks</b> that
+    best fit — so they're approximations that <b>don't nest cleanly</b> into the main structure.</p>
+    <div class="grid" id="nonabsGrid"></div>
+  </div>
+  <div class="callout">
+    <div class="ico">⚠️</div>
+    <div>
+      <h4>Why "postcode → anything" is fuzzy</h4>
+      <p>A <b>POA</b> (the ABS's postcode approximation) can straddle several SA2s, cross an LGA line, even
+      span a state border. So when you map a postcode to SEIFA, remoteness or an LGA, you're really asking
+      "which value holds the <b>majority</b> of this postcode's people?" — and sometimes there's no clean winner.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== THEMES ===== -->
+<section class="panel" id="panel-themes">
+  <div class="card" style="margin-bottom:18px">
+    <div class="section-title">Remoteness Areas — 5 classes</div>
+    <p class="section-sub">Built from SA1s using the ARIA+
+    road-distance-to-services score. This is the structure you asked about for postcode→remoteness.</p>
+    <div class="ramp" id="ramp"></div>
+  </div>
+  <div class="card">
+    <div class="section-title">SEIFA — 4 socio-economic indexes</div>
+    <p class="section-sub">All computed at <b>SA1</b> from ~16 census variables, then aggregated up. Higher = more advantaged
+    (except IRSD, which measures disadvantage only). ~1000 ≈ national median.</p>
+    <table class="tbl">
+      <thead><tr><th>Index</th><th>Full name</th><th>Measures</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">IRSD</td><td>Relative Socio-economic Disadvantage</td><td>Disadvantage only (low income, unemployment…)</td></tr>
+        <tr><td class="mono">IRSAD</td><td>Relative Socio-economic Advantage &amp; Disadvantage</td><td>Both ends — <b>this is the one in the house tool</b></td></tr>
+        <tr><td class="mono">IER</td><td>Economic Resources</td><td>Income, rent, mortgage, dwelling size</td></tr>
+        <tr><td class="mono">IEO</td><td>Education &amp; Occupation</td><td>Qualifications &amp; skilled jobs</td></tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:18px">
+      <div class="ico">🧭</div>
+      <div><h4>IRSD ≠ IRSAD</h4>
+      <p>A common mix-up: <b>IRSD</b> ranks <i>disadvantage</i>; <b>IRSAD</b> blends advantage <i>and</i> disadvantage.
+      They give different rankings for the same suburb — so always check which one a source quotes.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== AUTHORITIES ===== -->
+<section class="panel" id="panel-auth">
+  <div class="card">
+    <div class="section-title">ABS vs the original authorities</div>
+    <p class="section-sub">For most "everyday" boundaries there are <b>two versions</b>: the legal/official one from
+    its owner, and the ABS's Mesh-Block approximation used for statistics. They're close, not identical.</p>
+    <table class="tbl">
+      <thead><tr><th>Boundary</th><th>Owned by (authority)</th><th>ABS version</th><th>Catch</th></tr></thead>
+      <tbody id="authBody"></tbody>
+    </table>
+  </div>
+  <div class="callout">
+    <div class="ico">📮</div>
+    <div>
+      <h4>Postcodes aren't really areas</h4>
+      <p>Australia Post postcodes are <b>delivery constructs</b> — a postcode can be a single large building, a
+      PO-box range, or a roaming rural round, with <b>no official polygon</b>. The ABS <b>POA</b> invents an areal
+      footprint so postcodes can be mapped. That's why "the postcode boundary" you see is usually really an ABS POA.</p>
+    </div>
+  </div>
+</section>
+
+<details class="glossary">
+  <summary><span class="chev">▸</span>📖 Glossary — every acronym, defined</summary>
+  <div class="glist" id="glist"></div>
+</details>
+
+<footer>
+  <span>Figures are approximate, ASGS Edition 3 (2021). For analysis use the official ABS releases.</span>
+  <span><a href="https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs/latest-release" target="_blank">ABS ASGS ↗</a></span>
+</footer>
+
+</div>
+
+<script>
+// ---------- DATA ----------
+const MAIN = [
+  {abbr:'MB', name:'Mesh Block', color:'--mb', pop:50, popTxt:'~30–60 dwellings (~50 ppl)', count:'~358,000',
+   role:'building block', use:'The atom of the system. Smallest unit the ABS draws. Only dwelling & population counts are released — no detailed data, to protect privacy.',
+   note:'<b>Everything</b> larger is just whole Mesh Blocks grouped together.'},
+  {abbr:'SA1', name:'Statistical Area 1', color:'--sa1', pop:400, popTxt:'~200–800 ppl (avg ~400)', count:'~61,800',
+   role:'analysis base', use:'Smallest area with full census detail. SEIFA scores and Remoteness are calculated at this level. Built from Mesh Blocks.',
+   note:'If a method says "computed at SA1", this is why suburb/postcode numbers are roll-ups.'},
+  {abbr:'SA2', name:'Statistical Area 2', color:'--sa2', pop:10000, popTxt:'~3k–25k ppl (avg ~10k)', count:'~2,470',
+   role:'community', use:'Represents functional communities that interact socially and economically. The closest ABS unit to a "suburb" for data purposes.',
+   note:'Often the finest level used for regional economic & health statistics.'},
+  {abbr:'SA3', name:'Statistical Area 3', color:'--sa3', pop:75000, popTxt:'~30k–130k ppl', count:'~358',
+   role:'regional', use:'Groups of SA2s sharing regional infrastructure — regional towns, or clusters of suburbs in big cities.',
+   note:'Good for comparing regional cities and outer-metro districts.'},
+  {abbr:'SA4', name:'Statistical Area 4', color:'--sa4', pop:300000, popTxt:'~100k–500k+ ppl', count:'~107',
+   role:'labour market', use:'Largest sub-state region. Designed around labour markets — the level the ABS uses for monthly employment data.',
+   note:'Maps roughly to a "side of a city" or a large region.'},
+  {abbr:'S/T', name:'State / Territory', color:'--st', pop:3000000, popTxt:'6 states + 2 territories', count:'9 (incl. Other Territories)',
+   role:'jurisdiction', use:'The full states and territories, plus "Other Territories" (e.g. Christmas Is., Jervis Bay).',
+   note:'Every SA4 nests entirely inside one State/Territory.'},
+  {abbr:'AUS', name:'Australia', color:'--au', pop:26000000, popTxt:'~26.6 million ppl', count:'1',
+   role:'whole', use:'The top of the hierarchy — the sum of all the parts below.',
+   note:'One country, ~358,000 Mesh Blocks underneath it.'},
+];
+
+const NONABS = [
+  {abbr:'POA', name:'Postal Area', uc:'#d8a657', count:'~2,640 areas', nests:false,
+   desc:'ABS approximation of Australia Post postcodes, glued from whole Mesh Blocks. Can straddle SA2s, LGAs, even states.'},
+  {abbr:'SAL', name:'Suburb / Locality', uc:'#46c2a8', count:'~15,350 areas', nests:false,
+   desc:'Gazetted suburb & locality names from state authorities, approximated to Mesh Blocks. Best ABS match to a suburb name.'},
+  {abbr:'LGA', name:'Local Government Area', uc:'#5aa9e6', count:'~560 areas', nests:false,
+   desc:'Council areas (e.g. Central Coast Council). Owned by state local-government departments; ABS fits Mesh Blocks to them.'},
+  {abbr:'CED', name:'Commonwealth Electoral Div.', uc:'#e8716d', count:'151 divisions', nests:false,
+   desc:'Federal electorates. The legal versions are the AEC\'s; ABS rebuilds them from Mesh Blocks for census data.'},
+  {abbr:'SED', name:'State Electoral Division', uc:'#7c5cff', count:'varies by state', nests:false,
+   desc:'State/territory electorates from each state electoral commission, approximated to Mesh Blocks.'},
+  {abbr:'DZN', name:'Destination Zone', uc:'#7bd389', count:'~10,000+ zones', nests:false,
+   desc:'Transport-planning zones for journey-to-work data, defined with state transport authorities.'},
+];
+
+const RAMP = [
+  {t:'Major Cities of Australia', d:'Sydney, Melbourne, Brisbane & other metros', w:100, c:'#46c2a8'},
+  {t:'Inner Regional Australia', d:'e.g. much of the northern Central Coast', w:74, c:'#7bd389'},
+  {t:'Outer Regional Australia', d:'Larger country towns & their surrounds', w:54, c:'#d8a657'},
+  {t:'Remote Australia', d:'Sparsely settled, long drives to services', w:36, c:'#e8956d'},
+  {t:'Very Remote Australia', d:'Most isolated parts of the country', w:22, c:'#e8716d'},
+];
+
+const AUTH = [
+  ['Postcodes','Australia Post (delivery)','POA — Postal Area','Postcodes have no official polygon; POA invents one'],
+  ['Suburbs','State gazetteers / Geographical Names Boards','SAL — Suburb/Locality','Boundaries & spellings can lag the official gazette'],
+  ['Council areas','State local-government depts','LGA','Updated on ABS cycle, not the day a council merges'],
+  ['Federal seats','Australian Electoral Commission (AEC)','CED','AEC redistributions land in ABS later'],
+  ['Addresses','Geoscape G-NAF (PSMA)','— (uses MB/SA1)','The authoritative address↔coordinate source, separate from ASGS'],
+];
+
+// ---------- RENDER: main ladder ----------
+const maxLog = Math.log10(26000000);
+const ladder = document.getElementById('ladder');
+// Render top→bottom = whole country down to building block (drill-down order).
+for(let i=MAIN.length-1;i>=0;i--){
+  const d=MAIN[i];
+  const w = (Math.log10(d.pop)/maxLog)*100;
+  const b = document.createElement('button');
+  b.className='rung'; b.dataset.idx=i; b.style.setProperty('--lc',`var(${d.color})`);
+  b.innerHTML = `
+    <div class="swatch"></div>
+    <div class="rinfo">
+      <div class="rname">${d.name} <span class="rabbr">${d.abbr}</span>
+        <span class="nest-pill">${d.count}</span></div>
+      <div class="rmeta">${d.popTxt}</div>
+      <div class="bar" style="width:${Math.max(w,7)}%"></div>
+    </div>`;
+  b.onclick=()=>selectRung(i,b);
+  ladder.appendChild(b);
+}
+function selectRung(i,el){
+  document.querySelectorAll('.rung').forEach(r=>r.classList.remove('active'));
+  el.classList.add('active');
+  const d=MAIN[i];
+  const det=document.getElementById('detail');
+  det.style.setProperty('--dc',`var(${d.color})`);
+  det.innerHTML=`
+    <span class="dtag">● ${d.role}</span>
+    <h3>${d.name}</h3>
+    <div class="dsmall mono">${d.abbr} · ASGS Main Structure</div>
+    <div class="statgrid">
+      <div class="stat"><div class="k">Typical size</div><div class="v">${d.popTxt}</div></div>
+      <div class="stat"><div class="k">How many</div><div class="v">${d.count}</div></div>
+    </div>
+    <p class="ddesc">${d.use}</p>
+    <div class="dnote">${d.note}</div>`;
+}
+// default to SA1 (data index 1), regardless of DOM order
+const sa1El=[...document.querySelectorAll('.rung')].find(r=>+r.dataset.idx===1);
+selectRung(1, sa1El);
+
+// ---------- RENDER: non-abs ----------
+const ng=document.getElementById('nonabsGrid');
+NONABS.forEach(d=>{
+  const el=document.createElement('div'); el.className='unit'; el.style.setProperty('--uc',d.uc);
+  el.innerHTML=`
+    <div class="utop"><span class="uname">${d.name}</span><span class="uabbr">${d.abbr}</span></div>
+    <div class="ucount">${d.count}</div>
+    <div class="udesc">${d.desc}</div>
+    <div class="ufoot"><span class="pill ${d.nests?'yes':'no'}">${d.nests?'nests cleanly':'does NOT nest'}</span>
+      <span style="color:var(--faint)">approximated from Mesh Blocks</span></div>`;
+  ng.appendChild(el);
+});
+
+// ---------- RENDER: remoteness ramp ----------
+const ramp=document.getElementById('ramp');
+RAMP.forEach(r=>{
+  const el=document.createElement('div'); el.className='ra';
+  el.innerHTML=`<div class="rabar" style="width:${r.w*1.4}px;background:${r.c}"></div>
+    <div class="rtxt"><div class="rt">${r.t}</div><div class="rd">${r.d}</div></div>`;
+  ramp.appendChild(el);
+});
+
+// ---------- RENDER: authorities ----------
+const ab=document.getElementById('authBody');
+AUTH.forEach(r=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><b>${r[0]}</b></td><td>${r[1]}</td><td class="mono">${r[2]}</td><td style="color:var(--muted)">${r[3]}</td>`;
+  ab.appendChild(tr);
+});
+
+// ---------- TABS ----------
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.p).classList.add('active');
+  };
+});
+
+// ---------- GLOSSARY + inline tooltips ----------
+const GLOSSARY = {
+  'ABS':'Australian Bureau of Statistics — the national statistics agency that defines and publishes all these geographies.',
+  'ASGS':'Australian Statistical Geography Standard — the ABS framework defining every area here. Current: Edition 3 (2021).',
+  'ARIA+':'Accessibility/Remoteness Index of Australia (enhanced) — scores remoteness by road distance to service towns; drives the Remoteness Areas.',
+  'SEIFA':'Socio-Economic Indexes for Areas — four indexes computed at SA1 from ~16 census variables.',
+  'IRSAD':'Index of Relative Socio-economic Advantage and Disadvantage — blends advantage and disadvantage (the one used in the house tool).',
+  'IRSD':'Index of Relative Socio-economic Disadvantage — measures disadvantage only.',
+  'IER':'Index of Economic Resources — income, rent, mortgage, dwelling size.',
+  'IEO':'Index of Education and Occupation — qualifications and skilled jobs.',
+  'Mesh Block':'The smallest ABS unit (~50 people). Building block of everything; releases only dwelling/person counts.',
+  'SA1':'Statistical Area 1 (~400 people) — smallest area with full census data; where SEIFA and remoteness are computed.',
+  'SA2':'Statistical Area 2 (~10,000) — functional communities; the closest ABS unit to a "suburb" for data.',
+  'SA3':'Statistical Area 3 (~75,000) — regional towns/cities and clusters of suburbs.',
+  'SA4':'Statistical Area 4 (~300,000) — labour-market regions; used for monthly employment data.',
+  'POA':'Postal Area — the ABS\'s areal approximation of Australia Post postcodes.',
+  'SAL':'Suburb/Locality — gazetted suburb boundaries approximated to Mesh Blocks.',
+  'LGA':'Local Government Area — council areas.',
+  'CED':'Commonwealth Electoral Division — federal electorates (AEC seats), approximated by the ABS.',
+  'SED':'State Electoral Division — state/territory electorates.',
+  'DZN':'Destination Zone — small zones for transport / journey-to-work data.',
+  'AEC':'Australian Electoral Commission — owns the legal federal electoral boundaries.',
+  'G-NAF':'Geocoded National Address File (Geoscape) — the authoritative address-to-coordinate database.',
+};
+
+const gl=document.getElementById('glist');
+Object.entries(GLOSSARY).forEach(([k,v])=>{
+  const d=document.createElement('div'); d.className='gitem';
+  d.innerHTML=`<div class="gk">${k}</div><div class="gv">${v}</div>`;
+  gl.appendChild(d);
+});
+
+// auto-wrap the FIRST occurrence of each term in body text with a hover tooltip
+const SKIP_TAGS=new Set(['SCRIPT','STYLE','SUMMARY']);
+const SKIP_CLASS=['rabbr','uabbr','dtag','tip','gk','gv','mono','chev','tab','nest-pill','hoverhint','kicker'];
+function eligible(node){
+  let p=node.parentElement;
+  while(p){
+    if(SKIP_TAGS.has(p.tagName)) return false;
+    if(p.id==='detail'||p.id==='glist') return false;       // re-rendered / is the glossary itself
+    if(p.classList) for(const c of SKIP_CLASS) if(p.classList.contains(c)) return false;
+    p=p.parentElement;
+  }
+  return true;
+}
+function textNodes(){
+  const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null);
+  const out=[]; let n;
+  while(n=w.nextNode()) if(n.nodeValue.trim() && eligible(n)) out.push(n);
+  return out;
+}
+function boundaryOK(text,idx,term){
+  const before=text[idx-1], after=text[idx+term.length];
+  const edgeA=/[A-Za-z0-9]/.test(term[0]);
+  const edgeB=/[A-Za-z0-9]/.test(term[term.length-1]);
+  const badBefore=before && edgeA && /[A-Za-z0-9-]/.test(before);
+  const badAfter =after  && edgeB && /[A-Za-z0-9-]/.test(after);
+  return !badBefore && !badAfter;
+}
+// longest first so "ARIA+" beats "ARIA", "Mesh Block" beats nothing-partial, etc.
+Object.keys(GLOSSARY).sort((a,b)=>b.length-a.length).forEach(term=>{
+  for(const node of textNodes()){
+    const idx=node.nodeValue.indexOf(term);
+    if(idx<0 || !boundaryOK(node.nodeValue,idx,term)) continue;
+    const span=document.createElement('span');
+    span.className='tip'; span.setAttribute('data-tip',GLOSSARY[term]); span.textContent=term;
+    const after=node.splitText(idx);
+    after.nodeValue=after.nodeValue.slice(term.length);
+    node.parentNode.insertBefore(span,after);
+    break; // first occurrence only
+  }
+});
+</script>
+</body>
+</html>

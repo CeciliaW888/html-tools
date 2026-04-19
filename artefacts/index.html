@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Artefact Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #111010;
+    --ink-soft: #3a3836;
+    --muted: #8a8480;
+    --rule: #d8d2c8;
+    --rule-strong: #b0a89c;
+    --bg: #f5f1ea;
+    --bg-warm: #ede8de;
+    --paper: #faf7f2;
+    --accent: #c0392b;
+    --accent-dim: #e8c4bf;
+    --tag-investing: #8B6914;
+    --tag-investing-bg: #fdf3dc;
+    --tag-work: #1a5276;
+    --tag-work-bg: #d6eaf8;
+    --tag-learning: #196F3D;
+    --tag-learning-bg: #d5f5e3;
+    --tag-tools: #6c3483;
+    --tag-tools-bg: #e8daef;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-optical-sizing: auto;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── MASTHEAD ── */
+  .masthead {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 0;
+    border-bottom: 4px solid var(--accent);
+  }
+
+  .masthead-inner {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 28px 40px 24px;
+  }
+
+  .masthead-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+  }
+
+  .masthead-byline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(245,241,234,0.45);
+  }
+
+  .masthead-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    color: rgba(245,241,234,0.45);
+  }
+
+  .masthead-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--bg);
+    margin-bottom: 14px;
+  }
+
+  .masthead-title em {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .masthead-sub {
+    font-size: 14px;
+    font-weight: 300;
+    color: rgba(245,241,234,0.55);
+    max-width: 560px;
+    line-height: 1.5;
+  }
+
+  /* ── NAV STRIP ── */
+  .nav-strip {
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav-inner {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 40px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+
+  .nav-link {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 13px 18px;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .nav-link:hover { color: var(--ink); border-bottom-color: var(--accent); }
+  .nav-link.investing { --c: var(--tag-investing); }
+  .nav-link.work { --c: var(--tag-work); }
+  .nav-link.learning { --c: var(--tag-learning); }
+  .nav-link.tools { --c: var(--tag-tools); }
+  .nav-link:hover { color: var(--c, var(--ink)); border-bottom-color: var(--c, var(--accent)); }
+
+  /* ── LAYOUT ── */
+  .wrap {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 40px 80px;
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--rule);
+    border-top: none;
+    margin-bottom: 48px;
+    background: var(--paper);
+  }
+
+  .stat {
+    padding: 20px 24px;
+    border-right: 1px solid var(--rule);
+    text-align: center;
+  }
+  .stat:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: 'Fraunces', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── SECTION ── */
+  .section {
+    margin-bottom: 56px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .section-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--bg-warm);
+    padding: 2px 8px;
+    border: 1px solid var(--rule);
+    letter-spacing: 0.06em;
+    margin-left: auto;
+  }
+
+  /* ── CARD GRID ── */
+  .card-grid {
+    display: grid;
+    gap: 1px;
+    background: var(--rule);
+  }
+
+  .card-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .card-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .card-grid.cols-1 { grid-template-columns: 1fr; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--paper);
+    padding: 28px 28px 24px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: background 0.15s;
+  }
+
+  .card:hover { background: #fff; }
+
+  /* Linked cards (artefact has a file) */
+  a.card { text-decoration: none; color: inherit; cursor: pointer; }
+  a.card:hover { background: #fff; box-shadow: inset 0 0 0 2px var(--accent); }
+  a.card::after {
+    content: "OPEN →";
+    position: absolute;
+    bottom: 24px;
+    right: 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  a.card:hover::after { opacity: 1; }
+
+  .card-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 2px;
+    align-self: flex-start;
+    font-weight: 500;
+  }
+
+  .card-tag.investing { background: var(--tag-investing-bg); color: var(--tag-investing); }
+  .card-tag.work      { background: var(--tag-work-bg);      color: var(--tag-work); }
+  .card-tag.learning  { background: var(--tag-learning-bg);  color: var(--tag-learning); }
+  .card-tag.tools     { background: var(--tag-tools-bg);     color: var(--tag-tools); }
+
+  .card-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    position: absolute;
+    top: 28px;
+    right: 28px;
+  }
+
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+
+  .card.featured .card-title {
+    font-size: 1.5rem;
+  }
+
+  .card-desc {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    font-weight: 300;
+  }
+
+  .card-meta {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .card-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    background: var(--bg-warm);
+    border: 1px solid var(--rule);
+    padding: 2px 7px;
+  }
+
+  .card-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* Preview strip on card */
+  .card-preview {
+    height: 80px;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    position: relative;
+  }
+
+  .card-preview.dark {
+    background: #0a0a0f;
+  }
+
+  .card-preview.warm {
+    background: linear-gradient(135deg, #1a1815 0%, #2a1f10 100%);
+  }
+
+  .card-preview.paper-light {
+    background: linear-gradient(135deg, var(--bg-warm) 0%, var(--paper) 100%);
+  }
+
+  .card-preview.blue-dark {
+    background: linear-gradient(135deg, #0d1829 0%, #1a2c3d 100%);
+  }
+
+  .card-preview.olive {
+    background: linear-gradient(135deg, #1a1f10 0%, #2a2f18 100%);
+  }
+
+  .card-preview.gray-dark {
+    background: linear-gradient(135deg, #141414 0%, #1c1c1c 100%);
+  }
+
+  .preview-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.4;
+    z-index: 1;
+  }
+
+  /* Decorative preview content */
+  .preview-bars {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+  }
+
+  .preview-bar {
+    width: 8px;
+    border-radius: 1px;
+    opacity: 0.35;
+  }
+
+  .preview-grid {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1px;
+    opacity: 0.15;
+  }
+
+  .preview-grid-cell {
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+
+  .preview-dots {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    gap: 5px;
+  }
+
+  .preview-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .preview-lines {
+    position: absolute;
+    inset: 0;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .preview-line {
+    height: 5px;
+    border-radius: 2px;
+    opacity: 0.2;
+  }
+
+  .preview-table {
+    position: absolute;
+    inset: 0;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .preview-row {
+    height: 10px;
+    border-radius: 1px;
+    opacity: 0.18;
+    display: flex;
+    gap: 2px;
+  }
+
+  .preview-cell {
+    flex: 1;
+    background: rgba(255,255,255,0.7);
+    border-radius: 1px;
+  }
+
+  .preview-cell.wide { flex: 2; }
+  .preview-cell.narrow { flex: 0.5; }
+  .preview-cell.header { opacity: 0.4; background: rgba(255, 200, 100, 0.8); }
+
+  /* ── COMING SOON CARD ── */
+  .card.placeholder {
+    background: var(--bg);
+    border: 1px dashed var(--rule);
+    opacity: 0.6;
+  }
+
+  .card.placeholder .card-title { color: var(--muted); }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--ink);
+    color: rgba(245,241,234,0.4);
+    padding: 32px 40px;
+    margin-top: 48px;
+  }
+
+  .footer-inner {
+    max-width: 1160px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+
+  .footer-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    color: rgba(245,241,234,0.2);
+    font-style: italic;
+  }
+
+  /* ── INTRO BLOCK ── */
+  .intro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--rule);
+    margin-bottom: 48px;
+  }
+
+  .intro-left {
+    background: var(--paper);
+    padding: 32px 32px 28px;
+  }
+
+  .intro-right {
+    background: var(--bg-warm);
+    padding: 32px 32px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .intro-headline {
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    line-height: 1.25;
+  }
+
+  .intro-body {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.65;
+    font-weight: 300;
+  }
+
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .legend-text {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+
+  .legend-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card { animation: fadeUp 0.5s ease both; }
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.1s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+  .card:nth-child(4) { animation-delay: 0.2s; }
+  .card:nth-child(5) { animation-delay: 0.25s; }
+  .card:nth-child(6) { animation-delay: 0.3s; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    .wrap, .masthead-inner, .footer { padding-left: 20px; padding-right: 20px; }
+    .nav-inner { padding: 0 20px; }
+    .card-grid.cols-2,
+    .card-grid.cols-3 { grid-template-columns: 1fr; }
+    .intro { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-meta">
+      <span class="masthead-byline">HTML Artefact Archive</span>
+      <span class="masthead-date">June 2026</span>
+    </div>
+    <h1 class="masthead-title">
+      HTML <em>artefacts</em><br>across sessions
+    </h1>
+    <p class="masthead-sub">Every interactive HTML artefact — grouped by domain. Each one replaces a wall of markdown with something you'd actually read.</p>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="nav-strip">
+  <div class="nav-inner">
+    <a href="#investing" class="nav-link investing">Investing</a>
+    <a href="#work" class="nav-link work">Work & Analytics</a>
+    <a href="#learning" class="nav-link learning">Learning & Research</a>
+    <a href="#tools" class="nav-link tools">Tools & Viz</a>
+  </div>
+</nav>
+
+<!-- BODY -->
+<div class="wrap">
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-num">6</div>
+      <div class="stat-label">Artefacts Built</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">4</div>
+      <div class="stat-label">Categories</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">~5</div>
+      <div class="stat-label">Months of Sessions</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Walls of Markdown</div>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <div class="intro">
+    <div class="intro-left">
+      <div class="intro-headline">Why HTML beats markdown for complex knowledge</div>
+      <p class="intro-body">Each of these artefacts was built because the information had <em>structure that prose can't show</em> — tabs that organize without burying, tables that invite comparison, interactive decisions that activate rather than describe. The page you're reading is itself one of those artefacts.</p>
+      <p class="intro-body" style="margin-top:10px;">These aren't pretty wrappers. Every one was built to answer a real question faster than scrolling a report.</p>
+    </div>
+    <div class="intro-right">
+      <div class="legend-title">Category key</div>
+      <div class="legend-row">
+        <div class="legend-dot" style="background: var(--tag-investing-bg); border: 1px solid var(--tag-investing); opacity:1;"></div>
+        <span class="legend-text"><strong>Investing</strong> — Portfolio research, macro analysis, ASX strategy</span>
+      </div>
+      <div class="legend-row">
+        <div class="legend-dot" style="background: var(--tag-work-bg); border: 1px solid var(--tag-work);"></div>
+        <span class="legend-text"><strong>Work & Analytics</strong> — Power BI, Blackwoods supply chain, internal docs</span>
+      </div>
+      <div class="legend-row">
+        <div class="legend-dot" style="background: var(--tag-learning-bg); border: 1px solid var(--tag-learning);"></div>
+        <span class="legend-text"><strong>Learning & Research</strong> — Technical concepts, tooling comparisons, field guides</span>
+      </div>
+      <div class="legend-row">
+        <div class="legend-dot" style="background: var(--tag-tools-bg); border: 1px solid var(--tag-tools);"></div>
+        <span class="legend-text"><strong>Tools & Viz</strong> — Diagrams, quadrants, interactive frameworks</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 1 — INVESTING
+  ═══════════════════════════════════════════════ -->
+  <section class="section" id="investing">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Investing</h2>
+      <span class="section-count">2 artefacts</span>
+    </div>
+
+    <div class="card-grid cols-2">
+
+      <!-- Berkshire 13F -->
+      <a class="card featured" href="berkshire-13f-q1-2026.html">
+        <span class="card-tag investing">Investing</span>
+        <span class="card-num">01</span>
+
+        <div class="card-preview warm">
+          <div class="preview-table">
+            <div class="preview-row">
+              <div class="preview-cell header wide"></div>
+              <div class="preview-cell header narrow"></div>
+              <div class="preview-cell header narrow"></div>
+              <div class="preview-cell header narrow"></div>
+            </div>
+            <div class="preview-row"><div class="preview-cell wide"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div></div>
+            <div class="preview-row"><div class="preview-cell wide"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div></div>
+            <div class="preview-row"><div class="preview-cell wide"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div></div>
+            <div class="preview-row"><div class="preview-cell wide"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div></div>
+          </div>
+          <span class="preview-label" style="color: rgba(201,168,76,0.6);">BERKSHIRE · Q1 2026</span>
+        </div>
+
+        <div class="card-title">Berkshire Hathaway 13F — Q1 2026</div>
+        <p class="card-desc">Greg Abel's first 13F as CEO — 16 position exits (Visa, Mastercard, Amazon), Alphabet tripled, US$397B cash pile. Full portfolio table + action cards for Australian retail investors with ASX ETF routes, broker comparison (Stake vs IBKR vs CMC), and W-8BEN/estate tax guidance.</p>
+        <div class="card-meta">
+          <div class="card-chips">
+            <span class="chip">Portfolio table</span>
+            <span class="chip">Action cards</span>
+            <span class="chip">ASX routes</span>
+            <span class="chip">Dark theme</span>
+          </div>
+          <span class="card-date">Jun 2026</span>
+        </div>
+      </a>
+
+      <!-- NDS / US Defense -->
+      <a class="card featured" href="us-national-defense-strategy.html">
+        <span class="card-tag investing">Investing · Geopolitics</span>
+        <span class="card-num">02</span>
+
+        <div class="card-preview blue-dark">
+          <div class="preview-lines">
+            <div class="preview-line" style="background: rgba(100,150,255,0.8); width: 60%;"></div>
+            <div class="preview-line" style="background: rgba(100,150,255,0.5); width: 85%;"></div>
+            <div class="preview-line" style="background: rgba(100,150,255,0.3); width: 45%;"></div>
+            <div class="preview-line" style="background: rgba(100,150,255,0.5); width: 70%;"></div>
+            <div class="preview-line" style="background: rgba(100,150,255,0.3); width: 55%;"></div>
+          </div>
+          <span class="preview-label" style="color: rgba(100,150,255,0.4);">NDS · GEOPOLITICAL</span>
+        </div>
+
+        <div class="card-title">America First, Arsenal Abroad: US National Defense Strategy</div>
+        <p class="card-desc">Deep-dive on Trump's 2026 NDS from an Australian angle — geopolitical shift analysis (China deterrence, AUKUS implications, Pillar 2 gaps) + financial translation covering AUD/USD dynamics, rare earths, uranium, listed defence stocks (CDA, ASB, DRO), super exposure risks, and gold as a Dalio-style hedge.</p>
+        <div class="card-meta">
+          <div class="card-chips">
+            <span class="chip">Geopolitical</span>
+            <span class="chip">ASX stocks</span>
+            <span class="chip">AUD macro</span>
+            <span class="chip">AUKUS</span>
+          </div>
+          <span class="card-date">May 2026</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 2 — WORK & ANALYTICS
+  ═══════════════════════════════════════════════ -->
+  <section class="section" id="work">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Work & Analytics</h2>
+      <span class="section-count">2 artefacts</span>
+    </div>
+
+    <div class="card-grid cols-2">
+
+      <!-- Open Order Trapdoor Docs -->
+      <div class="card">
+        <span class="card-tag work">Work · Power BI</span>
+        <span class="card-num">03</span>
+
+        <div class="card-preview paper-light">
+          <div class="preview-dots">
+            <div class="preview-dot" style="background:#1a5276; opacity:0.7;"></div>
+            <div class="preview-dot" style="background:#b0a89c; opacity:0.5;"></div>
+            <div class="preview-dot" style="background:#b0a89c; opacity:0.5;"></div>
+            <div class="preview-dot" style="background:#b0a89c; opacity:0.5;"></div>
+          </div>
+          <div class="preview-lines" style="padding-top:30px;">
+            <div class="preview-line" style="background: #3a3836; width: 40%;"></div>
+            <div class="preview-line" style="background: #3a3836; width: 80%;"></div>
+            <div class="preview-line" style="background: #3a3836; width: 65%;"></div>
+            <div class="preview-line" style="background: #3a3836; width: 50%;"></div>
+          </div>
+          <span class="preview-label" style="color: rgba(58,56,54,0.25);">TABBED DOCS</span>
+        </div>
+
+        <div class="card-title">Open Order Trapdoor Report — Documentation</div>
+        <p class="card-desc">Tabbed HTML documentation scaffold for the Power BI report — four tabs (Overview, Milestone Logic, Playbook, Status Logic) with cross-linking trapdoors, colour-coded status definitions, and step-by-step playbook. Built for internal handover and junior analyst onboarding at Blackwoods.</p>
+        <div class="card-meta">
+          <div class="card-chips">
+            <span class="chip">Tabbed nav</span>
+            <span class="chip">Sticky header</span>
+            <span class="chip">Cross-links</span>
+            <span class="chip">Light theme</span>
+          </div>
+          <span class="card-date">May 2026</span>
+        </div>
+      </div>
+
+      <!-- ASGS Geography Explainer -->
+      <a class="card" href="asgs-geography-explainer.html">
+        <span class="card-tag work">Work · Reference</span>
+        <span class="card-num">04</span>
+
+        <div class="card-preview blue-dark">
+          <div class="preview-grid">
+            <div class="preview-grid-cell"></div>
+            <div class="preview-grid-cell"></div>
+            <div class="preview-grid-cell"></div>
+            <div class="preview-grid-cell"></div>
+          </div>
+          <span class="preview-label" style="color: rgba(100,150,255,0.4);">ASGS · GEOGRAPHY</span>
+        </div>
+
+        <div class="card-title">How Australia Is Cut Into Areas — ABS ASGS & Friends</div>
+        <p class="card-desc">Reference explainer for the Australian Statistical Geography Standard — the Main Structure hierarchy (built bottom-up with no overlaps or gaps), the non-ABS "borrowed boundary" structures, Remoteness Areas (5 classes), and SEIFA (4 socio-economic indexes). Closes with a side-by-side of how the ABS reshapes the original authorities' boundaries.</p>
+        <div class="card-meta">
+          <div class="card-chips">
+            <span class="chip">ASGS hierarchy</span>
+            <span class="chip">Remoteness areas</span>
+            <span class="chip">SEIFA</span>
+            <span class="chip">Reference</span>
+          </div>
+          <span class="card-date">Jun 2026</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 3 — LEARNING & RESEARCH
+  ═══════════════════════════════════════════════ -->
+  <section class="section" id="learning">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Learning & Research</h2>
+      <span class="section-count">1 artefact</span>
+    </div>
+
+    <div class="card-grid cols-1">
+
+      <!-- Web Scraping Field Guide -->
+      <a class="card featured" href="scraping-field-guide.html" style="max-width: 720px;">
+        <span class="card-tag learning">Learning · Technical</span>
+        <span class="card-num">05</span>
+
+        <div style="display: grid; grid-template-columns: 1fr 200px; gap: 20px; align-items: start;">
+          <div>
+            <div class="card-title">Web Scraping: A Field Guide — Edition II</div>
+            <p class="card-desc" style="margin-top: 10px;">Expanded second edition built around "the scraper is a stack." Three-axes selection model, six tool categories (Building Blocks, Browser Automation, Frameworks, Managed Extraction APIs, Browser Infrastructure, AI Browser Agents), five questions to pick by, the eight traps that break scrapers, and five extraction techniques compared (Network/XHR, JSON-LD, CSS selectors, XPath, ARIA & role locators) — all in the editorial newspaper aesthetic.</p>
+            <div class="card-meta" style="margin-top: 16px;">
+              <div class="card-chips">
+                <span class="chip">Editorial aesthetic</span>
+                <span class="chip">Tool categories</span>
+                <span class="chip">Extraction techniques</span>
+                <span class="chip">Anti-bot traps</span>
+                <span class="chip">Edition II</span>
+              </div>
+              <span class="card-date">Jun 2026</span>
+            </div>
+          </div>
+
+          <div class="card-preview olive" style="height: 120px; width: 100%;">
+            <div class="preview-lines">
+              <div class="preview-line" style="background: rgba(180,200,100,0.8); width: 50%;"></div>
+              <div class="preview-line" style="background: rgba(180,200,100,0.4); width: 85%;"></div>
+              <div class="preview-line" style="background: rgba(180,200,100,0.3); width: 70%;"></div>
+              <div class="preview-line" style="background: rgba(180,200,100,0.4); width: 60%;"></div>
+              <div class="preview-line" style="background: rgba(180,200,100,0.3); width: 75%;"></div>
+              <div class="preview-line" style="background: rgba(180,200,100,0.4); width: 55%;"></div>
+            </div>
+            <span class="preview-label" style="color: rgba(180,200,100,0.3);">FIELD GUIDE</span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 4 — TOOLS & VIZ
+  ═══════════════════════════════════════════════ -->
+  <section class="section" id="tools">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Tools & Visualisations</h2>
+      <span class="section-count">1 artefact</span>
+    </div>
+
+    <div class="card-grid cols-3">
+
+      <!-- Vibe Coding Quadrant -->
+      <div class="card">
+        <span class="card-tag tools">Tools · RedNote</span>
+        <span class="card-num">06</span>
+
+        <div class="card-preview dark">
+          <div class="preview-grid">
+            <div class="preview-grid-cell"></div>
+            <div class="preview-grid-cell"></div>
+            <div class="preview-grid-cell"></div>
+            <div class="preview-grid-cell"></div>
+          </div>
+          <div class="preview-bars">
+            <div class="preview-bar" style="height:30px; background: #ff6b6b;"></div>
+            <div class="preview-bar" style="height:42px; background: #6c5ce7;"></div>
+            <div class="preview-bar" style="height:24px; background: #00cec9;"></div>
+            <div class="preview-bar" style="height:36px; background: #fdcb6e;"></div>
+          </div>
+          <span class="preview-label" style="color: rgba(255,255,255,0.15);">2×2 QUADRANT</span>
+        </div>
+
+        <div class="card-title">Vibe Coding Tools — Selection Quadrant</div>
+        <p class="card-desc">Interactive 2×2 quadrant mapping AI coding tools by skill level (no-code vs. coding experience) and output type (prototypes vs. shippable products). Dark theme, hover effects, animated entry. Adapted from Yan Liu (Microsoft) for English audience. RedNote-ready screenshot format.</p>
+        <div class="card-meta">
+          <div class="card-chips">
+            <span class="chip">2×2 quadrant</span>
+            <span class="chip">Dark theme</span>
+            <span class="chip">RedNote</span>
+          </div>
+          <span class="card-date">Mar 2026</span>
+        </div>
+      </div>
+
+      <!-- Placeholder: Bilingual Learning App -->
+      <div class="card placeholder">
+        <span class="card-tag tools" style="opacity:0.5;">Planned</span>
+        <div class="card-title">Bilingual Learning App — Concept Prototype</div>
+        <p class="card-desc">Interactive HTML prototype for the EN+ZH educational app for Jayden. Solar system 3D scene, Year 1 math modules, language toggle. Planned.</p>
+        <div class="card-meta">
+          <div class="card-chips">
+            <span class="chip">Planned</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       WHAT CAN BE BUILT
+  ═══════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">→</span>
+      <h2 class="section-title">What else we can build</h2>
+    </div>
+
+    <div class="card-grid cols-3">
+      <div class="card">
+        <div class="card-title" style="font-size: 1rem;">Exploration & Planning</div>
+        <p class="card-desc">Side-by-side comparisons (SQL approach A vs B vs C), implementation timelines, risk tables. Replaces "read three blocks of text and decide."</p>
+        <div class="card-chips" style="margin-top: 8px;">
+          <span class="chip">Sprint plans</span><span class="chip">Architecture tradeoffs</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="font-size: 1rem;">Interactive Learning Tools</div>
+        <p class="card-desc">Concept explainers with live examples, glossaries with hover-linked terms, decision trees you click through. Turned supply chain lead time into a navigable reference.</p>
+        <div class="card-chips" style="margin-top: 8px;">
+          <span class="chip">Concept maps</span><span class="chip">Glossaries</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="font-size: 1rem;">Data Reports & Dashboards</div>
+        <p class="card-desc">Static or AI-powered HTML reports with charts, tables, and call-out cards. Faster to build than Power BI for one-off analysis, higher visual ceiling.</p>
+        <div class="card-chips" style="margin-top: 8px;">
+          <span class="chip">Portfolio reports</span><span class="chip">KPI snapshots</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="font-size: 1rem;">RedNote Content Assets</div>
+        <p class="card-desc">Standalone infographic pages you screenshot for posts — quadrant diagrams, framework visuals, bilingual comparison tables. Your audience sees the output, not the code.</p>
+        <div class="card-chips" style="margin-top: 8px;">
+          <span class="chip">Diagrams</span><span class="chip">Frameworks</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="font-size: 1rem;">Custom Editors & Trackers</div>
+        <p class="card-desc">Drag-and-drop triage boards, KPI trackers, investment watchlists, sprint planners — anything where a table in Notion feels too rigid and a full app is overkill.</p>
+        <div class="card-chips" style="margin-top: 8px;">
+          <span class="chip">Triage boards</span><span class="chip">Watchlists</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="font-size: 1rem;">Presentation & Slide Decks</div>
+        <p class="card-desc">Arrow-key-navigable HTML decks for stakeholder presentations — Rachel meetings, exec pitches. One file, no Keynote export, richer than PowerPoint templates.</p>
+        <div class="card-chips" style="margin-top: 8px;">
+          <span class="chip">Exec pitches</span><span class="chip">Strategy decks</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /wrap -->
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="footer-note">Single-file HTML · Self-hostable on GitHub Pages</span>
+    <span class="footer-logo">HTML Artefacts</span>
+  </div>
+</footer>
+
+</body>
+</html>

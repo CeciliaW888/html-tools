@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>America First, Arsenal Abroad — US National Defense Strategy 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0f18;
+    --surface: #111722;
+    --surface2: #18202d;
+    --border: #25303f;
+    --steel: #5a9bd8;
+    --steel-dim: #3a6a99;
+    --red: #d8635a;
+    --green: #4cc97a;
+    --amber: #d8a94c;
+    --text: #e4e9f0;
+    --muted: #7a879a;
+    --accent: #5a9bd8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    padding: 80px 40px 60px;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 25% 35%, rgba(90,155,216,0.10) 0%, transparent 70%);
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(90deg, transparent 0 38px, rgba(90,155,216,0.04) 38px 39px);
+    pointer-events: none;
+  }
+  .hero-inner { position: relative; max-width: 1100px; margin: 0 auto; }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--steel);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    opacity: 0; animation: fadeUp 0.6s ease forwards 0.1s;
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(36px, 6vw, 70px);
+    font-weight: 900;
+    line-height: 1.05;
+    color: var(--text);
+    max-width: 860px;
+    opacity: 0; animation: fadeUp 0.6s ease forwards 0.2s;
+  }
+  .hero h1 span { color: var(--steel); font-style: italic; }
+  .hero-sub {
+    margin-top: 20px;
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 620px;
+    line-height: 1.7;
+    opacity: 0; animation: fadeUp 0.6s ease forwards 0.35s;
+  }
+  .hero-meta {
+    margin-top: 32px;
+    display: flex; gap: 32px; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 0.6s ease forwards 0.45s;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .meta-value { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: var(--steel); font-weight: 600; }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+
+  /* SECTION */
+  .section { padding: 60px 40px; border-bottom: 1px solid var(--border); }
+  .section-inner { max-width: 1100px; margin: 0 auto; }
+  .section-kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--steel-dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .section-title span { color: var(--steel); }
+  .section-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 36px;
+    max-width: 680px;
+    line-height: 1.7;
+  }
+
+  /* TWO-COLUMN PROSE */
+  .prose { font-size: 14px; line-height: 1.8; color: var(--text); max-width: 720px; }
+  .prose p { margin-bottom: 16px; }
+  .prose strong { color: var(--steel); font-weight: 500; }
+
+  /* PILLAR CARDS */
+  .pillar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  .pillar-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .pillar-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--steel);
+  }
+  .pillar-card:hover { border-color: var(--steel-dim); transform: translateY(-2px); }
+  .pillar-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--steel);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .pillar-title { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+  .pillar-body { font-size: 13px; line-height: 1.7; color: var(--muted); }
+
+  /* SIGNAL / TAKE CARDS */
+  .signals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  .signal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px;
+    position: relative;
+  }
+  .signal-icon { font-size: 22px; margin-bottom: 12px; }
+  .signal-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+  .signal-body { font-size: 13px; line-height: 1.7; color: var(--muted); }
+  .signal-card.tail { border-left: 3px solid var(--steel); }
+  .signal-card.risk { border-left: 3px solid var(--red); }
+  .signal-card.hedge { border-left: 3px solid var(--amber); }
+
+  /* TABLE */
+  .table-wrapper { overflow-x: auto; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { border-bottom: 1px solid var(--steel-dim); background: var(--surface); }
+  th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--steel);
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+  }
+  td { padding: 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface); }
+  .ticker { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--steel); font-size: 12px; }
+  .company-name { font-weight: 400; color: var(--text); display: block; margin-top: 2px; font-size: 12px; }
+  .cell-note { color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+  .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    font-weight: 600;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .badge-direct { background: rgba(76,201,122,0.13); color: var(--green); border: 1px solid rgba(76,201,122,0.3); }
+  .badge-lever { background: rgba(90,155,216,0.13); color: var(--steel); border: 1px solid rgba(90,155,216,0.3); }
+  .badge-watch { background: rgba(216,169,76,0.12); color: var(--amber); border: 1px solid rgba(216,169,76,0.3); }
+
+  /* CHAIN / FLOW */
+  .chain { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0; margin-top: 8px; }
+  .chain-step {
+    flex: 1; min-width: 160px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    position: relative;
+  }
+  .chain-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -11px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--steel);
+    font-size: 16px;
+    z-index: 2;
+    background: var(--bg);
+    padding: 2px;
+  }
+  .chain-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1px; color: var(--steel); text-transform: uppercase; margin-bottom: 8px; }
+  .chain-text { font-size: 12.5px; line-height: 1.6; color: var(--muted); }
+
+  /* CALLOUT */
+  .callout {
+    background: linear-gradient(135deg, rgba(90,155,216,0.08), transparent);
+    border: 1px solid var(--steel-dim);
+    border-left: 3px solid var(--steel);
+    padding: 28px 32px;
+    margin-top: 8px;
+  }
+  .callout-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--steel); text-transform: uppercase; margin-bottom: 12px; }
+  .callout-text { font-size: 15px; line-height: 1.8; color: var(--text); font-weight: 300; }
+  .callout-text strong { color: var(--steel); font-weight: 500; }
+
+  /* TAG ROW */
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    background: rgba(90,155,216,0.08);
+    border: 1px solid rgba(90,155,216,0.22);
+    color: var(--steel);
+  }
+
+  /* DISCLAIMER */
+  .disclaimer {
+    padding: 40px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .disclaimer .container { max-width: 1100px; }
+
+  /* BACK LINK */
+  .backlink {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 1px;
+    color: var(--muted); text-decoration: none;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    transition: color 0.15s;
+  }
+  .backlink:hover { color: var(--steel); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    .hero, .section { padding: 40px 20px; }
+    .container { padding: 0 20px; }
+    .hero-meta { gap: 20px; }
+    .disclaimer { padding: 30px 20px; }
+    .chain-step:not(:last-child)::after { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <a href="index.html" class="backlink">← Artefact gallery</a>
+    <div class="hero-eyebrow">US National Defense Strategy · 2026 · Read From Canberra</div>
+    <h1>America First,<br><span>Arsenal Abroad</span></h1>
+    <div class="hero-sub">
+      What the 2026 US National Defense Strategy actually says — and how an Australian investor should read it. A geopolitical shift on one side; a portfolio translation on the other.
+    </div>
+    <div class="hero-meta">
+      <div class="meta-item">
+        <span class="meta-label">Lens</span>
+        <span class="meta-value">Australia</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Two Layers</span>
+        <span class="meta-value">Strategy + Markets</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Anchor</span>
+        <span class="meta-value">AUKUS</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Hedge</span>
+        <span class="meta-value">Gold</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 1. THE SHIFT -->
+<div class="section">
+  <div class="section-inner">
+    <div class="section-kicker">01 — The Strategic Shift</div>
+    <h2 class="section-title">Deterrence by <span>denial</span>, paid for by allies</h2>
+    <p class="section-sub">The headline isn't isolationism. It's a re-pricing of who pays for security. Washington keeps the arsenal; it expects partners to fund, host, and field more of it.</p>
+    <div class="prose">
+      <p>The strategy reframes American power around <strong>deterring China in the Indo-Pacific</strong> as the pacing challenge, while pushing allies to carry a larger share of conventional defence. "America First" abroad means the United States stays the supplier of last resort and the nuclear umbrella — but wants the umbrella's ribs built and paid for closer to the threat.</p>
+      <p>For Australia that is a double-edged document. It validates the logic behind <strong>AUKUS</strong> and forward basing, but it also raises the bar on what we are expected to contribute, build domestically, and stockpile — at a moment when the US industrial base is itself the bottleneck.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 2. THREE PILLARS / READS -->
+<div class="section">
+  <div class="section-inner">
+    <div class="section-kicker">02 — Three Reads That Matter For Australia</div>
+    <h2 class="section-title">Where the strategy <span>touches us</span></h2>
+    <p class="section-sub">Strip the rhetoric and three threads run straight into Australian policy and portfolios.</p>
+    <div class="pillar-grid">
+      <div class="pillar-card">
+        <div class="pillar-num">Read 01</div>
+        <div class="pillar-title">China Deterrence</div>
+        <div class="pillar-body">The Indo-Pacific is the main effort, not Europe. That elevates Australia's geography from "distant ally" to forward real estate — submarine rotations, munitions co-production, and the northern bases all gain strategic weight.</div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-num">Read 02</div>
+        <div class="pillar-title">AUKUS Implications</div>
+        <div class="pillar-body">The pact is consistent with the strategy's "allies do more" logic — but delivery depends on a US shipbuilding base already stretched. The risk for Canberra is timeline slip, not cancellation: paying early for capability that arrives late.</div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-num">Read 03</div>
+        <div class="pillar-title">Pillar 2 Gaps</div>
+        <div class="pillar-body">The advanced-tech leg of AUKUS — autonomy, hypersonics, undersea, AI, quantum — is where the near-term wins are. It's also where export controls, ITAR friction, and unclear funding leave the biggest gaps between ambition and contracts.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. FINANCIAL TRANSLATION -->
+<div class="section">
+  <div class="section-inner">
+    <div class="section-kicker">03 — The Financial Translation</div>
+    <h2 class="section-title">From doctrine to <span>dollars</span></h2>
+    <p class="section-sub">A strategy document moves markets through second-order effects. Here's the chain from policy to the things you can actually hold.</p>
+    <div class="chain">
+      <div class="chain-step">
+        <div class="chain-label">Policy</div>
+        <div class="chain-text">Allies asked to spend, build and stockpile more; Indo-Pacific prioritised.</div>
+      </div>
+      <div class="chain-step">
+        <div class="chain-label">Demand</div>
+        <div class="chain-text">Sustained order flow for munitions, autonomy, sonar, comms and critical inputs.</div>
+      </div>
+      <div class="chain-step">
+        <div class="chain-label">Inputs</div>
+        <div class="chain-text">Rare earths and uranium become strategic, not just commodity, exposures.</div>
+      </div>
+      <div class="chain-step">
+        <div class="chain-label">Equities</div>
+        <div class="chain-text">Listed ASX defence and critical-minerals names sit closest to the spend.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:36px;">
+      <div class="callout">
+        <div class="callout-label">The AUD / USD angle</div>
+        <div class="callout-text">A US that leans on allies for security spending, runs large deficits, and politicises the Fed is a long-run argument for a <strong>weaker structural USD</strong> — even as risk-off episodes spike it short-term. For an Australian holding US assets, that two-way pull is the real position: unhedged USD exposure is a bet that the safe-haven bid keeps beating the structural drift.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. THE INPUTS -->
+<div class="section">
+  <div class="section-inner">
+    <div class="section-kicker">04 — Strategic Inputs</div>
+    <h2 class="section-title">Rare earths &amp; <span>uranium</span></h2>
+    <p class="section-sub">When supply chains become a national-security question, the upstream inputs re-rate. Two stand out for Australia.</p>
+    <div class="signals-grid">
+      <div class="signal-card tail">
+        <div class="signal-icon">🧲</div>
+        <div class="signal-title">Rare Earths</div>
+        <div class="signal-body">Magnets, guidance and motors all run on rare earths — and the West wants supply chains that don't terminate in China. Australia's deposits and processing ambitions become a strategic card, with policy support (offtakes, price floors, allied funding) as the swing factor rather than spot price alone.</div>
+      </div>
+      <div class="signal-card tail">
+        <div class="signal-icon">☢️</div>
+        <div class="signal-title">Uranium</div>
+        <div class="signal-body">Nuclear-powered submarines and the broader nuclear-energy revival put uranium in the security conversation. The thesis is structural demand meeting constrained supply — but it carries the usual sentiment swings and, domestically, Australia's own political constraints on the fuel cycle.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. ASX DEFENCE STOCKS -->
+<div class="section">
+  <div class="section-inner">
+    <div class="section-kicker">05 — Listed Exposure</div>
+    <h2 class="section-title">ASX defence <span>names</span></h2>
+    <p class="section-sub">The handful of locally-listed ways to express the theme — framed by how directly each sits in the line of spending. Tickers and theses only; no price targets.</p>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Exposure</th>
+            <th style="width:48%;">Why the strategy matters to it</th>
+            <th>Read</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span class="ticker">ASX:DRO</span>
+              <span class="company-name">DroneShield</span>
+            </td>
+            <td class="cell-note">Counter-drone / autonomy</td>
+            <td class="cell-note">Sits squarely in the AUKUS Pillar 2 sweet spot — counter-UAS demand is rising globally and the strategy prioritises exactly this class of asymmetric capability. High beta to sentiment and order timing.</td>
+            <td><span class="badge badge-direct">Direct</span></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="ticker">ASX:ASB</span>
+              <span class="company-name">Austal</span>
+            </td>
+            <td class="cell-note">Naval shipbuilding</td>
+            <td class="cell-note">Builds for both the US and Australian navies — a literal beneficiary of "allies build more, closer to the threat," and of US shipyard capacity constraints. Execution and program timing are the swing factors.</td>
+            <td><span class="badge badge-lever">Leveraged</span></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="ticker">ASX:CDA</span>
+              <span class="company-name">Codan</span>
+            </td>
+            <td class="cell-note">Tactical comms / electronics</td>
+            <td class="cell-note">Communications and metal detection with defence and security end-markets — a steadier, more diversified way to hold the theme than the pure-play names, with less single-contract risk.</td>
+            <td><span class="badge badge-watch">Diversified</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tag-row">
+      <span class="tag">Order-timing risk</span>
+      <span class="tag">Sentiment-driven</span>
+      <span class="tag">Small/mid-cap liquidity</span>
+      <span class="tag">Single-contract concentration</span>
+    </div>
+  </div>
+</div>
+
+<!-- 6. RISKS & HEDGE -->
+<div class="section">
+  <div class="section-inner">
+    <div class="section-kicker">06 — Risks &amp; The Hedge</div>
+    <h2 class="section-title">What could go <span>wrong</span> — and the offset</h2>
+    <p class="section-sub">Every theme has a tail. Two risks to name, one hedge to consider.</p>
+    <div class="signals-grid">
+      <div class="signal-card risk">
+        <div class="signal-icon">🏦</div>
+        <div class="signal-title">Super Exposure Risk</div>
+        <div class="signal-body">Most Australian super is heavily weighted to global (read: US) equities and the USD. A strategy that points to a weaker structural dollar and richly-valued US mega-caps means the average member is more concentrated in the American outcome than they realise — a currency and concentration bet hiding inside a "diversified" default option.</div>
+      </div>
+      <div class="signal-card risk">
+        <div class="signal-icon">⏳</div>
+        <div class="signal-title">Delivery &amp; Timeline Risk</div>
+        <div class="signal-body">The defence thesis lives or dies on contracts converting to revenue. US industrial-base bottlenecks, ITAR friction and budget politics can stretch timelines — leaving high-multiple names priced for delivery that arrives years late.</div>
+      </div>
+      <div class="signal-card hedge">
+        <div class="signal-icon">🪙</div>
+        <div class="signal-title">Gold — the Dalio Hedge</div>
+        <div class="signal-body">In a Ray Dalio frame — rising debt, debased currencies, great-power rivalry — gold is the apolitical reserve asset that isn't anyone's liability. It's the natural counterweight to USD-heavy super and equity-heavy portfolios: not a return engine, but insurance against the exact world this strategy describes.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. THE BOTTOM LINE -->
+<div class="section">
+  <div class="section-inner">
+    <div class="section-kicker">07 — The Bottom Line</div>
+    <h2 class="section-title">One <span>sentence</span></h2>
+    <div class="callout">
+      <div class="callout-label">Net read</div>
+      <div class="callout-text">The 2026 NDS is bullish for <strong>allied defence spend and strategic inputs</strong>, ambiguous for the <strong>USD</strong>, and a quiet reminder that the average Australian super balance is already long America — so the marginal trade is less "buy defence" and more <strong>hedge the dollar and own some gold</strong> while the structural names mature.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer">
+  <div class="container">
+    Analysis, not advice. This artefact is an interpretation of the 2026 US National Defense Strategy and its possible market implications from an Australian perspective — it is general information only, not financial product advice, and contains no price targets or recommendations. Tickers are named to illustrate exposure to a theme, not to endorse a position. Do your own research and consider professional advice before investing.
+  </div>
+</div>
+
+<script>
+  // Subtle scroll-reveal for sections
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.section').forEach(s => {
+    s.style.opacity = '0';
+    s.style.transform = 'translateY(20px)';
+    s.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    io.observe(s);
+  });
+</script>
+
+</body>
+</html>

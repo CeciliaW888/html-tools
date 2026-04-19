@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Berkshire 13F — Q1 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0c0c0c;
+    --surface: #141414;
+    --surface2: #1c1c1c;
+    --border: #2a2a2a;
+    --gold: #c9a84c;
+    --gold-dim: #8a6e2f;
+    --red: #c94c4c;
+    --green: #4cc97a;
+    --blue: #4c8fc9;
+    --text: #e8e2d6;
+    --muted: #7a7060;
+    --accent: #c9a84c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    padding: 80px 40px 60px;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 20% 40%, rgba(201,168,76,0.07) 0%, transparent 70%);
+  }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    opacity: 0; animation: fadeUp 0.6s ease forwards 0.1s;
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 900;
+    line-height: 1.05;
+    color: var(--text);
+    max-width: 800px;
+    opacity: 0; animation: fadeUp 0.6s ease forwards 0.2s;
+  }
+  .hero h1 span { color: var(--gold); }
+  .hero-sub {
+    margin-top: 20px;
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 580px;
+    line-height: 1.7;
+    opacity: 0; animation: fadeUp 0.6s ease forwards 0.35s;
+  }
+  .hero-meta {
+    margin-top: 32px;
+    display: flex; gap: 32px; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 0.6s ease forwards 0.45s;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .meta-value { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: var(--gold); font-weight: 600; }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+
+  /* SECTION */
+  .section { padding: 60px 40px; border-bottom: 1px solid var(--border); }
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .section-title span { color: var(--gold); }
+  .section-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* STAT CARDS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--gold);
+  }
+  .stat-card:hover { border-color: var(--gold-dim); }
+  .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+  .stat-value { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; color: var(--gold); }
+  .stat-note { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* HOLDINGS TABLE */
+  .table-wrapper { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { border-bottom: 1px solid var(--gold-dim); }
+  th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+  }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:hover td { background: var(--surface); }
+  .rank { font-family: 'JetBrains Mono', monospace; color: var(--muted); font-size: 11px; }
+  .ticker { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--gold); font-size: 12px; }
+  .company-name { font-weight: 400; color: var(--text); }
+  .pct { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+  .value { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text); }
+  .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 3px 7px;
+    border-radius: 2px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .badge-new { background: rgba(76,201,122,0.15); color: var(--green); border: 1px solid rgba(76,201,122,0.3); }
+  .badge-add { background: rgba(76,143,201,0.15); color: var(--blue); border: 1px solid rgba(76,143,201,0.3); }
+  .badge-cut { background: rgba(201,76,76,0.15); color: var(--red); border: 1px solid rgba(201,76,76,0.3); }
+  .badge-hold { background: rgba(201,168,76,0.08); color: var(--muted); border: 1px solid var(--border); }
+
+  /* PORTFOLIO BAR */
+  .portfolio-bar { margin-bottom: 40px; }
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .bar-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text); width: 180px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 1px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--gold); border-radius: 1px; transition: width 1s ease; }
+  .bar-pct { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gold); width: 50px; text-align: right; }
+  .bar-fill.fin { background: #c9a84c; }
+  .bar-fill.tech { background: #4c8fc9; }
+  .bar-fill.staples { background: #4cc97a; }
+  .bar-fill.energy { background: #c97a4c; }
+  .bar-fill.comms { background: #a84cc9; }
+  .bar-fill.other { background: #4cc9c9; }
+
+  /* SIGNALS */
+  .signals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  .signal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px;
+    position: relative;
+  }
+  .signal-icon { font-size: 24px; margin-bottom: 12px; }
+  .signal-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+  .signal-body { font-size: 13px; line-height: 1.7; color: var(--muted); }
+  .signal-card.bullish { border-left: 3px solid var(--green); }
+  .signal-card.bearish { border-left: 3px solid var(--red); }
+  .signal-card.neutral { border-left: 3px solid var(--gold); }
+
+  /* EXITS */
+  .exits-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .exit-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    background: rgba(201,76,76,0.1);
+    border: 1px solid rgba(201,76,76,0.25);
+    color: var(--red);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .exit-tag::before { content: '✕'; font-size: 9px; }
+
+  /* ACTIONS */
+  .actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .action-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px;
+  }
+  .action-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 40px;
+    font-weight: 600;
+    color: var(--border);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .action-theme { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+  .action-body { font-size: 13px; line-height: 1.7; color: var(--muted); }
+  .action-etfs { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .etf-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
+    color: var(--gold);
+  }
+
+  /* DISCLAIMER */
+  .disclaimer {
+    padding: 40px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    .hero, .section { padding: 40px 20px; }
+    .container { padding: 0 20px; }
+    .hero-meta { gap: 20px; }
+    .disclaimer { padding: 30px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Berkshire Hathaway · Form 13F · Q1 2026 · Greg Abel's Debut</div>
+  <h1>The New <span>Berkshire</span><br>Playbook</h1>
+  <div class="hero-sub">
+    16 exits. A tripled Alphabet bet. A record US$397B cash wall. Greg Abel's first 13F rewrites the Combs era — and signals where the smartest money is waiting.
+  </div>
+  <div class="hero-meta">
+    <div class="meta-item">
+      <span class="meta-label">Portfolio Value</span>
+      <span class="meta-value">US$263B</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Cash Held</span>
+      <span class="meta-value">US$397B</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Positions</span>
+      <span class="meta-value">29</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Exits This Qtr</span>
+      <span class="meta-value">16</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Filed</span>
+      <span class="meta-value">15 May 2026</span>
+    </div>
+  </div>
+</div>
+
+<!-- SNAPSHOT STATS -->
+<div class="section">
+  <div class="section-title">Portfolio <span>Snapshot</span></div>
+  <div class="section-sub">Key numbers from the Q1 2026 SEC filing</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Top-5 Concentration</div>
+      <div class="stat-value">68%</div>
+      <div class="stat-note">Rising — Abel is concentrating, not diversifying</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">T-Bill Yield on Cash</div>
+      <div class="stat-value">~5%</div>
+      <div class="stat-note">Earning ~US$15–20B/yr doing nothing</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Alphabet Position Δ</div>
+      <div class="stat-value">+204%</div>
+      <div class="stat-note">Tripled GOOGL + new GOOG stake</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Chevron Reduction</div>
+      <div class="stat-value">−35%</div>
+      <div class="stat-note">~US$9.5B in profit-taking on energy</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">BRK Buybacks Q1</div>
+      <div class="stat-value">US$234M</div>
+      <div class="stat-note">Token — Abel sees BRK as fairly valued</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">AI Mega-Cap Exposure</div>
+      <div class="stat-value">28%</div>
+      <div class="stat-note">Apple + Alphabet combined</div>
+    </div>
+  </div>
+
+  <!-- SECTOR BARS -->
+  <div class="section-title" style="font-size:20px; margin-bottom:8px;">Sector <span>Allocation</span></div>
+  <div class="section-sub">% of equity portfolio by sector</div>
+  <div class="portfolio-bar">
+    <div class="bar-row"><div class="bar-label">Financials</div><div class="bar-track"><div class="bar-fill fin" style="width:36.4%"></div></div><div class="bar-pct">36.4%</div></div>
+    <div class="bar-row"><div class="bar-label">Technology</div><div class="bar-track"><div class="bar-fill tech" style="width:23%"></div></div><div class="bar-pct">23.0%</div></div>
+    <div class="bar-row"><div class="bar-label">Consumer Staples</div><div class="bar-track"><div class="bar-fill staples" style="width:15.8%"></div></div><div class="bar-pct">15.8%</div></div>
+    <div class="bar-row"><div class="bar-label">Energy</div><div class="bar-track"><div class="bar-fill energy" style="width:13.3%"></div></div><div class="bar-pct">13.3%</div></div>
+    <div class="bar-row"><div class="bar-label">Communication Svcs</div><div class="bar-track"><div class="bar-fill comms" style="width:6.8%"></div></div><div class="bar-pct">6.8%</div></div>
+    <div class="bar-row"><div class="bar-label">Other</div><div class="bar-track"><div class="bar-fill other" style="width:4.7%"></div></div><div class="bar-pct">4.7%</div></div>
+  </div>
+</div>
+
+<!-- HOLDINGS TABLE -->
+<div class="section">
+  <div class="section-title">Full <span>Holdings</span></div>
+  <div class="section-sub">All 29 positions — Q1 2026</div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Sector</th>
+          <th>Market Value</th>
+          <th>% Portfolio</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="rank">01</td><td class="ticker">AAPL</td><td class="company-name">Apple</td><td class="pct">Technology</td><td class="value">US$57.84B</td><td class="pct">21.99%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">02</td><td class="ticker">AXP</td><td class="company-name">American Express</td><td class="pct">Financials</td><td class="value">US$45.86B</td><td class="pct">17.43%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">03</td><td class="ticker">KO</td><td class="company-name">Coca-Cola</td><td class="pct">Staples</td><td class="value">US$30.42B</td><td class="pct">11.56%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">04</td><td class="ticker">BAC</td><td class="company-name">Bank of America</td><td class="pct">Financials</td><td class="value">US$25.04B</td><td class="pct">9.52%</td><td><span class="badge badge-cut">−0.7% Trim</span></td></tr>
+        <tr><td class="rank">05</td><td class="ticker">CVX</td><td class="company-name">Chevron</td><td class="pct">Energy</td><td class="value">US$17.46B</td><td class="pct">6.64%</td><td><span class="badge badge-cut">−35% Cut</span></td></tr>
+        <tr><td class="rank">06</td><td class="ticker">OXY</td><td class="company-name">Occidental Petroleum</td><td class="pct">Energy</td><td class="value">US$17.22B</td><td class="pct">6.55%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">07</td><td class="ticker">GOOGL</td><td class="company-name">Alphabet Class A</td><td class="pct">Comms</td><td class="value">US$15.60B</td><td class="pct">5.93%</td><td><span class="badge badge-add">+204% Add</span></td></tr>
+        <tr><td class="rank">08</td><td class="ticker">CB</td><td class="company-name">Chubb</td><td class="pct">Financials</td><td class="value">US$11.16B</td><td class="pct">4.24%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">09</td><td class="ticker">MCO</td><td class="company-name">Moody's</td><td class="pct">Financials</td><td class="value">US$10.76B</td><td class="pct">4.09%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">10</td><td class="ticker">KHC</td><td class="company-name">Kraft Heinz</td><td class="pct">Staples</td><td class="value">US$7.32B</td><td class="pct">2.78%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">11</td><td class="ticker">DVA</td><td class="company-name">DaVita</td><td class="pct">Health Care</td><td class="value">US$4.63B</td><td class="pct">1.76%</td><td><span class="badge badge-cut">−5.2% Trim</span></td></tr>
+        <tr><td class="rank">12</td><td class="ticker">KR</td><td class="company-name">Kroger</td><td class="pct">Staples</td><td class="value">US$3.62B</td><td class="pct">1.38%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">13</td><td class="ticker">SIRI</td><td class="company-name">Sirius XM</td><td class="pct">Comms</td><td class="value">US$2.88B</td><td class="pct">1.09%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">14</td><td class="ticker">DAL</td><td class="company-name">Delta Air Lines</td><td class="pct">Industrials</td><td class="value">US$2.65B</td><td class="pct">1.01%</td><td><span class="badge badge-new">New Position</span></td></tr>
+        <tr><td class="rank">15</td><td class="ticker">VRSN</td><td class="company-name">VeriSign</td><td class="pct">Technology</td><td class="value">US$2.23B</td><td class="pct">0.85%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">16</td><td class="ticker">COF</td><td class="company-name">Capital One</td><td class="pct">Financials</td><td class="value">US$1.30B</td><td class="pct">0.50%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">17</td><td class="ticker">NYT</td><td class="company-name">New York Times</td><td class="pct">Comms</td><td class="value">US$1.27B</td><td class="pct">0.48%</td><td><span class="badge badge-add">+199% Add</span></td></tr>
+        <tr><td class="rank">18</td><td class="ticker">ALLY</td><td class="company-name">Ally Financial</td><td class="pct">Financials</td><td class="value">US$1.14B</td><td class="pct">0.43%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">19</td><td class="ticker">GOOG</td><td class="company-name">Alphabet Class C</td><td class="pct">Comms</td><td class="value">US$1.03B</td><td class="pct">0.39%</td><td><span class="badge badge-new">New Position</span></td></tr>
+        <tr><td class="rank">20</td><td class="ticker">LEN</td><td class="company-name">Lennar Class A</td><td class="pct">Cons. Disc.</td><td class="value">US$0.877B</td><td class="pct">0.33%</td><td><span class="badge badge-add">+43% Add</span></td></tr>
+        <tr><td class="rank">21</td><td class="ticker">NUE</td><td class="company-name">Nucor</td><td class="pct">Materials</td><td class="value">US$0.661B</td><td class="pct">0.25%</td><td><span class="badge badge-cut">−39% Cut</span></td></tr>
+        <tr><td class="rank">22</td><td class="ticker">LPX</td><td class="company-name">Louisiana-Pacific</td><td class="pct">Materials</td><td class="value">US$0.412B</td><td class="pct">0.16%</td><td><span class="badge badge-hold">Hold</span></td></tr>
+        <tr><td class="rank">23</td><td class="ticker">STZ</td><td class="company-name">Constellation Brands</td><td class="pct">Staples</td><td class="value">US$0.095B</td><td class="pct">0.04%</td><td><span class="badge badge-cut">−95% Near-Exit</span></td></tr>
+        <tr><td class="rank">24</td><td class="ticker">M</td><td class="company-name">Macy's</td><td class="pct">Cons. Disc.</td><td class="value">US$0.055B</td><td class="pct">0.02%</td><td><span class="badge badge-new">New Position</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- EXITS -->
+<div class="section">
+  <div class="section-title">The <span>Combs Purge</span></div>
+  <div class="section-sub">16 full exits in a single quarter — almost all Todd Combs-era picks</div>
+  <div class="exits-grid">
+    <div class="exit-tag">Amazon (AMZN)</div>
+    <div class="exit-tag">Visa (V)</div>
+    <div class="exit-tag">Mastercard (MA)</div>
+    <div class="exit-tag">UnitedHealth (UNH)</div>
+    <div class="exit-tag">Domino's Pizza (DPZ)</div>
+    <div class="exit-tag">Aon (AON)</div>
+    <div class="exit-tag">Charter Comms (CHTR)</div>
+    <div class="exit-tag">Diageo (DEO)</div>
+    <div class="exit-tag">Heico (HEI)</div>
+    <div class="exit-tag">Lamar Advertising (LAMR)</div>
+    <div class="exit-tag">Liberty F1 (FWONK)</div>
+    <div class="exit-tag">Atlanta Braves (BATRK)</div>
+    <div class="exit-tag">Pool Corp (POOL)</div>
+    <div class="exit-tag">Allegion (ALLE)</div>
+    <div class="exit-tag">Liberty Latin America A (LILA)</div>
+    <div class="exit-tag">Liberty Latin America K (LILAK)</div>
+  </div>
+  <p style="margin-top:24px; font-size:13px; line-height:1.7; color:var(--muted); max-width:680px;">
+    Todd Combs departed Berkshire late 2025 to run JPMorgan Chase's banking operations. Abel used his first quarter to systematically exit positions he didn't personally underwrite — including Visa and Mastercard (held since 2011), which represented the most symbolically significant departures in modern Berkshire history.
+  </p>
+</div>
+
+<!-- KEY SIGNALS -->
+<div class="section">
+  <div class="section-title">What This <span>Signals</span></div>
+  <div class="section-sub">Reading between the lines of Abel's debut</div>
+  <div class="signals-grid">
+    <div class="signal-card bullish">
+      <div class="signal-icon">🔺</div>
+      <div class="signal-title">Alphabet is the AI bargain</div>
+      <div class="signal-body">Abel tripled GOOGL while peers like Ackman and Druckenmiller cut. Combined with a US$10B private placement into Alphabet's AI build, Abel sees Google as the cheapest unimpeachable AI moat in mega-cap tech — cheaper than Amazon or Microsoft at current valuations.</div>
+    </div>
+    <div class="signal-card neutral">
+      <div class="signal-icon">🏦</div>
+      <div class="signal-title">Cash is the loudest signal</div>
+      <div class="signal-body">US$397B in T-bills earning ~5% is not laziness — it's a position. Berkshire is signalling that US equities broadly don't offer sufficient margin of safety at current prices. The implication: be patient, hold dry powder, wait for the pitch.</div>
+    </div>
+    <div class="signal-card bullish">
+      <div class="signal-icon">✈️</div>
+      <div class="signal-title">Airlines are worth revisiting</div>
+      <div class="signal-body">Delta is the most symbolically loaded move — directly reversing Buffett's 2020 pledge to never own an airline again. Delta's premium-cabin mix, pricing discipline and industry consolidation have structurally changed the economics since COVID.</div>
+    </div>
+    <div class="signal-card neutral">
+      <div class="signal-icon">🇯🇵</div>
+      <div class="signal-title">Japan is Abel's first big call</div>
+      <div class="signal-body">Off the 13F but equally important: Berkshire crossed 10% in all five Japanese trading houses (Itochu, Mitsubishi, Mitsui, Sumitomo, Marubeni) in May 2026. These are cheap, cash-generative conglomerates leveraged to commodities — Buffett's logic applied to an undervalued market.</div>
+    </div>
+    <div class="signal-card bearish">
+      <div class="signal-icon">⚡</div>
+      <div class="signal-title">Energy: trim after the rally</div>
+      <div class="signal-body">Cutting Chevron by 35% after its ~40% run is pure valuation discipline. Occidental (OXY) was untouched — Berkshire still believes in the long-term oil thesis, just not at stretched prices. If you're heavy energy, ask: have you rebalanced?</div>
+    </div>
+    <div class="signal-card bullish">
+      <div class="signal-icon">🏠</div>
+      <div class="signal-title">Housing dip = opportunity</div>
+      <div class="signal-body">Lennar +43% and small NYT triple, plus Abel's first acquisition being a homebuilder, suggests a contrarian bet on US housing affordability eventually improving. Structural supply shortage isn't going away.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIONABLE IDEAS FOR AU INVESTORS -->
+<div class="section">
+  <div class="section-title">What <span>We Do</span> — Australian Investor Playbook</div>
+  <div class="section-sub">Five themes from the 13F, translated for ASX access</div>
+  <div class="actions-grid">
+    <div class="action-card">
+      <div class="action-num">01</div>
+      <div class="action-theme">Quality compounders are still the core</div>
+      <div class="action-body">Apple, AmEx, Coca-Cola and Moody's were all untouched — the franchise names with pricing power, low capital intensity and compounding economics. This isn't broken. Build around it.</div>
+      <div class="action-etfs">
+        <div class="etf-tag">ASX: IVV</div>
+        <div class="etf-tag">ASX: QUAL</div>
+        <div class="etf-tag">ASX: MOAT</div>
+        <div class="etf-tag">Direct: AAPL</div>
+        <div class="etf-tag">Direct: AXP</div>
+      </div>
+    </div>
+    <div class="action-card">
+      <div class="action-num">02</div>
+      <div class="action-theme">Alphabet — not the whole Mag-7</div>
+      <div class="action-body">Abel sold Amazon and didn't touch Microsoft, but tripled Google. The signal: be selective — Alphabet is cheapest on AI infrastructure value vs. valuation. Google Search + Cloud + YouTube + DeepMind at ~20× earnings is hard to argue with.</div>
+      <div class="action-etfs">
+        <div class="etf-tag">Direct: GOOGL</div>
+        <div class="etf-tag">ASX: NDQ (diluted)</div>
+        <div class="etf-tag">ASX: IVV (diluted)</div>
+      </div>
+    </div>
+    <div class="action-card">
+      <div class="action-num">03</div>
+      <div class="action-theme">Japan: Abel's clearest offshore bet</div>
+      <div class="action-body">The sogo shosha thesis is simple: cheap, diversified, resource-leveraged conglomerates with 100+ year track records trading at 10-12× earnings and paying growing dividends. The AUD/JPY tailwind is a bonus. This is Berkshire's clearest non-US conviction.</div>
+      <div class="action-etfs">
+        <div class="etf-tag">ASX: IJP</div>
+        <div class="etf-tag">Direct: MSBHY ADR</div>
+        <div class="etf-tag">Direct: ITOCY ADR</div>
+        <div class="etf-tag">Direct: MITSY ADR</div>
+      </div>
+    </div>
+    <div class="action-card">
+      <div class="action-num">04</div>
+      <div class="action-theme">Trim energy winners, don't chase</div>
+      <div class="action-body">Cutting CVX 35% after a 40% run is a discipline lesson. If you're heavy BHP, WDS or Woodside and it's run, take some off. Berkshire still believes in long-cycle energy (OXY held) but not at stretched entry prices.</div>
+      <div class="action-etfs">
+        <div class="etf-tag">ASX: FUEL (reduce if overweight)</div>
+        <div class="etf-tag">Direct: CVX / XOM at dips</div>
+      </div>
+    </div>
+    <div class="action-card">
+      <div class="action-num">05</div>
+      <div class="action-theme">Cash is a strategic position</div>
+      <div class="action-body">At ~4–4.5% on AU term deposits or cash ETFs, holding 20–30% dry powder isn't wasted — it's earning real returns while waiting for better valuations. This is Berkshire's biggest lesson: doing nothing is a decision.</div>
+      <div class="action-etfs">
+        <div class="etf-tag">ASX: AAA (Betashares)</div>
+        <div class="etf-tag">ASX: BILL</div>
+        <div class="etf-tag">AU Term Deposits ~4.5%</div>
+      </div>
+    </div>
+    <div class="action-card">
+      <div class="action-num">06</div>
+      <div class="action-theme">ASX Berkshire-style alternatives</div>
+      <div class="action-body">Don't want US equity risk or FX/estate tax complexity? SOL (Soul Patts) is Australia's closest Berkshire analogue — listed 1903, diversified conglomerate, dividend raised every year since 1998. MFF Capital owns most of Berkshire's favourite names as a listed investment company.</div>
+      <div class="action-etfs">
+        <div class="etf-tag">ASX: SOL</div>
+        <div class="etf-tag">ASX: MFF</div>
+        <div class="etf-tag">ASX: BRK.B via Stake/IBKR</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BROKER NOTE -->
+<div class="section" style="border-bottom:none;">
+  <div class="section-title">Access <span>Routes</span> from Australia</div>
+  <div class="section-sub">How to buy US shares as an Australian investor</div>
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px;">
+    <div style="background:var(--surface); border:1px solid var(--border); padding:20px;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--gold); margin-bottom:8px;">STAKE</div>
+      <div style="font-size:13px; color:var(--muted); line-height:1.6;">US$3/trade, ~70bps FX. Best for smaller, regular purchases. Clean UI.</div>
+    </div>
+    <div style="background:var(--surface); border:1px solid var(--border); padding:20px;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--gold); margin-bottom:8px;">IBKR AUSTRALIA</div>
+      <div style="font-size:13px; color:var(--muted); line-height:1.6;">~2bps FX — cheapest for large purchases. Best overall for serious investors.</div>
+    </div>
+    <div style="background:var(--surface); border:1px solid var(--border); padding:20px;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--gold); margin-bottom:8px;">CMC INVEST</div>
+      <div style="font-size:13px; color:var(--muted); line-height:1.6;">$0 US brokerage. Watch the FX spread — about 60bps. Good for buy-and-hold.</div>
+    </div>
+    <div style="background:var(--surface); border:1px solid var(--border); padding:20px;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--gold); margin-bottom:8px;">⚠️ W-8BEN + ESTATE TAX</div>
+      <div style="font-size:13px; color:var(--muted); line-height:1.6;">Always complete W-8BEN to drop dividend WHT from 30% → 15%. US-situs assets &gt;US$60K risk US estate tax for Australians — consider ASX wrappers.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer">
+  ⚠️ This report is for informational and educational purposes only. It is not financial advice. Past performance is not indicative of future results. All investments carry risk including the potential loss of principal. The information herein is based on publicly available 13F filings and third-party sources. Australian investors should consider their individual circumstances and consult a licensed financial adviser before making investment decisions. Foreign currency exposure, taxation obligations and estate tax implications apply to US securities held by Australian residents.
+</div>
+
+</body>
+</html>

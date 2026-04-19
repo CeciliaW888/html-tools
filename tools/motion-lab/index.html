@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Motion Lab</title>
+  <style>
+    :root {
+      --bg: #06070d;
+      --bg-soft: #10131f;
+      --panel: rgba(11, 15, 31, 0.82);
+      --panel-strong: rgba(12, 16, 28, 0.94);
+      --line: rgba(224, 193, 128, 0.2);
+      --text: #f5eedc;
+      --muted: #b4ab96;
+      --gold: #e0c180;
+      --gold-strong: #f4ddb0;
+      --sky: #8faef7;
+      --ember: #cb6a47;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.42);
+      --radius: 26px;
+      --glow: 0.9;
+      --speed: 1;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top, rgba(143, 174, 247, 0.15), transparent 34%),
+        radial-gradient(circle at 78% 10%, rgba(224, 193, 128, 0.14), transparent 20%),
+        linear-gradient(180deg, #080910 0%, #04050a 100%);
+      color: var(--text);
+      font-family: "Georgia", "Iowan Old Style", "Palatino Linotype", serif;
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .page {
+      width: min(1280px, calc(100% - 24px));
+      margin: 0 auto;
+      padding: 18px 0 36px;
+    }
+
+    .topbar,
+    .panel,
+    .scene-card,
+    .lesson-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 18px;
+      border-radius: 22px;
+      background: rgba(10, 12, 22, 0.84);
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #271703;
+      font-size: 1.1rem;
+      background:
+        radial-gradient(circle at 30% 30%, #fff4d1 0%, #edca89 40%, #c38e4f 100%);
+      box-shadow:
+        0 0 calc(24px * var(--glow)) rgba(224, 193, 128, 0.45),
+        inset 0 1px 1px rgba(255, 255, 255, 0.55);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 3.4vw, 2.2rem);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .button,
+    .ghost-button,
+    .icon-button {
+      border: 1px solid rgba(224, 193, 128, 0.2);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .button,
+    .ghost-button {
+      min-height: 42px;
+      padding: 0 16px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .button {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-strong) 100%);
+      color: #1c1305;
+      font-weight: 700;
+    }
+
+    .icon-button {
+      width: 42px;
+      height: 42px;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    .button:hover,
+    .ghost-button:hover,
+    .icon-button:hover,
+    .scene-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) 340px;
+      gap: 22px;
+      margin-top: 18px;
+    }
+
+    .stage-shell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero {
+      padding: 24px;
+      border-radius: 28px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(7, 9, 17, 0.92), rgba(6, 7, 12, 0.98));
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .hero::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(224, 193, 128, 0.12), transparent 22%),
+        radial-gradient(circle at 84% 12%, rgba(143, 174, 247, 0.13), transparent 18%);
+    }
+
+    .hero::after {
+      background:
+        linear-gradient(120deg, transparent 0 45%, rgba(224, 193, 128, 0.04) 50%, transparent 55%),
+        linear-gradient(180deg, transparent 0 80%, rgba(255, 255, 255, 0.02) 100%);
+    }
+
+    .hero-head {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(224, 193, 128, 0.22);
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.72rem;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .hero-copy {
+      max-width: 34rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .stage {
+      position: relative;
+      min-height: min(70vh, 760px);
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(224, 193, 128, 0.12);
+      background:
+        radial-gradient(circle at top, rgba(143, 174, 247, 0.1), transparent 34%),
+        linear-gradient(180deg, #0a0c15 0%, #05060c 100%);
+      isolation: isolate;
+    }
+
+    .stage[data-playing="false"] * {
+      animation-play-state: paused !important;
+    }
+
+    .stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 22% 28%, rgba(255, 255, 255, 0.06) 0 1px, transparent 1.4px),
+        radial-gradient(circle at 78% 20%, rgba(255, 255, 255, 0.06) 0 1px, transparent 1.4px),
+        radial-gradient(circle at 36% 76%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1.4px),
+        radial-gradient(circle at 66% 68%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1.4px);
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    .scene {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 420ms ease;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+    }
+
+    .scene.is-active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .scene-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent 86%);
+      opacity: 0.14;
+    }
+
+    .scene-vignette {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle, transparent 28%, rgba(0, 0, 0, 0.45) 78%, rgba(0, 0, 0, 0.7) 100%);
+      pointer-events: none;
+    }
+
+    .title-stage {
+      width: min(100%, 860px);
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .title-kicker,
+    .scene-label {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 0.76rem;
+      color: var(--gold);
+    }
+
+    .title-word {
+      display: block;
+      font-size: clamp(3.2rem, 12vw, 7.7rem);
+      line-height: 0.92;
+      text-transform: uppercase;
+      margin-top: 14px;
+      text-shadow: 0 0 calc(28px * var(--glow)) rgba(224, 193, 128, 0.32);
+      animation: titleReveal calc(2600ms / var(--speed)) cubic-bezier(0.2, 0.9, 0.16, 1) infinite;
+    }
+
+    .title-word:nth-of-type(2) {
+      animation-delay: calc(220ms / var(--speed));
+    }
+
+    .title-bar {
+      width: min(74vw, 420px);
+      height: 2px;
+      margin: 26px auto 0;
+      background: linear-gradient(90deg, transparent, rgba(244, 221, 176, 0.98), transparent);
+      transform-origin: center;
+      box-shadow: 0 0 calc(30px * var(--glow)) rgba(244, 221, 176, 0.45);
+      animation: lineSweep calc(2600ms / var(--speed)) cubic-bezier(0.23, 1, 0.32, 1) infinite;
+    }
+
+    .title-note {
+      margin-top: 22px;
+      color: var(--muted);
+      max-width: 36rem;
+      margin-inline: auto;
+      line-height: 1.7;
+      animation: fadeRise calc(2600ms / var(--speed)) ease-out infinite;
+    }
+
+    .title-orb {
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(224, 193, 128, 0.2), transparent 66%);
+      filter: blur(20px);
+      opacity: 0.9;
+      animation: breathe calc(4200ms / var(--speed)) ease-in-out infinite;
+    }
+
+    .title-orb.left {
+      left: 8%;
+      bottom: -8%;
+    }
+
+    .title-orb.right {
+      right: 6%;
+      top: -6%;
+      background: radial-gradient(circle, rgba(143, 174, 247, 0.18), transparent 66%);
+      animation-delay: calc(-1200ms / var(--speed));
+    }
+
+    .parallax-stage,
+    .rune-stage,
+    .quote-stage {
+      position: relative;
+      width: min(100%, 880px);
+      height: min(70vh, 620px);
+      z-index: 1;
+    }
+
+    .sky-glow,
+    .moon,
+    .mountain,
+    .mist,
+    .temple,
+    .rune-ring,
+    .quote-panel {
+      position: absolute;
+    }
+
+    .sky-glow {
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(244, 221, 176, 0.2), transparent 18%),
+        radial-gradient(circle at 28% 32%, rgba(143, 174, 247, 0.12), transparent 18%),
+        radial-gradient(circle at 74% 36%, rgba(203, 106, 71, 0.1), transparent 16%);
+      animation: skyShift calc(7200ms / var(--speed)) ease-in-out infinite alternate;
+    }
+
+    .moon {
+      top: 10%;
+      left: 50%;
+      width: 132px;
+      height: 132px;
+      margin-left: -66px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 35%, #fff7de 0%, #f4ddb0 34%, #d4ab61 72%, rgba(212, 171, 97, 0.4) 100%);
+      box-shadow:
+        0 0 calc(52px * var(--glow)) rgba(244, 221, 176, 0.46),
+        0 0 calc(120px * var(--glow)) rgba(244, 221, 176, 0.2);
+      animation: floatSlow calc(5600ms / var(--speed)) ease-in-out infinite;
+    }
+
+    .moon::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .mountain {
+      left: -8%;
+      right: -8%;
+      bottom: 0;
+      height: 54%;
+      background: linear-gradient(180deg, rgba(14, 18, 32, 0), rgba(6, 7, 12, 0.6));
+      clip-path: polygon(0 100%, 0 68%, 15% 58%, 28% 36%, 44% 61%, 58% 42%, 76% 64%, 88% 48%, 100% 72%, 100% 100%);
+      border-top: 1px solid rgba(224, 193, 128, 0.08);
+    }
+
+    .mountain.back {
+      opacity: 0.55;
+      transform: translateY(4%);
+      filter: blur(2px);
+      animation: driftBack calc(6400ms / var(--speed)) ease-in-out infinite alternate;
+    }
+
+    .mountain.front {
+      height: 60%;
+      opacity: 0.92;
+      animation: driftFront calc(4600ms / var(--speed)) ease-in-out infinite alternate;
+    }
+
+    .mist {
+      left: -12%;
+      right: -12%;
+      bottom: 10%;
+      height: 18%;
+      background:
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.08), transparent 24%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.07), transparent 28%),
+        radial-gradient(circle at 78% 50%, rgba(255, 255, 255, 0.08), transparent 24%);
+      filter: blur(10px);
+      animation: fogDrift calc(9000ms / var(--speed)) linear infinite;
+    }
+
+    .temple {
+      left: 50%;
+      bottom: 18%;
+      width: 220px;
+      height: 190px;
+      margin-left: -110px;
+      transform-origin: center bottom;
+      animation: templeRise calc(4800ms / var(--speed)) cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+
+    .temple::before,
+    .temple::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    .temple::before {
+      bottom: 0;
+      width: 170px;
+      height: 108px;
+      background:
+        linear-gradient(90deg,
+          rgba(244, 221, 176, 0.12) 0 8%,
+          transparent 8% 16%,
+          rgba(244, 221, 176, 0.12) 16% 24%,
+          transparent 24% 32%,
+          rgba(244, 221, 176, 0.12) 32% 40%,
+          transparent 40% 48%,
+          rgba(244, 221, 176, 0.12) 48% 56%,
+          transparent 56% 64%,
+          rgba(244, 221, 176, 0.12) 64% 72%,
+          transparent 72% 80%,
+          rgba(244, 221, 176, 0.12) 80% 88%,
+          transparent 88% 100%),
+        linear-gradient(180deg, rgba(29, 22, 10, 0.88), rgba(12, 10, 8, 0.95));
+      box-shadow: 0 0 calc(32px * var(--glow)) rgba(244, 221, 176, 0.12);
+    }
+
+    .temple::after {
+      bottom: 98px;
+      width: 210px;
+      height: 66px;
+      background: linear-gradient(180deg, rgba(39, 29, 11, 0.95), rgba(22, 16, 8, 0.92));
+      clip-path: polygon(50% 0, 100% 74%, 92% 74%, 92% 100%, 8% 100%, 8% 74%, 0 74%);
+      box-shadow: 0 0 calc(36px * var(--glow)) rgba(224, 193, 128, 0.18);
+    }
+
+    .parallax-copy {
+      position: absolute;
+      left: 30px;
+      bottom: 26px;
+      max-width: 24rem;
+    }
+
+    .parallax-copy h2,
+    .quote-panel blockquote {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      line-height: 1.02;
+    }
+
+    .parallax-copy p,
+    .quote-panel cite,
+    .scene-caption {
+      margin-top: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .rune-stage {
+      display: grid;
+      place-items: center;
+    }
+
+    .rune-ring {
+      left: 50%;
+      top: 50%;
+      width: min(68vw, 420px);
+      height: min(68vw, 420px);
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 1px solid rgba(224, 193, 128, 0.22);
+      box-shadow:
+        inset 0 0 calc(28px * var(--glow)) rgba(224, 193, 128, 0.08),
+        0 0 calc(28px * var(--glow)) rgba(224, 193, 128, 0.12);
+    }
+
+    .rune-ring.outer {
+      animation: rotateClockwise calc(14000ms / var(--speed)) linear infinite;
+    }
+
+    .rune-ring.inner {
+      width: min(50vw, 300px);
+      height: min(50vw, 300px);
+      border-color: rgba(143, 174, 247, 0.24);
+      box-shadow:
+        inset 0 0 calc(22px * var(--glow)) rgba(143, 174, 247, 0.08),
+        0 0 calc(32px * var(--glow)) rgba(143, 174, 247, 0.1);
+      animation: rotateCounter calc(10000ms / var(--speed)) linear infinite;
+    }
+
+    .rune-glyphs {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: rgba(244, 221, 176, 0.82);
+      text-shadow: 0 0 calc(18px * var(--glow)) rgba(244, 221, 176, 0.32);
+    }
+
+    .rune-glyphs span {
+      position: absolute;
+      transform:
+        rotate(calc(var(--index) * 45deg))
+        translateY(calc(-1 * min(30vw, 180px)))
+        rotate(calc(var(--index) * -45deg));
+      animation: pulseRune calc(2600ms / var(--speed)) ease-in-out infinite;
+      animation-delay: calc(var(--index) * 120ms / var(--speed));
+    }
+
+    .rune-core {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 146px;
+      height: 146px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(244, 221, 176, 0.82), rgba(224, 193, 128, 0.14) 46%, transparent 70%);
+      filter: blur(2px);
+      animation: corePulse calc(2800ms / var(--speed)) ease-in-out infinite;
+    }
+
+    .rune-center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      width: min(80vw, 560px);
+    }
+
+    .rune-center .mark {
+      font-size: clamp(4rem, 10vw, 6rem);
+      line-height: 1;
+      color: var(--gold-strong);
+      text-shadow: 0 0 calc(30px * var(--glow)) rgba(244, 221, 176, 0.45);
+      animation: runeFlicker calc(2200ms / var(--speed)) ease-in-out infinite;
+    }
+
+    .rune-center h2 {
+      margin: 18px 0 0;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .rune-center p {
+      margin: 12px auto 0;
+      max-width: 28rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .quote-stage {
+      display: grid;
+      place-items: center;
+    }
+
+    .quote-panel {
+      inset: auto;
+      width: min(100%, 720px);
+      padding: 34px;
+      border-radius: 30px;
+      background:
+        linear-gradient(180deg, rgba(17, 20, 37, 0.82), rgba(10, 12, 20, 0.94));
+      border: 1px solid rgba(224, 193, 128, 0.16);
+      box-shadow:
+        inset 0 0 calc(32px * var(--glow)) rgba(224, 193, 128, 0.06),
+        0 24px 70px rgba(0, 0, 0, 0.42);
+      overflow: hidden;
+    }
+
+    .quote-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(224, 193, 128, 0.08), transparent 18%),
+        radial-gradient(circle at top right, rgba(143, 174, 247, 0.12), transparent 20%);
+      pointer-events: none;
+    }
+
+    .quote-line {
+      width: 64px;
+      height: 2px;
+      margin-bottom: 18px;
+      background: linear-gradient(90deg, rgba(244, 221, 176, 0.95), transparent);
+      box-shadow: 0 0 calc(20px * var(--glow)) rgba(244, 221, 176, 0.42);
+      animation: lineBreathe calc(3600ms / var(--speed)) ease-in-out infinite;
+    }
+
+    .quote-reveal {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(26px);
+      animation: quoteRise calc(3400ms / var(--speed)) ease-out infinite;
+    }
+
+    .quote-panel cite {
+      display: block;
+      margin-top: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 0.78rem;
+      color: var(--gold);
+      animation: fadeRise calc(3400ms / var(--speed)) ease-out infinite;
+    }
+
+    .quote-panel .scene-caption {
+      margin-top: 18px;
+      max-width: 32rem;
+      animation: fadeRise calc(3400ms / var(--speed)) ease-out infinite;
+    }
+
+    .panel {
+      border-radius: 26px;
+      padding: 18px;
+      background: var(--panel-strong);
+    }
+
+    .panel h2,
+    .panel h3,
+    .lesson-card h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--gold);
+    }
+
+    .controls {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 12px;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .segmented button {
+      min-height: 42px;
+      padding: 0 10px;
+      border: 1px solid rgba(224, 193, 128, 0.16);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .segmented button.is-active,
+    .scene-card.is-active {
+      border-color: rgba(244, 221, 176, 0.48);
+      background: rgba(244, 221, 176, 0.08);
+    }
+
+    .range-wrap,
+    .field-wrap {
+      display: grid;
+      gap: 8px;
+    }
+
+    .range-head,
+    .field-wrap label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      font-size: 0.95rem;
+      color: #dfd6c1;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(224, 193, 128, 0.14);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      padding: 12px 14px;
+      resize: vertical;
+    }
+
+    textarea {
+      min-height: 92px;
+    }
+
+    .scene-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .scene-card {
+      padding: 14px;
+      border-radius: 18px;
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .scene-card h3 {
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      text-transform: none;
+      color: var(--text);
+    }
+
+    .scene-card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.94rem;
+    }
+
+    .lesson-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .lesson-card {
+      padding: 18px;
+      border-radius: 20px;
+    }
+
+    .lesson-card p {
+      margin-top: 10px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .footer {
+      margin-top: 16px;
+      color: #988f7b;
+      line-height: 1.65;
+      text-align: center;
+    }
+
+    @keyframes titleReveal {
+      0% { opacity: 0; transform: translateY(56px) scale(0.96); letter-spacing: 0.22em; filter: blur(12px); }
+      18% { opacity: 1; transform: translateY(0) scale(1); letter-spacing: 0.08em; filter: blur(0); }
+      56% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+      80% { opacity: 0.88; transform: translateY(-4px) scale(1.01); }
+      100% { opacity: 0; transform: translateY(-18px) scale(1.02); letter-spacing: 0.16em; filter: blur(7px); }
+    }
+
+    @keyframes lineSweep {
+      0% { opacity: 0; transform: scaleX(0.08); }
+      20% { opacity: 1; transform: scaleX(1); }
+      60% { opacity: 1; transform: scaleX(1); }
+      100% { opacity: 0; transform: scaleX(0.24); }
+    }
+
+    @keyframes fadeRise {
+      0%, 10% { opacity: 0; transform: translateY(22px); }
+      25%, 72% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-10px); }
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(0.94); opacity: 0.65; }
+      50% { transform: scale(1.08); opacity: 1; }
+    }
+
+    @keyframes skyShift {
+      0% { transform: translateY(0); opacity: 0.9; }
+      100% { transform: translateY(-12px); opacity: 1; }
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    @keyframes driftBack {
+      0% { transform: translate3d(-10px, 4%, 0); }
+      100% { transform: translate3d(10px, 0, 0); }
+    }
+
+    @keyframes driftFront {
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-16px, -6px, 0); }
+    }
+
+    @keyframes fogDrift {
+      0% { transform: translateX(-2%); opacity: 0.45; }
+      50% { opacity: 0.75; }
+      100% { transform: translateX(2%); opacity: 0.45; }
+    }
+
+    @keyframes templeRise {
+      0% { opacity: 0.15; transform: translateY(24px) scale(0.96); }
+      20% { opacity: 1; transform: translateY(0) scale(1); }
+      60% { opacity: 1; transform: translateY(-3px) scale(1.01); }
+      100% { opacity: 0.88; transform: translateY(8px) scale(0.98); }
+    }
+
+    @keyframes rotateClockwise {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    @keyframes rotateCounter {
+      from { transform: translate(-50%, -50%) rotate(360deg); }
+      to { transform: translate(-50%, -50%) rotate(0deg); }
+    }
+
+    @keyframes pulseRune {
+      0%, 100% { opacity: 0.35; transform:
+        rotate(calc(var(--index) * 45deg))
+        translateY(calc(-1 * min(30vw, 180px)))
+        rotate(calc(var(--index) * -45deg))
+        scale(0.95); }
+      50% { opacity: 1; transform:
+        rotate(calc(var(--index) * 45deg))
+        translateY(calc(-1 * min(31vw, 188px)))
+        rotate(calc(var(--index) * -45deg))
+        scale(1.08); }
+    }
+
+    @keyframes corePulse {
+      0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.92); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+    }
+
+    @keyframes runeFlicker {
+      0%, 100% { opacity: 0.78; filter: brightness(0.92); }
+      20% { opacity: 1; filter: brightness(1.15); }
+      48% { opacity: 0.85; }
+      50% { opacity: 0.68; }
+      54% { opacity: 1; filter: brightness(1.22); }
+    }
+
+    @keyframes lineBreathe {
+      0%, 100% { transform: scaleX(0.72); opacity: 0.7; }
+      50% { transform: scaleX(1.06); opacity: 1; }
+    }
+
+    @keyframes quoteRise {
+      0%, 12% { opacity: 0; transform: translateY(28px); filter: blur(6px); }
+      30%, 72% { opacity: 1; transform: translateY(0); filter: blur(0); }
+      100% { opacity: 0; transform: translateY(-10px); filter: blur(4px); }
+    }
+
+    @media (max-width: 1060px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .lesson-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        width: min(100% - 16px, 1280px);
+      }
+
+      .topbar,
+      .hero-head {
+        flex-direction: column;
+        align-items: start;
+      }
+
+      .topbar-actions,
+      .controls,
+      .lesson-grid {
+        width: 100%;
+      }
+
+      .controls,
+      .lesson-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel {
+        padding: 18px;
+      }
+
+      .stage {
+        min-height: 560px;
+      }
+
+      .parallax-copy {
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
+      }
+
+      .quote-panel {
+        padding: 24px;
+      }
+
+      .segmented {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">✦</div>
+        <div>
+          <h1>Motion Lab</h1>
+          <p>Mythology-inspired motion studies in one readable HTML file.</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <a class="ghost-button" href="../../index.html">Back to gallery</a>
+        <button class="button" id="replayButton" type="button">Replay scene</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <section class="stage-shell">
+        <article class="hero">
+          <div class="hero-head">
+            <div>
+              <div class="eyebrow">Motion study playground</div>
+              <p class="hero-copy">
+                Each scene demonstrates a reusable motion pattern common in cinematic title work and fantasy interfaces.
+                Use the controls to study pacing, glow restraint, and depth staging rather than treating the animation as a black box.
+              </p>
+            </div>
+            <button class="icon-button" id="playPauseButton" type="button" aria-label="Pause animation">❚❚</button>
+          </div>
+
+          <div class="stage" id="stage" data-playing="true">
+            <section class="scene is-active" data-scene="title">
+              <div class="scene-grid"></div>
+              <div class="title-orb left"></div>
+              <div class="title-orb right"></div>
+              <div class="title-stage">
+                <div class="title-kicker" id="titleKickerDisplay">Invocation sequence</div>
+                <span class="title-word" id="titleLineOneDisplay">The</span>
+                <span class="title-word" id="titleLineTwoDisplay">Sunborne</span>
+                <div class="title-bar"></div>
+                <p class="title-note">
+                  Demonstrates staggered reveal timing, wide-to-tight letter spacing, and a luminous accent line used to anchor epic titles.
+                </p>
+              </div>
+              <div class="scene-vignette"></div>
+            </section>
+
+            <section class="scene" data-scene="parallax">
+              <div class="scene-grid"></div>
+              <div class="parallax-stage">
+                <div class="sky-glow"></div>
+                <div class="moon"></div>
+                <div class="mountain back"></div>
+                <div class="mist"></div>
+                <div class="temple"></div>
+                <div class="mountain front"></div>
+                <div class="parallax-copy">
+                  <div class="scene-label">Celestial / parallax hero</div>
+                  <h2 id="heroTitleDisplay">Temple of Dawn</h2>
+                  <p id="heroBodyDisplay">
+                    Layer slow background drift, a floating focal moon, and a grounded silhouette to create depth without any framework.
+                  </p>
+                </div>
+              </div>
+              <div class="scene-vignette"></div>
+            </section>
+
+            <section class="scene" data-scene="rune">
+              <div class="scene-grid"></div>
+              <div class="rune-stage">
+                <div class="rune-ring outer"></div>
+                <div class="rune-ring inner"></div>
+                <div class="rune-core"></div>
+                <div class="rune-glyphs" aria-hidden="true">
+                  <span style="--index:0;">ᚠ</span>
+                  <span style="--index:1;">ᚱ</span>
+                  <span style="--index:2;">ᚺ</span>
+                  <span style="--index:3;">ᛞ</span>
+                  <span style="--index:4;">✦</span>
+                  <span style="--index:5;">ᛉ</span>
+                  <span style="--index:6;">ᛟ</span>
+                  <span style="--index:7;">ᛇ</span>
+                </div>
+                <div class="rune-center">
+                  <div class="mark" id="runeMarkDisplay">✶</div>
+                  <div class="scene-label">Rune / symbol pulse</div>
+                  <h2 id="runeTitleDisplay">Seal of Oaths</h2>
+                  <p id="runeBodyDisplay">
+                    Rotating rings and offset pulse delays create mystical energy while keeping the construction simple enough to learn from.
+                  </p>
+                </div>
+              </div>
+              <div class="scene-vignette"></div>
+            </section>
+
+            <section class="scene" data-scene="quote">
+              <div class="scene-grid"></div>
+              <div class="quote-stage">
+                <div class="quote-panel">
+                  <div class="quote-line"></div>
+                  <div class="scene-label">Quote card / cinematic pacing</div>
+                  <blockquote>
+                    <span class="quote-reveal" id="quoteDisplay">Even the stars kneel before a vow kept in darkness.</span>
+                  </blockquote>
+                  <cite id="quoteAuthorDisplay">Oracle of the Bronze Sky</cite>
+                  <p class="scene-caption">
+                    Demonstrates hold time, soft entrance, and negative space. Not every motion scene needs velocity; some need tension.
+                  </p>
+                </div>
+              </div>
+              <div class="scene-vignette"></div>
+            </section>
+          </div>
+        </article>
+
+        <section class="panel">
+          <h2>What this teaches</h2>
+          <div class="lesson-grid">
+            <article class="lesson-card">
+              <h3>Staggered reveal</h3>
+              <p>
+                Use offset timing between headline lines and support elements so the eye has a controlled reading path instead of receiving everything at once.
+              </p>
+            </article>
+            <article class="lesson-card">
+              <h3>Layered depth</h3>
+              <p>
+                Parallax works when each layer moves at a different amplitude and purpose. Background drift should be quieter than foreground motion.
+              </p>
+            </article>
+            <article class="lesson-card">
+              <h3>Glow discipline</h3>
+              <p>
+                Glow is strongest as punctuation. Raise or lower intensity to see how fast cinematic becomes gaudy when too many edges emit light.
+              </p>
+            </article>
+            <article class="lesson-card">
+              <h3>Pacing and hold</h3>
+              <p>
+                The quote scene shows that motion design is also about when nothing happens. A clean hold lets the language carry weight.
+              </p>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <aside class="controls">
+        <section class="panel control-group">
+          <h2>Playback</h2>
+          <div class="segmented">
+            <button type="button" id="playButton">Play</button>
+            <button type="button" id="pauseButton">Pause</button>
+            <button type="button" id="resetButton">Replay</button>
+          </div>
+          <div class="range-wrap">
+            <div class="range-head">
+              <span>Speed</span>
+              <strong id="speedValue">1.0x</strong>
+            </div>
+            <input id="speedRange" type="range" min="0.5" max="1.8" step="0.1" value="1">
+          </div>
+          <div class="range-wrap">
+            <div class="range-head">
+              <span>Glow intensity</span>
+              <strong id="glowValue">0.9</strong>
+            </div>
+            <input id="glowRange" type="range" min="0.2" max="1.8" step="0.1" value="0.9">
+          </div>
+        </section>
+
+        <section class="panel control-group">
+          <h2>Scenes</h2>
+          <div class="scene-list" id="sceneList">
+            <article class="scene-card is-active" data-target-scene="title" tabindex="0">
+              <h3>Dramatic title reveal</h3>
+              <p>Letter spacing collapse, staged line timing, and a luminous divider.</p>
+            </article>
+            <article class="scene-card" data-target-scene="parallax" tabindex="0">
+              <h3>Celestial parallax hero</h3>
+              <p>Depth from independent layer drift and a central moon focal point.</p>
+            </article>
+            <article class="scene-card" data-target-scene="rune" tabindex="0">
+              <h3>Rune / symbol animation</h3>
+              <p>Rotational structure, pulse offsets, and mystical energy framing.</p>
+            </article>
+            <article class="scene-card" data-target-scene="quote" tabindex="0">
+              <h3>Quote card pacing</h3>
+              <p>Slow reveal, hold time, and minimal motion supporting the text.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel control-group">
+          <h2>Editable content</h2>
+          <div class="field-wrap">
+            <label for="lineOneInput">Title line 1</label>
+            <input id="lineOneInput" type="text" value="The">
+          </div>
+          <div class="field-wrap">
+            <label for="lineTwoInput">Title line 2</label>
+            <input id="lineTwoInput" type="text" value="Sunborne">
+          </div>
+          <div class="field-wrap">
+            <label for="heroTitleInput">Hero title</label>
+            <input id="heroTitleInput" type="text" value="Temple of Dawn">
+          </div>
+          <div class="field-wrap">
+            <label for="heroBodyInput">Hero body</label>
+            <textarea id="heroBodyInput">Layer slow background drift, a floating focal moon, and a grounded silhouette to create depth without any framework.</textarea>
+          </div>
+          <div class="field-wrap">
+            <label for="runeMarkInput">Rune mark</label>
+            <input id="runeMarkInput" type="text" value="✶">
+          </div>
+          <div class="field-wrap">
+            <label for="runeTitleInput">Rune title</label>
+            <input id="runeTitleInput" type="text" value="Seal of Oaths">
+          </div>
+          <div class="field-wrap">
+            <label for="runeBodyInput">Rune body</label>
+            <textarea id="runeBodyInput">Rotating rings and offset pulse delays create mystical energy while keeping the construction simple enough to learn from.</textarea>
+          </div>
+          <div class="field-wrap">
+            <label for="quoteInput">Quote text</label>
+            <textarea id="quoteInput">Even the stars kneel before a vow kept in darkness.</textarea>
+          </div>
+          <div class="field-wrap">
+            <label for="quoteAuthorInput">Quote source</label>
+            <input id="quoteAuthorInput" type="text" value="Oracle of the Bronze Sky">
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <p class="footer">
+      Single file, no build step, intentionally readable. Open the source to inspect how each motion idea is constructed.
+    </p>
+  </main>
+
+  <script>
+    const root = document.documentElement;
+    const stage = document.getElementById("stage");
+    const scenes = Array.from(document.querySelectorAll(".scene"));
+    const sceneCards = Array.from(document.querySelectorAll(".scene-card"));
+    const playPauseButton = document.getElementById("playPauseButton");
+    const playButton = document.getElementById("playButton");
+    const pauseButton = document.getElementById("pauseButton");
+    const replayButton = document.getElementById("replayButton");
+    const resetButton = document.getElementById("resetButton");
+    const speedRange = document.getElementById("speedRange");
+    const glowRange = document.getElementById("glowRange");
+    const speedValue = document.getElementById("speedValue");
+    const glowValue = document.getElementById("glowValue");
+
+    const textBindings = [
+      ["lineOneInput", "titleLineOneDisplay"],
+      ["lineTwoInput", "titleLineTwoDisplay"],
+      ["heroTitleInput", "heroTitleDisplay"],
+      ["heroBodyInput", "heroBodyDisplay"],
+      ["runeMarkInput", "runeMarkDisplay"],
+      ["runeTitleInput", "runeTitleDisplay"],
+      ["runeBodyInput", "runeBodyDisplay"],
+      ["quoteInput", "quoteDisplay"],
+      ["quoteAuthorInput", "quoteAuthorDisplay"]
+    ];
+
+    let currentScene = "title";
+    let isPlaying = true;
+
+    function updatePlayState(nextState) {
+      isPlaying = nextState;
+      stage.dataset.playing = String(nextState);
+      playPauseButton.textContent = nextState ? "❚❚" : "▶";
+      playPauseButton.setAttribute("aria-label", nextState ? "Pause animation" : "Play animation");
+    }
+
+    function activateScene(sceneName) {
+      currentScene = sceneName;
+      scenes.forEach((scene) => {
+        scene.classList.toggle("is-active", scene.dataset.scene === sceneName);
+      });
+      sceneCards.forEach((card) => {
+        card.classList.toggle("is-active", card.dataset.targetScene === sceneName);
+      });
+      replayAnimations();
+    }
+
+    function replayAnimations() {
+      scenes.forEach((scene) => {
+        if (!scene.classList.contains("is-active")) {
+          return;
+        }
+        const animatedElements = scene.querySelectorAll("*");
+        animatedElements.forEach((element) => {
+          const currentAnimation = element.style.animation;
+          element.style.animation = "none";
+          void element.offsetWidth;
+          element.style.animation = currentAnimation;
+        });
+      });
+      if (isPlaying) {
+        updatePlayState(true);
+      }
+    }
+
+    function updateVariable(name, value, formatter) {
+      root.style.setProperty(name, value);
+      if (formatter === "speed") {
+        speedValue.textContent = `${Number(value).toFixed(1)}x`;
+      }
+      if (formatter === "glow") {
+        glowValue.textContent = Number(value).toFixed(1);
+      }
+    }
+
+    function bindTextInput(inputId, outputId) {
+      const input = document.getElementById(inputId);
+      const output = document.getElementById(outputId);
+      const sync = () => {
+        output.textContent = input.value || " ";
+      };
+      input.addEventListener("input", sync);
+      sync();
+    }
+
+    sceneCards.forEach((card) => {
+      const target = card.dataset.targetScene;
+      card.addEventListener("click", () => activateScene(target));
+      card.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          activateScene(target);
+        }
+      });
+    });
+
+    playPauseButton.addEventListener("click", () => updatePlayState(!isPlaying));
+    playButton.addEventListener("click", () => updatePlayState(true));
+    pauseButton.addEventListener("click", () => updatePlayState(false));
+    replayButton.addEventListener("click", replayAnimations);
+    resetButton.addEventListener("click", replayAnimations);
+
+    speedRange.addEventListener("input", () => {
+      updateVariable("--speed", speedRange.value, "speed");
+      replayAnimations();
+    });
+
+    glowRange.addEventListener("input", () => {
+      updateVariable("--glow", glowRange.value, "glow");
+    });
+
+    textBindings.forEach(([inputId, outputId]) => bindTextInput(inputId, outputId));
+
+    updateVariable("--speed", speedRange.value, "speed");
+    updateVariable("--glow", glowRange.value, "glow");
+    updatePlayState(true);
+    activateScene(currentScene);
+  </script>
+</body>
+</html>
