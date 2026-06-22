@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My AI Learning Journey</title>
+
+    <!-- Fonts: Fraunces (display) + Work Sans (body) + Brand fonts for quadrant -->
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400,0;9..144,700,0;9..144,900,0&family=Work+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&family=DM+Sans:wght@500;600;700&family=JetBrains+Mono:wght@500;600&family=Poppins:wght@500;600;700&family=Nunito:wght@600;700&family=Sora:wght@500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (THEME)
+           Dark Botanical + Fraunces Editorial
+           =========================================== */
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --text-primary: #e8e4df;
+            --text-secondary: #9a9590;
+            --accent-warm: #d4a574;
+            --accent-pink: #e8b4b8;
+            --accent-gold: #c9b896;
+            --accent-rust: #c45d3e;
+
+            --font-display: 'Fraunces', serif;
+            --font-body: 'Work Sans', sans-serif;
+
+            --title-size: clamp(2rem, 6vw, 5rem);
+            --h2-size: clamp(1.5rem, 4vw, 3rem);
+            --h3-size: clamp(1rem, 2.5vw, 1.5rem);
+            --body-size: clamp(0.75rem, 1.4vw, 1.1rem);
+            --small-size: clamp(0.6rem, 1vw, 0.8rem);
+
+            --slide-padding: clamp(1.5rem, 5vw, 5rem);
+            --content-gap: clamp(0.5rem, 2vw, 2rem);
+            --element-gap: clamp(0.25rem, 1vw, 1rem);
+
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* ===========================================
+           BASE STYLES
+           =========================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* --- VIEWPORT BASE STYLES (MANDATORY) --- */
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+        .card, .container, .content-box {
+            max-width: min(90vw, 1000px);
+            max-height: min(80vh, 700px);
+        }
+        .feature-list, .bullet-list { gap: clamp(0.4rem, 1vh, 1rem); }
+        .feature-list li, .bullet-list li { font-size: var(--body-size); line-height: 1.4; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+        }
+        img, .image-container {
+            max-width: 100%;
+            max-height: min(50vh, 400px);
+            object-fit: contain;
+        }
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.5rem, 5vw, 3rem);
+                --h2-size: clamp(1.25rem, 3.5vw, 2rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+            .nav-dots, .keyboard-hint, .decorative { display: none; }
+        }
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+        }
+        @media (max-width: 600px) {
+            :root { --title-size: clamp(1.5rem, 8vw, 3rem); }
+            .grid { grid-template-columns: 1fr; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+        /* --- END VIEWPORT BASE --- */
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-weight: 400;
+        }
+
+        /* ===========================================
+           GLOBAL SLIDE STYLES
+           =========================================== */
+        .slide {
+            background: var(--bg-primary);
+        }
+
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+        }
+
+        h1 { font-size: var(--title-size); font-weight: 900; }
+        h2 { font-size: var(--h2-size); font-weight: 700; }
+        h3 { font-size: var(--h3-size); font-weight: 700; }
+
+        p, li {
+            font-size: var(--body-size);
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .accent { color: var(--accent-pink); }
+        .gold { color: var(--accent-gold); }
+        .warm { color: var(--accent-warm); }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .reveal:nth-child(5) { transition-delay: 0.5s; }
+        .reveal:nth-child(6) { transition-delay: 0.6s; }
+
+        /* ===========================================
+           DECORATIVE ELEMENTS
+           =========================================== */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            pointer-events: none;
+        }
+        .orb-warm {
+            background: radial-gradient(circle, rgba(212, 165, 116, 0.2) 0%, transparent 70%);
+        }
+        .orb-pink {
+            background: radial-gradient(circle, rgba(232, 180, 184, 0.15) 0%, transparent 70%);
+        }
+        .orb-gold {
+            background: radial-gradient(circle, rgba(201, 184, 150, 0.12) 0%, transparent 70%);
+        }
+
+        .accent-line {
+            position: absolute;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, var(--accent-warm), transparent);
+            opacity: 0.25;
+            pointer-events: none;
+        }
+
+        /* ===========================================
+           SLIDE-SPECIFIC LAYOUTS
+           =========================================== */
+
+        /* --- Title Slide --- */
+        .title-slide .slide-content {
+            align-items: center;
+            text-align: center;
+        }
+        .title-slide h1 {
+            max-width: 16ch;
+        }
+        .overline {
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: var(--small-size);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--accent-warm);
+            margin-bottom: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .overline.step-label {
+            font-size: clamp(1rem, 2vw, 1.4rem);
+            letter-spacing: 0.2em;
+        }
+        .subtitle {
+            font-family: var(--font-body);
+            font-weight: 300;
+            font-size: clamp(0.8rem, 1.5vw, 1.1rem);
+            color: var(--text-secondary);
+            margin-top: clamp(0.75rem, 2vh, 1.5rem);
+            max-width: 40ch;
+            text-align: center;
+        }
+        .divider {
+            width: clamp(40px, 6vw, 80px);
+            height: 2px;
+            background: var(--accent-gold);
+            margin: clamp(1rem, 2.5vh, 2rem) 0;
+        }
+        .tag {
+            display: inline-block;
+            padding: clamp(0.3rem, 0.6vh, 0.5rem) clamp(0.8rem, 1.5vw, 1.2rem);
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            font-size: var(--small-size);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        /* --- Centered Content Slide --- */
+        .centered-slide .slide-content {
+            align-items: center;
+            text-align: center;
+        }
+        .centered-slide h2 {
+            max-width: 18ch;
+            margin-bottom: var(--content-gap);
+        }
+
+        /* --- Left-aligned Content Slide --- */
+        .content-slide .slide-content {
+            max-width: min(85vw, 900px);
+            margin: 0 auto;
+        }
+        .content-slide h2 {
+            margin-bottom: var(--content-gap);
+        }
+        .content-slide ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.5rem, 1.2vh, 1rem);
+        }
+        .content-slide li {
+            padding-left: clamp(1rem, 2vw, 1.5rem);
+            position: relative;
+        }
+        .content-slide li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.6em;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-warm);
+        }
+
+        /* --- Poll Slide --- */
+        .poll-options {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.6rem, 1.5vh, 1.2rem);
+            margin-top: var(--content-gap);
+            width: 100%;
+            max-width: min(80vw, 600px);
+        }
+        .poll-option {
+            padding: clamp(0.8rem, 1.5vh, 1.2rem) clamp(1rem, 2vw, 1.5rem);
+            border: 1px solid rgba(232, 180, 184, 0.2);
+            border-radius: 8px;
+            font-size: var(--body-size);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: clamp(0.5rem, 1vw, 1rem);
+        }
+        .poll-option .hand {
+            font-size: clamp(1.2rem, 2vw, 1.5rem);
+            opacity: 0.6;
+        }
+
+        /* --- Waffle Chart Embed --- */
+        .waffle-embed {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            border-radius: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* --- Steps / Phase Diagram --- */
+        .phases {
+            display: flex;
+            gap: clamp(0.5rem, 1.5vw, 1.5rem);
+            margin-top: var(--content-gap);
+            width: 100%;
+            max-width: min(85vw, 800px);
+        }
+        .phase {
+            flex: 1;
+            padding: clamp(0.8rem, 1.5vh, 1.5rem);
+            border-radius: 12px;
+            text-align: center;
+            position: relative;
+        }
+        .phase-num {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            margin-bottom: clamp(0.3rem, 0.5vh, 0.5rem);
+        }
+        .phase-label {
+            font-size: var(--small-size);
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .phase-desc {
+            font-size: clamp(0.6rem, 0.9vw, 0.75rem);
+            color: var(--text-secondary);
+            margin-top: clamp(0.2rem, 0.4vh, 0.4rem);
+        }
+        .phase:nth-child(1) { background: rgba(212, 165, 116, 0.1); }
+        .phase:nth-child(1) .phase-num { color: var(--accent-warm); }
+        .phase:nth-child(2) { background: rgba(232, 180, 184, 0.1); }
+        .phase:nth-child(2) .phase-num { color: var(--accent-pink); }
+        .phase:nth-child(3) { background: rgba(201, 184, 150, 0.1); }
+        .phase:nth-child(3) .phase-num { color: var(--accent-gold); }
+
+        /* Arrow between phases */
+        .phase + .phase::before {
+            content: '';
+            position: absolute;
+            left: calc(-1 * clamp(0.25rem, 0.75vw, 0.75rem) - 6px);
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 6px solid var(--accent-warm);
+            opacity: 0.4;
+        }
+
+        /* --- Flowchart (Ideation) --- */
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(0.4rem, 1vh, 0.8rem);
+            margin-top: var(--content-gap);
+        }
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: clamp(0.5rem, 1vw, 1rem);
+            padding: clamp(0.6rem, 1vh, 1rem) clamp(1rem, 2vw, 1.5rem);
+            border: 1px solid rgba(212, 165, 116, 0.2);
+            border-radius: 8px;
+            width: 100%;
+            max-width: min(80vw, 550px);
+            font-size: var(--body-size);
+        }
+        .flow-step .icon {
+            font-size: clamp(1rem, 2vw, 1.4rem);
+            flex-shrink: 0;
+        }
+        .flow-arrow {
+            color: var(--accent-warm);
+            font-size: clamp(0.8rem, 1.2vw, 1rem);
+            opacity: 0.5;
+        }
+
+        /* --- Scatter-Plot Quadrant Chart --- */
+        .quadrant-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: min(90vw, 760px);
+            margin-top: clamp(0.3rem, 0.8vh, 0.6rem);
+        }
+
+        .quadrant-top-axis {
+            text-align: center;
+            font-family: var(--font-body);
+            font-size: clamp(0.8rem, 1.3vw, 1.05rem);
+            color: var(--accent-gold);
+            margin-bottom: clamp(0.15rem, 0.3vh, 0.25rem);
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .quadrant-side-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: clamp(0.15rem, 0.3vh, 0.25rem);
+            padding: 0 2px;
+        }
+        .quadrant-side-label {
+            font-family: var(--font-body);
+            font-size: clamp(0.75rem, 1.2vw, 1rem);
+            color: var(--text-primary);
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 500;
+        }
+        .quadrant-side-label .arrow { color: var(--accent-warm); opacity: 0.7; }
+
+        .scatter-quadrant {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1.3 / 1;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.02);
+            overflow: hidden;
+        }
+
+        /* Cross lines */
+        .scatter-quadrant::before {
+            content: '';
+            position: absolute;
+            left: 50%; top: 0; bottom: 0;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent 2%, var(--accent-warm) 15%, var(--accent-warm) 85%, transparent 98%);
+            opacity: 0.2;
+            z-index: 1;
+        }
+        .scatter-quadrant::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent 2%, var(--accent-warm) 15%, var(--accent-warm) 85%, transparent 98%);
+            opacity: 0.2;
+            z-index: 1;
+        }
+
+        /* Quadrant category watermarks */
+        .q-label {
+            position: absolute;
+            font-family: var(--font-body);
+            font-size: clamp(0.65rem, 1vw, 0.85rem);
+            font-weight: 600;
+            color: var(--text-primary);
+            opacity: 0.35;
+            letter-spacing: 0.3px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .q-label.tl { top: 8px; left: 12px; }
+        .q-label.tr { top: 8px; right: 12px; text-align: right; }
+        .q-label.bl { bottom: 8px; left: 12px; }
+        .q-label.br { bottom: 8px; right: 12px; text-align: right; }
+
+        /* Tool items — absolutely positioned scatter points */
+        .scatter-tool {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            gap: clamp(4px, 0.5vw, 6px);
+            font-size: clamp(0.85rem, 1.4vw, 1.15rem);
+            font-weight: 600;
+            cursor: pointer;
+            padding: clamp(2px, 0.3vh, 4px) clamp(4px, 0.5vw, 6px);
+            border-radius: 6px;
+            transition: all 0.25s ease;
+            z-index: 10;
+            text-decoration: none;
+            color: inherit;
+            white-space: nowrap;
+        }
+        .scatter-tool:hover {
+            background: rgba(212, 165, 116, 0.12);
+            transform: scale(1.08);
+            z-index: 20;
+        }
+        .scatter-tool img.logo {
+            width: clamp(24px, 2.4vw, 32px);
+            height: clamp(24px, 2.4vw, 32px);
+            border-radius: 4px;
+            object-fit: contain;
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.9);
+        }
+
+        /* Tooltip */
+        .scatter-tool .tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #222;
+            color: #fff;
+            font-size: clamp(0.6rem, 0.95vw, 0.8rem);
+            font-weight: 400;
+            padding: 8px 12px;
+            border-radius: 6px;
+            z-index: 100;
+            pointer-events: none;
+            line-height: 1.4;
+            max-width: 200px;
+            white-space: normal;
+            text-align: center;
+        }
+        .scatter-tool .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%; left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid transparent;
+            border-top-color: #222;
+        }
+        .scatter-tool:hover .tooltip { display: block; }
+
+        .quadrant-bottom-axis {
+            text-align: center;
+            font-family: var(--font-body);
+            font-size: clamp(0.8rem, 1.3vw, 1.05rem);
+            color: var(--accent-gold);
+            margin-top: clamp(0.15rem, 0.3vh, 0.25rem);
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .quadrant-featured { flex-direction: column; align-items: center; }
+            .phases { flex-direction: column; }
+            .phase + .phase::before { display: none; }
+            .scatter-tool { font-size: clamp(0.5rem, 2.5vw, 0.65rem); }
+            .scatter-tool img.logo { width: 14px; height: 14px; }
+        }
+
+        /* --- Conversation Flow --- */
+        .convo {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.5rem, 1vh, 0.8rem);
+            margin-top: var(--content-gap);
+            max-width: min(80vw, 600px);
+        }
+        .convo-bubble {
+            padding: clamp(0.6rem, 1vh, 1rem) clamp(1rem, 2vw, 1.5rem);
+            border-radius: 12px;
+            font-size: var(--body-size);
+            max-width: 85%;
+        }
+        .convo-you {
+            background: rgba(212, 165, 116, 0.15);
+            color: var(--accent-warm);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .convo-ai {
+            background: rgba(232, 180, 184, 0.1);
+            color: var(--text-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .convo-label {
+            font-size: clamp(0.5rem, 0.8vw, 0.65rem);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: clamp(0.15rem, 0.3vh, 0.25rem);
+            opacity: 0.6;
+        }
+
+        /* --- Workflow Pipeline --- */
+        .pipeline {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            margin-top: var(--content-gap);
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            max-width: min(90vw, 800px);
+        }
+        .pipe-step {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(0.3rem, 0.6vh, 0.5rem);
+            padding: clamp(0.6rem, 1.2vh, 1rem) clamp(0.4rem, 0.8vw, 0.8rem);
+            border-radius: clamp(8px, 1vw, 12px);
+            font-size: clamp(0.55rem, 0.9vw, 0.75rem);
+            font-weight: 600;
+            white-space: nowrap;
+            position: relative;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .pipe-step:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        .pipe-icon {
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            line-height: 1;
+        }
+        .pipe-label {
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        .pipe-desc {
+            font-size: clamp(0.45rem, 0.7vw, 0.6rem);
+            font-weight: 300;
+            opacity: 0.6;
+            white-space: normal;
+            line-height: 1.3;
+        }
+        .pipe-arrow {
+            display: flex;
+            align-items: center;
+            padding: 0 clamp(0.15rem, 0.4vw, 0.3rem);
+            color: var(--accent-warm);
+            opacity: 0.5;
+            font-size: clamp(0.8rem, 1.2vw, 1rem);
+            flex-shrink: 0;
+        }
+
+        /* --- Project Cards --- */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+            gap: clamp(0.5rem, 1vw, 1rem);
+            margin-top: var(--content-gap);
+            width: 100%;
+            max-width: min(90vw, 900px);
+        }
+        .project-card {
+            padding: clamp(0.8rem, 1.5vh, 1.2rem);
+            border-radius: 10px;
+            background: var(--bg-card);
+            border: 1px solid rgba(212, 165, 116, 0.1);
+            transition: border-color 0.3s ease;
+        }
+        .project-card:hover {
+            border-color: rgba(212, 165, 116, 0.3);
+        }
+        .project-card h3 {
+            font-size: clamp(0.75rem, 1.2vw, 1rem);
+            color: var(--text-primary);
+            margin-bottom: clamp(0.2rem, 0.4vh, 0.3rem);
+        }
+        .project-card p {
+            font-size: clamp(0.6rem, 0.9vw, 0.75rem);
+        }
+        .project-tag {
+            display: inline-block;
+            font-size: clamp(0.45rem, 0.7vw, 0.6rem);
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(232, 180, 184, 0.12);
+            color: var(--accent-pink);
+            margin-top: clamp(0.3rem, 0.5vh, 0.4rem);
+        }
+
+        /* --- Big Quote --- */
+        .big-quote {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+            line-height: 1.2;
+            max-width: 20ch;
+            text-align: center;
+            color: var(--text-primary);
+        }
+        .big-quote em {
+            font-style: italic;
+            color: var(--accent-pink);
+        }
+
+        /* --- Homework Cards --- */
+        .homework {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.5rem, 1.2vh, 1rem);
+            margin-top: var(--content-gap);
+            max-width: min(80vw, 600px);
+        }
+        .hw-item {
+            display: flex;
+            gap: clamp(0.5rem, 1vw, 1rem);
+            align-items: flex-start;
+            padding: clamp(0.6rem, 1vh, 1rem) clamp(1rem, 2vw, 1.5rem);
+            border-radius: 10px;
+            background: var(--bg-card);
+            border: 1px solid rgba(201, 184, 150, 0.1);
+        }
+        .hw-num {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: clamp(1.2rem, 2vw, 1.6rem);
+            color: var(--accent-gold);
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .hw-text {
+            font-size: var(--body-size);
+            color: var(--text-primary);
+        }
+        .hw-note {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            margin-top: 0.2em;
+        }
+
+        /* ===========================================
+           PROGRESS BAR
+           =========================================== */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-warm), var(--accent-pink));
+            z-index: 9999;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* ===========================================
+           NAVIGATION DOTS
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.75rem, 2vw, 1.5rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(4px, 0.6vh, 8px);
+            z-index: 9998;
+        }
+        .nav-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(232, 228, 223, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--accent-warm);
+            transform: scale(1.3);
+        }
+        .nav-dot:hover {
+            background: rgba(232, 228, 223, 0.5);
+        }
+
+        /* ===========================================
+           SLIDE NUMBER
+           =========================================== */
+        .slide-number {
+            position: absolute;
+            bottom: clamp(0.75rem, 2vh, 1.5rem);
+            right: clamp(1rem, 3vw, 2rem);
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            opacity: 0.4;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ===========================================
+           INLINE EDITING (Opt-in)
+           =========================================== */
+        .edit-hotzone {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            z-index: 10000;
+            cursor: pointer;
+        }
+        .edit-toggle {
+            position: fixed;
+            top: clamp(0.5rem, 1.5vh, 1rem);
+            left: clamp(0.5rem, 1.5vw, 1rem);
+            background: rgba(212, 165, 116, 0.15);
+            border: 1px solid var(--accent-warm);
+            color: var(--accent-warm);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10001;
+            font-family: var(--font-body);
+        }
+        .edit-toggle.show,
+        .edit-toggle.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .edit-toggle.active {
+            background: var(--accent-warm);
+            color: var(--bg-primary);
+        }
+        .editing-active [contenteditable="true"] {
+            outline: 1px dashed rgba(212, 165, 116, 0.3);
+            outline-offset: 4px;
+            cursor: text;
+        }
+        .editing-active [contenteditable="true"]:focus {
+            outline-color: var(--accent-warm);
+        }
+        .edit-save-toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--accent-warm);
+            color: var(--bg-primary);
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 10002;
+            pointer-events: none;
+        }
+        .edit-save-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===========================================
+           CUSTOM CURSOR WITH TRAIL
+           =========================================== */
+        .cursor-dot {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-warm);
+            pointer-events: none;
+            z-index: 99999;
+            transition: transform 0.1s ease;
+            mix-blend-mode: difference;
+        }
+        .cursor-ring {
+            position: fixed;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1.5px solid var(--accent-pink);
+            pointer-events: none;
+            z-index: 99998;
+            transition: transform 0.15s ease-out, width 0.2s ease, height 0.2s ease, border-color 0.2s ease;
+            opacity: 0.6;
+        }
+        .cursor-ring.hovering {
+            width: 48px;
+            height: 48px;
+            border-color: var(--accent-warm);
+            opacity: 0.8;
+        }
+        .cursor-trail {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            pointer-events: none;
+            z-index: 99997;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        /* Hide custom cursor on touch devices */
+        @media (hover: none) {
+            .cursor-dot, .cursor-ring, .cursor-trail { display: none; }
+        }
+        /* Hide when editing */
+        .editing-active .cursor-dot,
+        .editing-active .cursor-ring,
+        .editing-active .cursor-trail { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Navigation Dots -->
+    <nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+    <!-- Inline Editing -->
+    <div class="edit-hotzone" id="editHotzone"></div>
+    <button class="edit-toggle" id="editToggle">Edit Mode (E)</button>
+    <div class="edit-save-toast" id="saveToast">Saved to browser</div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot" id="cursorDot"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
+
+    <!-- ===========================
+         SLIDE 1: TITLE
+         =========================== -->
+    <section class="slide title-slide" data-slide="0">
+        <div class="orb orb-warm" style="width:clamp(250px,40vw,500px);height:clamp(250px,40vw,500px);top:-10%;right:-5%"></div>
+        <div class="orb orb-pink" style="width:clamp(180px,30vw,400px);height:clamp(180px,30vw,400px);bottom:-5%;left:-5%"></div>
+        <div class="accent-line decorative" style="left:clamp(2rem,6vw,5rem);top:20%;height:60%"></div>
+        <div class="slide-content">
+            <p class="overline reveal" data-editable>Knowledge Share</p>
+            <h1 class="reveal" data-editable>My AI Learning Journey</h1>
+            <div class="divider reveal"></div>
+            <p class="subtitle reveal" data-editable>What I discovered when I stopped watching and started building</p>
+            <div style="margin-top:clamp(1.5rem,3vh,2.5rem)">
+                <span class="tag reveal" data-editable>Cecilia Wang &middot; March 2026</span>
+            </div>
+        </div>
+        <span class="slide-number">1 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 2: HAVE YOU TRIED AI?
+         =========================== -->
+    <section class="slide centered-slide" data-slide="1">
+        <div class="orb orb-gold" style="width:clamp(200px,30vw,350px);height:clamp(200px,30vw,350px);top:10%;left:-8%"></div>
+        <div class="slide-content">
+            <h2 class="reveal" data-editable>Have you tried AI yet?</h2>
+            <p class="subtitle reveal" data-editable>Quick show of hands...</p>
+            <div class="poll-options">
+                <div class="poll-option reveal">
+                    <span class="hand">&#9995;</span>
+                    <span data-editable>I've chatted with ChatGPT a few times</span>
+                </div>
+                <div class="poll-option reveal">
+                    <span class="hand">&#9995;</span>
+                    <span data-editable>I use AI regularly for work</span>
+                </div>
+                <div class="poll-option reveal">
+                    <span class="hand">&#9995;</span>
+                    <span data-editable>I've built something with AI</span>
+                </div>
+            </div>
+        </div>
+        <span class="slide-number">2 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 3: WAFFLE CHART
+         =========================== -->
+    <section class="slide" data-slide="2" style="padding:0">
+        <iframe class="waffle-embed" src="waffle-chart-animated.html" title="AI Adoption Waffle Chart"></iframe>
+        <span class="slide-number" style="z-index:10">3 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 4: MY STARTING POINT
+         =========================== -->
+    <section class="slide centered-slide" data-slide="3">
+        <div class="orb orb-pink" style="width:clamp(200px,35vw,400px);height:clamp(200px,35vw,400px);bottom:5%;right:-5%"></div>
+        <div class="accent-line decorative" style="right:clamp(3rem,8vw,7rem);top:15%;height:70%"></div>
+        <div class="slide-content">
+            <p class="overline reveal" data-editable>Honest Beginnings</p>
+            <h2 class="reveal" data-editable>6 Months Ago, I Knew Nothing</h2>
+            <div class="convo" style="margin-top:var(--content-gap)">
+                <div class="convo-bubble convo-you reveal">
+                    <div class="convo-label">Me, 6 months ago</div>
+                    <span data-editable>I had never written a line of code</span>
+                </div>
+                <div class="convo-bubble convo-ai reveal">
+                    <div class="convo-label">Also me</div>
+                    <span data-editable>I thought AI = ChatGPT</span>
+                </div>
+                <div class="convo-bubble convo-you reveal">
+                    <div class="convo-label">But...</div>
+                    <span data-editable>I was curious. And a little intimidated.</span>
+                </div>
+            </div>
+        </div>
+        <span class="slide-number">4 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 5: THE LEARNING CURVE
+         =========================== -->
+    <section class="slide centered-slide" data-slide="4">
+        <div class="orb orb-warm" style="width:clamp(150px,25vw,300px);height:clamp(150px,25vw,300px);top:20%;right:10%"></div>
+        <div class="slide-content">
+            <h2 class="reveal" data-editable>The Learning Curve</h2>
+            <p class="subtitle reveal" data-editable>Most people stay at stage one. The transformation happens when you build.</p>
+            <div class="phases reveal">
+                <div class="phase">
+                    <div class="phase-num">1</div>
+                    <div class="phase-label" data-editable>Watching</div>
+                    <div class="phase-desc" data-editable>Tutorials, articles, hype</div>
+                </div>
+                <div class="phase">
+                    <div class="phase-num">2</div>
+                    <div class="phase-label" data-editable>Following Along</div>
+                    <div class="phase-desc" data-editable>Copy-paste, guided exercises</div>
+                </div>
+                <div class="phase">
+                    <div class="phase-num">3</div>
+                    <div class="phase-label" data-editable>Building</div>
+                    <div class="phase-desc" data-editable>Your own ideas, your own problems</div>
+                </div>
+            </div>
+        </div>
+        <span class="slide-number">5 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 6: START WITH A PROBLEM
+         =========================== -->
+    <section class="slide centered-slide" data-slide="5">
+        <div class="orb orb-gold" style="width:clamp(180px,30vw,350px);height:clamp(180px,30vw,350px);bottom:0;left:5%"></div>
+        <div class="slide-content">
+            <p class="overline step-label reveal">Step 1</p>
+            <h2 class="reveal" data-editable>Start With a Problem, Not a Tool</h2>
+            <div class="flow-container">
+                <div class="flow-step reveal">
+                    <span class="icon">&#128161;</span>
+                    <span data-editable>What annoys you at work?</span>
+                </div>
+                <span class="flow-arrow reveal">&darr;</span>
+                <div class="flow-step reveal">
+                    <span class="icon">&#9200;</span>
+                    <span data-editable>What takes too long?</span>
+                </div>
+                <span class="flow-arrow reveal">&darr;</span>
+                <div class="flow-step reveal">
+                    <span class="icon">&#128172;</span>
+                    <span data-editable>Talk to AI about it &mdash; like brainstorming with a colleague</span>
+                </div>
+                <span class="flow-arrow reveal">&darr;</span>
+                <div class="flow-step reveal" style="border-color:rgba(232,180,184,0.3)">
+                    <span class="icon">&#10024;</span>
+                    <span data-editable>AI asks you questions. You refine. Suddenly you have a plan.</span>
+                </div>
+            </div>
+        </div>
+        <span class="slide-number">6 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 7: PICK YOUR TOOLS
+         =========================== -->
+    <section class="slide centered-slide" data-slide="6">
+        <div class="orb orb-pink" style="width:clamp(200px,30vw,400px);height:clamp(200px,30vw,400px);top:-5%;right:10%"></div>
+        <div class="slide-content">
+            <p class="overline step-label reveal">Step 2</p>
+            <h2 class="reveal" data-editable>Pick Your Tools</h2>
+            <p class="subtitle reveal" data-editable>You don't need the advanced ones to start</p>
+            <div class="quadrant-wrapper reveal">
+                <div class="quadrant-top-axis">Full production-ready products</div>
+                <div class="quadrant-side-labels">
+                    <span class="quadrant-side-label"><span class="arrow">&larr;</span> No code</span>
+                    <span class="quadrant-side-label">Low code <span class="arrow">&rarr;</span></span>
+                </div>
+                <div class="scatter-quadrant">
+                    <span class="q-label tl">Zero-Code App Builders</span>
+                    <span class="q-label tr">AI-Powered Development</span>
+                    <span class="q-label bl">Design - no code</span>
+                    <span class="q-label br">AI Coding Assistants</span>
+
+                    <!-- Top-Left: Zero-Code App Builders -->
+                    <a class="scatter-tool" href="https://lovable.dev" target="_blank" style="left:8%;top:10%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=lovable.dev&sz=64" alt="Lovable">
+                        <span style="font-family:'Nunito',sans-serif;color:#e11d48;">Lovable</span>
+                        <span class="tooltip">Build full-stack apps with natural language. No coding needed.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://bolt.new" target="_blank" style="left:3%;top:24%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=bolt.new&sz=64" alt="Bolt">
+                        <span style="font-family:'Space Grotesk',sans-serif;color:#e8e4df;font-weight:700;">bolt</span>
+                        <span class="tooltip">AI-powered full-stack web app builder by StackBlitz.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://base44.com" target="_blank" style="left:16%;top:30%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=base44.com&sz=64" alt="Base 44">
+                        <span style="font-family:'DM Sans',sans-serif;color:#d97706;font-weight:700;">Base 44</span>
+                        <span class="tooltip">Turn ideas into apps with AI. Zero coding required.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://replit.com" target="_blank" style="left:28%;top:38%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=replit.com&sz=64" alt="Replit">
+                        <span style="font-family:'DM Sans',sans-serif;color:#f26522;font-weight:700;">Replit</span>
+                        <span class="tooltip">Browser IDE with AI agent. Some coding helps but not required.</span>
+                    </a>
+
+                    <!-- Top-Right: AI-Powered Development (zigzag layout, starts below label) -->
+                    <a class="scatter-tool" href="https://docs.anthropic.com/en/docs/claude-code" target="_blank" style="right:2%;top:6%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=anthropic.com&sz=64" alt="Anthropic">
+                        <span style="font-family:'Inter',sans-serif;color:#cc7a4a;font-weight:700;">Claude Code</span>
+                        <span class="tooltip">Anthropic's agentic terminal CLI. Writes, edits &amp; runs code autonomously.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://openai.com/index/introducing-codex/" target="_blank" style="right:18%;top:13%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=openai.com&sz=64" alt="OpenAI">
+                        <span style="font-family:'Inter',sans-serif;color:#10a37f;font-weight:700;">Codex</span>
+                        <span class="tooltip">OpenAI's terminal coding agent. Cloud-sandboxed, autonomous execution.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://cursor.com" target="_blank" style="right:2%;top:20%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=cursor.com&sz=64" alt="Cursor">
+                        <span style="font-family:'Inter',sans-serif;color:#F54E00;font-weight:600;">Cursor</span>
+                        <span class="tooltip">AI-first code editor. Full codebase context &amp; inline edits.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://github.com/google-gemini/gemini-cli" target="_blank" style="right:16%;top:27%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=gemini.google.com&sz=64" alt="Gemini">
+                        <span style="font-family:'Poppins',sans-serif;color:#4285f4;font-weight:600;">Gemini CLI</span>
+                        <span class="tooltip">Google's terminal AI agent. Powered by Gemini, open source.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://antigravity.google" target="_blank" style="right:16%;top:34%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=antigravity.google&sz=64" alt="Antigravity">
+                        <span style="font-family:'Poppins',sans-serif;color:#60a5fa;font-weight:600;">Antigravity</span>
+                        <span class="tooltip">Google's agentic IDE. Multi-agent collaboration for full-stack dev.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://github.com/features/copilot" target="_blank" style="right:2%;top:41%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt="GitHub">
+                        <span style="font-family:'Inter',sans-serif;color:#e8e4df;font-weight:600;">GitHub Copilot</span>
+                        <span class="tooltip">AI pair-programmer. Autocomplete, chat &amp; agent mode.</span>
+                    </a>
+
+                    <!-- Bottom-Left: Design - no code -->
+                    <a class="scatter-tool" href="https://figma.com" target="_blank" style="left:3%;top:58%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=figma.com&sz=64" alt="Figma">
+                        <span style="font-family:'Inter',sans-serif;color:#a259ff;font-weight:700;">Figma Make</span>
+                        <span class="tooltip">AI design-to-code in Figma. Generates production layouts visually.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://framer.com" target="_blank" style="left:14%;top:66%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=framer.com&sz=64" alt="Framer">
+                        <span style="font-family:'Inter',sans-serif;color:#6699ff;font-weight:700;">Framer</span>
+                        <span class="tooltip">Design &amp; publish production websites visually. No code.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://aistudio.google.com" target="_blank" style="left:24%;top:76%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=aistudio.google.com&sz=64" alt="Google AI Studio">
+                        <span style="font-family:'Poppins',sans-serif;color:#60a5fa;font-weight:600;">Google AI Studio</span>
+                        <span class="tooltip">Prototype with Gemini. Multimodal AI playground by Google.</span>
+                    </a>
+
+                    <!-- Bottom-Right: AI UI / Prototyping with code -->
+                    <a class="scatter-tool" href="https://v0.dev" target="_blank" style="right:16%;top:58%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=v0.dev&sz=64" alt="v0">
+                        <span style="font-family:'Inter',sans-serif;color:#e8e4df;font-weight:700;">v0</span>
+                        <span class="tooltip">Vercel's AI UI generator. Prompt to React + shadcn/ui components.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://firebase.google.com" target="_blank" style="right:2%;top:64%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=firebase.google.com&sz=64" alt="Firebase">
+                        <span style="font-family:'Poppins',sans-serif;color:#f59e0b;font-weight:600;">Firebase</span>
+                        <span class="tooltip">Google's app platform. Auth, Firestore, hosting — low-code backend.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://vercel.com" target="_blank" style="right:8%;top:76%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=vercel.com&sz=64" alt="Vercel">
+                        <span style="font-family:'Inter',sans-serif;color:#e8e4df;font-weight:700;">Vercel</span>
+                        <span class="tooltip">Frontend cloud. Deploy instantly &amp; preview UI iterations.</span>
+                    </a>
+                    <a class="scatter-tool" href="https://storybook.js.org" target="_blank" style="right:22%;top:82%;">
+                        <img class="logo" src="https://www.google.com/s2/favicons?domain=storybook.js.org&sz=64" alt="Storybook">
+                        <span style="font-family:'Nunito',sans-serif;color:#ff4785;font-weight:700;">Storybook</span>
+                        <span class="tooltip">Component-level UI prototyping &amp; testing for developers.</span>
+                    </a>
+                </div>
+                <div class="quadrant-bottom-axis">UI / interaction prototypes</div>
+            </div>
+        </div>
+        <span class="slide-number">7 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 8: THE FULL WORKFLOW
+         =========================== -->
+    <section class="slide centered-slide" data-slide="7">
+        <div class="orb orb-gold" style="width:clamp(180px,28vw,350px);height:clamp(180px,28vw,350px);top:10%;right:-5%"></div>
+        <div class="slide-content">
+            <p class="overline step-label reveal">Step 3</p>
+            <h2 class="reveal" data-editable>The Workflow</h2>
+            <p class="subtitle reveal" data-editable>From idea to live on the internet</p>
+            <div class="pipeline reveal">
+                <div class="pipe-step" style="background:rgba(212,165,116,0.10);color:var(--accent-warm)">
+                    <span class="pipe-icon">&#128161;</span>
+                    <span class="pipe-label" data-editable>Idea</span>
+                    <span class="pipe-desc" data-editable>What problem to solve</span>
+                </div>
+                <span class="pipe-arrow">&#10132;</span>
+                <div class="pipe-step" style="background:rgba(232,180,184,0.10);color:var(--accent-pink)">
+                    <span class="pipe-icon">&#129302;</span>
+                    <span class="pipe-label" data-editable>Build with AI</span>
+                    <span class="pipe-desc" data-editable>Describe, generate, refine</span>
+                </div>
+                <span class="pipe-arrow">&#10132;</span>
+                <div class="pipe-step" style="background:rgba(201,184,150,0.10);color:var(--accent-gold)">
+                    <span class="pipe-icon">&#128200;</span>
+                    <span class="pipe-label" data-editable>Version Control</span>
+                    <span class="pipe-desc" data-editable>Track changes with Git</span>
+                </div>
+                <span class="pipe-arrow">&#10132;</span>
+                <div class="pipe-step" style="background:rgba(196,93,62,0.10);color:var(--accent-rust)">
+                    <span class="pipe-icon">&#128640;</span>
+                    <span class="pipe-label" data-editable>Deploy</span>
+                    <span class="pipe-desc" data-editable>Live on the internet</span>
+                </div>
+                <span class="pipe-arrow">&#10132;</span>
+                <div class="pipe-step" style="background:rgba(232,228,223,0.06);color:var(--text-secondary)">
+                    <span class="pipe-icon">&#128202;</span>
+                    <span class="pipe-label" data-editable>Monitor</span>
+                    <span class="pipe-desc" data-editable>See how people use it</span>
+                </div>
+            </div>
+            <div style="margin-top:var(--content-gap);display:flex;flex-direction:column;gap:clamp(0.3rem,0.6vh,0.5rem);align-items:center">
+                <p class="reveal" style="font-size:var(--small-size);color:var(--text-secondary)" data-editable>Every project I built followed this exact flow</p>
+                <p class="reveal" style="font-size:var(--small-size);color:var(--text-secondary);font-style:italic" data-editable>You describe what you want. AI handles the technical parts.</p>
+            </div>
+        </div>
+        <span class="slide-number">8 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 9: THINGS I MADE
+         =========================== -->
+    <section class="slide centered-slide" data-slide="8">
+        <div class="orb orb-pink" style="width:clamp(250px,40vw,500px);height:clamp(250px,40vw,500px);bottom:-10%;right:-10%"></div>
+        <div class="slide-content">
+            <p class="overline reveal" data-editable>All built by talking to AI</p>
+            <h2 class="reveal" data-editable>Things I Made</h2>
+            <div class="project-grid reveal">
+                <div class="project-card">
+                    <h3 data-editable>ICP Generator</h3>
+                    <p data-editable>AI-powered tool that generates Ideal Customer Profiles from market research</p>
+                    <span class="project-tag" data-editable>React + Vite + Express + Gemini AI</span>
+                </div>
+                <div class="project-card">
+                    <h3 data-editable>Zen Reader</h3>
+                    <p data-editable>Distraction-free reading platform that reformats video or podcast transcript to ebooks</p>
+                    <span class="project-tag" data-editable>React + TypeScript + Vite + Gemini AI + Express</span>
+                </div>
+                <div class="project-card">
+                    <h3 data-editable>Dream Diary</h3>
+                    <p data-editable>Immersive dream diary with 3D visuals and audio</p>
+                    <span class="project-tag" data-editable>React + Vite + JavaScript</span>
+                </div>
+                <div class="project-card">
+                    <h3 data-editable>LingoPop</h3>
+                    <p data-editable>Multilingual dictionary with voice input and visual explanations</p>
+                    <span class="project-tag" data-editable>React + TypeScript + Vite + Gemini AI</span>
+                </div>
+                <div class="project-card">
+                    <h3 data-editable>Ditto - Power BI Design and Prototyping</h3>
+                    <p data-editable>Moodboard canvas and prototype editor for wireframing Power BI reports with drag-and-drop and AI generation</p>
+                    <span class="project-tag" data-editable>JavaScript + Chrome Manifest V3</span>
+                </div>
+                <div class="project-card">
+                    <h3 data-editable>Personal Website</h3>
+                    <p data-editable>Personal portfolio with morphing mascot, particle effects, and glassmorphism design</p>
+                    <span class="project-tag" data-editable>HTML/CSS/JS + Vercel</span>
+                </div>
+            </div>
+        </div>
+        <span class="slide-number">9 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 10: LIVE DEMO
+         =========================== -->
+    <section class="slide centered-slide" data-slide="9">
+        <div class="orb orb-warm" style="width:clamp(300px,45vw,550px);height:clamp(300px,45vw,550px);top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+        <div class="slide-content">
+            <p class="overline reveal" data-editable>See It in Action</p>
+            <h2 class="reveal" style="font-size:clamp(2rem,5vw,4rem)" data-editable>Live Demo</h2>
+            <div class="divider reveal"></div>
+            <p class="subtitle reveal" data-editable>Let me walk you through some of these projects</p>
+        </div>
+        <span class="slide-number">10 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 11: TECHNICALLY CURIOUS
+         =========================== -->
+    <section class="slide centered-slide" data-slide="10">
+        <div class="orb orb-gold" style="width:clamp(200px,30vw,400px);height:clamp(200px,30vw,400px);top:5%;left:-5%"></div>
+        <div class="accent-line decorative" style="right:clamp(3rem,7vw,6rem);top:20%;height:60%"></div>
+        <div class="slide-content">
+            <p class="overline reveal" data-editable>The Mindset Shift</p>
+            <div class="big-quote reveal" data-editable>You don't need to be <em>technical</em>. You need to be <em>technically curious</em>.</div>
+            <p class="subtitle reveal" data-editable>The skill is knowing what to ask for, not how to build it</p>
+        </div>
+        <span class="slide-number">11 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 12: PRINCIPLES
+         =========================== -->
+    <section class="slide content-slide" data-slide="11">
+        <div class="orb orb-pink" style="width:clamp(180px,25vw,300px);height:clamp(180px,25vw,300px);bottom:10%;right:5%"></div>
+        <div class="slide-content">
+            <h2 class="reveal" data-editable>What I Learned Along the Way</h2>
+            <ul>
+                <li class="reveal">
+                    <strong style="color:var(--accent-warm)" data-editable>Build in public.</strong>
+                    <span data-editable>Sharing = learning faster. You get feedback, accountability, and momentum. It doesn't have to be polished.</span>
+                </li>
+                <li class="reveal">
+                    <strong style="color:var(--accent-pink)" data-editable>Play the long game.</strong>
+                    <span data-editable>AI tools change every week. The meta-skill is learning how to learn. Small experiments compound over time.</span>
+                </li>
+                <li class="reveal">
+                    <strong style="color:var(--accent-gold)" data-editable>Start small, think big.</strong>
+                    <span data-editable>You don't need to dedicate weekends. 30 minutes a week. Try one thing. See what happens.</span>
+                </li>
+            </ul>
+        </div>
+        <span class="slide-number">12 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 13: HOMEWORK
+         =========================== -->
+    <section class="slide centered-slide" data-slide="12">
+        <div class="orb orb-warm" style="width:clamp(200px,30vw,350px);height:clamp(200px,30vw,350px);top:-5%;right:15%"></div>
+        <div class="slide-content">
+            <h2 class="reveal" data-editable>How You Can Start Today</h2>
+            <p class="subtitle reveal" data-editable>Optional homework. No grading.</p>
+            <div class="homework">
+                <div class="hw-item reveal">
+                    <span class="hw-num">1</span>
+                    <div>
+                        <div class="hw-text" data-editable>Pick one annoying task this week. Ask AI how to make it easier.</div>
+                        <div class="hw-note" data-editable>Free &middot; 5 minutes</div>
+                    </div>
+                </div>
+                <div class="hw-item reveal">
+                    <span class="hw-num">2</span>
+                    <div>
+                        <div class="hw-text" data-editable>Try a no-code builder (Lovable, Replit) &mdash; just click around for 20 minutes.</div>
+                        <div class="hw-note" data-editable>Free &middot; 20 minutes</div>
+                    </div>
+                </div>
+                <div class="hw-item reveal">
+                    <span class="hw-num">3</span>
+                    <div>
+                        <div class="hw-text" data-editable>Find one AI tool relevant to your role. Test it for a week.</div>
+                        <div class="hw-note" data-editable>Free options exist for every role</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <span class="slide-number">13 / 14</span>
+    </section>
+
+    <!-- ===========================
+         SLIDE 14: CLOSING
+         =========================== -->
+    <section class="slide title-slide" data-slide="13">
+        <div class="orb orb-warm" style="width:clamp(250px,40vw,500px);height:clamp(250px,40vw,500px);top:-10%;right:-5%"></div>
+        <div class="orb orb-pink" style="width:clamp(180px,30vw,400px);height:clamp(180px,30vw,400px);bottom:-5%;left:-5%"></div>
+        <div class="orb orb-gold" style="width:clamp(120px,20vw,250px);height:clamp(120px,20vw,250px);top:40%;left:25%"></div>
+        <div class="accent-line decorative" style="left:clamp(2rem,6vw,5rem);top:20%;height:60%"></div>
+        <div class="slide-content">
+            <p class="overline reveal" data-editable>This is just the tip of the iceberg</p>
+            <h1 class="reveal" data-editable>There's So Much More to Explore</h1>
+            <div class="divider reveal"></div>
+            <p class="subtitle reveal" data-editable>Questions?</p>
+            <div style="margin-top:clamp(1.5rem,3vh,2.5rem)">
+                <span class="tag reveal" data-editable>Thank you</span>
+            </div>
+        </div>
+        <span class="slide-number">14 / 14</span>
+    </section>
+
+    <!-- ===========================================
+         JAVASCRIPT
+         =========================================== -->
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.isTransitioning = false;
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupWheelNav();
+                this.setupProgressBar();
+                this.setupNavDots();
+                // Mark first slide as visible
+                this.slides[0].classList.add('visible');
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            const idx = parseInt(entry.target.dataset.slide);
+                            if (!isNaN(idx)) {
+                                this.currentSlide = idx;
+                                this.updateProgressBar();
+                                this.updateNavDots();
+                            }
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            setupKeyboardNav() {
+                // Waffle chart iframe communication
+                this.waffleIframe = document.querySelector('.waffle-embed');
+                this.waffleSlideIndex = 2; // data-slide="2" is the waffle chart
+                this.waffleComplete = false;
+
+                // Listen for messages from the waffle chart iframe
+                window.addEventListener('message', (e) => {
+                    if (e.data === 'waffle-complete') {
+                        this.waffleComplete = true;
+                    } else if (e.data === 'waffle-reset') {
+                        this.waffleComplete = false;
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    // Skip nav when editing text
+                    if (e.target.getAttribute('contenteditable') === 'true') return;
+
+                    // On the waffle slide, forward Space/Right to iframe
+                    if (this.currentSlide === this.waffleSlideIndex) {
+                        if (e.key === ' ' || e.key === 'ArrowRight') {
+                            e.preventDefault();
+                            if (this.waffleComplete) {
+                                // Waffle is done — advance to next slide
+                                this.waffleComplete = false;
+                                this.nextSlide();
+                            } else {
+                                // Forward the keystroke to the waffle iframe
+                                this.waffleIframe.contentWindow.postMessage('waffle-step', '*');
+                            }
+                            return;
+                        }
+                        if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+                            e.preventDefault();
+                            // Reset waffle and go to previous slide
+                            this.waffleIframe.contentWindow.postMessage('waffle-reset', '*');
+                            this.waffleComplete = false;
+                            this.prevSlide();
+                            return;
+                        }
+                    }
+
+                    switch(e.key) {
+                        case 'ArrowDown':
+                        case 'ArrowRight':
+                        case ' ':
+                        case 'PageDown':
+                            e.preventDefault();
+                            this.nextSlide();
+                            break;
+                        case 'ArrowUp':
+                        case 'ArrowLeft':
+                        case 'PageUp':
+                            e.preventDefault();
+                            this.prevSlide();
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            this.goToSlide(0);
+                            break;
+                        case 'End':
+                            e.preventDefault();
+                            this.goToSlide(this.slides.length - 1);
+                            break;
+                    }
+                });
+            }
+
+            setupTouchNav() {
+                let startY = 0;
+                document.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].clientY;
+                }, { passive: true });
+
+                document.addEventListener('touchend', (e) => {
+                    const diff = startY - e.changedTouches[0].clientY;
+                    if (Math.abs(diff) > 50) {
+                        diff > 0 ? this.nextSlide() : this.prevSlide();
+                    }
+                }, { passive: true });
+            }
+
+            setupWheelNav() {
+                let wheelTimeout;
+                document.addEventListener('wheel', (e) => {
+                    clearTimeout(wheelTimeout);
+                    wheelTimeout = setTimeout(() => {
+                        if (e.deltaY > 30) this.nextSlide();
+                        else if (e.deltaY < -30) this.prevSlide();
+                    }, 50);
+                }, { passive: true });
+            }
+
+            nextSlide() {
+                if (this.currentSlide < this.slides.length - 1 && !this.isTransitioning) {
+                    this.goToSlide(this.currentSlide + 1);
+                }
+            }
+
+            prevSlide() {
+                if (this.currentSlide > 0 && !this.isTransitioning) {
+                    this.goToSlide(this.currentSlide - 1);
+                }
+            }
+
+            goToSlide(index) {
+                if (index < 0 || index >= this.slides.length) return;
+                this.isTransitioning = true;
+                this.slides[index].scrollIntoView({ behavior: 'smooth' });
+                this.currentSlide = index;
+                this.updateProgressBar();
+                this.updateNavDots();
+                setTimeout(() => { this.isTransitioning = false; }, 600);
+            }
+
+            setupProgressBar() {
+                this.progressBar = document.getElementById('progressBar');
+                this.updateProgressBar();
+            }
+
+            updateProgressBar() {
+                const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+                this.progressBar.style.width = progress + '%';
+            }
+
+            setupNavDots() {
+                const nav = document.getElementById('navDots');
+                this.slides.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+                    dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+                    dot.addEventListener('click', () => this.goToSlide(i));
+                    nav.appendChild(dot);
+                });
+                this.dots = nav.querySelectorAll('.nav-dot');
+            }
+
+            updateNavDots() {
+                this.dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === this.currentSlide);
+                });
+            }
+        }
+
+        /* ===========================================
+           INLINE EDITOR
+           =========================================== */
+        class InlineEditor {
+            constructor() {
+                this.isActive = false;
+                this.editables = document.querySelectorAll('[data-editable]');
+                this.toggle = document.getElementById('editToggle');
+                this.toast = document.getElementById('saveToast');
+                this.storageKey = 'ai-journey-slides-edits';
+
+                this.setupHotzone();
+                this.setupKeyboard();
+                this.loadSaved();
+            }
+
+            setupHotzone() {
+                const hotzone = document.getElementById('editHotzone');
+                let hideTimeout = null;
+
+                hotzone.addEventListener('mouseenter', () => {
+                    clearTimeout(hideTimeout);
+                    this.toggle.classList.add('show');
+                });
+                hotzone.addEventListener('mouseleave', () => {
+                    hideTimeout = setTimeout(() => {
+                        if (!this.isActive) this.toggle.classList.remove('show');
+                    }, 400);
+                });
+                this.toggle.addEventListener('mouseenter', () => {
+                    clearTimeout(hideTimeout);
+                });
+                this.toggle.addEventListener('mouseleave', () => {
+                    hideTimeout = setTimeout(() => {
+                        if (!this.isActive) this.toggle.classList.remove('show');
+                    }, 400);
+                });
+
+                this.toggle.addEventListener('click', () => this.toggleEditMode());
+                hotzone.addEventListener('click', () => this.toggleEditMode());
+            }
+
+            setupKeyboard() {
+                document.addEventListener('keydown', (e) => {
+                    if ((e.key === 'e' || e.key === 'E') && !e.target.getAttribute('contenteditable')) {
+                        this.toggleEditMode();
+                    }
+                    // Ctrl+S to save while editing
+                    if (e.ctrlKey && e.key === 's' && this.isActive) {
+                        e.preventDefault();
+                        this.save();
+                    }
+                });
+            }
+
+            toggleEditMode() {
+                this.isActive = !this.isActive;
+                document.body.classList.toggle('editing-active', this.isActive);
+                this.toggle.classList.toggle('active', this.isActive);
+                this.toggle.textContent = this.isActive ? 'Done Editing (E)' : 'Edit Mode (E)';
+
+                this.editables.forEach(el => {
+                    el.contentEditable = this.isActive ? 'true' : 'false';
+                });
+
+                if (!this.isActive) this.save();
+            }
+
+            save() {
+                const edits = {};
+                this.editables.forEach((el, i) => {
+                    edits[i] = el.innerHTML;
+                });
+                localStorage.setItem(this.storageKey, JSON.stringify(edits));
+                this.showToast();
+            }
+
+            loadSaved() {
+                const saved = localStorage.getItem(this.storageKey);
+                if (saved) {
+                    const edits = JSON.parse(saved);
+                    this.editables.forEach((el, i) => {
+                        if (edits[i] !== undefined) el.innerHTML = edits[i];
+                    });
+                }
+            }
+
+            showToast() {
+                this.toast.classList.add('show');
+                setTimeout(() => this.toast.classList.remove('show'), 2000);
+            }
+        }
+
+        /* ===========================================
+           CUSTOM CURSOR WITH TRAIL
+           =========================================== */
+        class CustomCursor {
+            constructor() {
+                this.dot = document.getElementById('cursorDot');
+                this.ring = document.getElementById('cursorRing');
+                this.mouseX = 0;
+                this.mouseY = 0;
+                this.ringX = 0;
+                this.ringY = 0;
+                this.trails = [];
+                this.trailCount = 5;
+
+                // Create trail dots
+                for (let i = 0; i < this.trailCount; i++) {
+                    const trail = document.createElement('div');
+                    trail.className = 'cursor-trail';
+                    document.body.appendChild(trail);
+                    this.trails.push({ el: trail, x: 0, y: 0 });
+                }
+
+                // Hide default cursor
+                document.body.style.cursor = 'none';
+                document.querySelectorAll('a, button, .nav-dot, .poll-option, .edit-toggle, .edit-hotzone').forEach(el => {
+                    el.style.cursor = 'none';
+                });
+
+                this.setupListeners();
+                this.animate();
+            }
+
+            setupListeners() {
+                document.addEventListener('mousemove', (e) => {
+                    this.mouseX = e.clientX;
+                    this.mouseY = e.clientY;
+                });
+
+                // Hover effect on interactive elements
+                const interactives = document.querySelectorAll('a, button, .nav-dot, .poll-option, .project-card');
+                interactives.forEach(el => {
+                    el.addEventListener('mouseenter', () => this.ring.classList.add('hovering'));
+                    el.addEventListener('mouseleave', () => this.ring.classList.remove('hovering'));
+                });
+            }
+
+            animate() {
+                // Dot follows mouse exactly
+                this.dot.style.left = this.mouseX - 4 + 'px';
+                this.dot.style.top = this.mouseY - 4 + 'px';
+
+                // Ring follows with lag
+                this.ringX += (this.mouseX - this.ringX) * 0.15;
+                this.ringY += (this.mouseY - this.ringY) * 0.15;
+                this.ring.style.left = this.ringX - 16 + 'px';
+                this.ring.style.top = this.ringY - 16 + 'px';
+
+                // Trail follows with increasing lag
+                let prevX = this.mouseX;
+                let prevY = this.mouseY;
+                this.trails.forEach((trail, i) => {
+                    const speed = 0.08 - (i * 0.012);
+                    trail.x += (prevX - trail.x) * speed;
+                    trail.y += (prevY - trail.y) * speed;
+                    trail.el.style.left = trail.x - 2 + 'px';
+                    trail.el.style.top = trail.y - 2 + 'px';
+
+                    // Show trail based on distance from cursor
+                    const dist = Math.hypot(this.mouseX - trail.x, this.mouseY - trail.y);
+                    trail.el.style.opacity = dist > 10 ? Math.min(0.4, dist / 200) : 0;
+
+                    prevX = trail.x;
+                    prevY = trail.y;
+                });
+
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // Initialize
+        const presentation = new SlidePresentation();
+        const editor = new InlineEditor();
+        // Only init cursor on non-touch devices
+        if (window.matchMedia('(hover: hover)').matches) {
+            const cursor = new CustomCursor();
+        }
+    </script>
+</body>
+</html>
