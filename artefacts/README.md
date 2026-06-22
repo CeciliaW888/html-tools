@@ -11,7 +11,8 @@ Interactive, single-file HTML artefacts — each one replaces a wall of markdown
 | 03 | Open Order Trapdoor Report — Documentation | Work · Power BI | _(planned)_ |
 | 04 | How Australia Is Cut Into Areas — ABS ASGS & Friends | Work · Reference | [`asgs-geography-explainer.html`](asgs-geography-explainer.html) |
 | 05 | Web Scraping: A Field Guide — Edition II | Learning · Technical | [`scraping-field-guide.html`](scraping-field-guide.html) |
-| 06 | Vibe Coding Tools — Selection Quadrant | Tools · RedNote | _(planned)_ |
+| 06 | The Map Stack — How a Digital Map Gets Made | Learning · Maps | [`map-stack-explained.html`](map-stack-explained.html) |
+| 07 | Vibe Coding Tools — Selection Quadrant | Tools · RedNote | _(planned)_ |
 
 Cards with a file are clickable in the gallery; the rest are placeholders for artefacts not yet exported here.
 

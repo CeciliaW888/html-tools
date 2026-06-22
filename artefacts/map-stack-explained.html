@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Map Stack, Explained</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E1620;
+    --panel:#17212E;
+    --panel2:#1E2B3A;
+    --ink:#E7EEF4;
+    --muted:#8EA1B2;
+    --line:#2A3B4D;
+    --coral:#F4796B;      /* "you asked about this" / map markers */
+    --cyan:#4FD1C5;       /* the flow / connections */
+    --gold:#E0B341;       /* the data bedrock */
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.55;
+    padding:22px 16px 64px;
+    position:relative;
+    overflow-x:hidden;
+  }
+  /* contour background */
+  .contour{
+    position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  }
+  .wrap{position:relative;z-index:1;max-width:680px;margin:0 auto}
+
+  header{margin-bottom:26px}
+  .eyebrow{
+    font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:10px;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;
+    font-size:clamp(28px,8vw,40px);line-height:1.05;letter-spacing:-.02em;
+  }
+  .sub{color:var(--muted);font-size:15px;margin-top:12px;max-width:48ch}
+  .legend{
+    display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;
+    font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);
+  }
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .dot.c{background:var(--coral)} .dot.y{background:var(--gold)} .dot.f{background:var(--cyan)}
+
+  /* layer cards */
+  .pipe{position:relative;margin-top:8px}
+  .layer{
+    position:relative;background:var(--panel);
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 18px 16px;margin-bottom:0;
+  }
+  .layer .corner{
+    position:absolute;top:9px;right:11px;font-family:'Space Mono',monospace;
+    font-size:10px;color:var(--muted);letter-spacing:.1em;opacity:.7;
+  }
+  .lhead{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .lnum{
+    font-family:'Space Mono',monospace;font-size:12px;font-weight:700;
+    color:var(--cyan);
+  }
+  .lname{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:18px}
+  .ldesc{color:var(--muted);font-size:13.5px;margin-bottom:12px;max-width:52ch}
+  .tags{display:flex;flex-wrap:wrap;gap:7px}
+  .tag{
+    font-family:'Space Mono',monospace;font-size:11.5px;
+    background:var(--panel2);border:1px solid var(--line);
+    color:var(--ink);padding:5px 9px;border-radius:7px;white-space:nowrap;
+  }
+  .tag .note{color:var(--muted);font-size:10px}
+  .tag.you{
+    border-color:var(--coral);color:#fff;
+    box-shadow:inset 0 0 0 1px rgba(244,121,107,.25);
+  }
+  .tag.you::before{
+    content:"";width:6px;height:6px;border-radius:50%;background:var(--coral);
+    display:inline-block;margin-right:6px;vertical-align:1px;
+  }
+
+  /* connector between layers */
+  .conn{display:flex;justify-content:center;height:26px;position:relative}
+  .conn::before{
+    content:"";width:2px;height:100%;
+    background:linear-gradient(var(--cyan),var(--cyan));opacity:.55;
+  }
+  .conn::after{
+    content:"▼";position:absolute;bottom:-2px;color:var(--cyan);
+    font-size:10px;opacity:.8;
+  }
+
+  /* data layer accent */
+  .layer.data{border-color:rgba(224,179,65,.4)}
+  .layer.data .lnum{color:var(--gold)}
+  .layer.render{border-color:rgba(79,209,197,.35)}
+
+  /* environment sub-labels inside the render layer */
+  .env{
+    font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted);
+    margin:14px 0 8px;display:flex;align-items:center;gap:8px;
+  }
+  .env:first-of-type{margin-top:6px}
+  .env::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* render-note callout */
+  .render-note{
+    margin-top:10px;background:var(--panel2);
+    border:1px solid var(--line);border-left:3px solid var(--cyan);
+    border-radius:10px;padding:14px 16px;font-size:13.5px;color:var(--muted);
+  }
+  .render-note b{color:var(--cyan)}
+  .render-note i{color:var(--ink);font-style:normal;font-weight:600}
+
+  /* the screen endpoint */
+  .screen{
+    margin-top:26px;text-align:center;background:var(--panel2);
+    border:1px dashed var(--cyan);border-radius:var(--radius);padding:18px;
+  }
+  .screen .big{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px}
+  .screen .small{color:var(--muted);font-size:13px;margin-top:3px}
+
+  /* tile service deep-dive */
+  .tile-svc{
+    margin-top:28px;background:var(--panel);
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;
+  }
+  .tile-svc .lname{font-size:18px;margin-bottom:6px}
+  .tile-svc .ldesc{font-size:13.5px;margin-bottom:16px;max-width:54ch}
+  .loop{
+    display:flex;align-items:stretch;gap:8px;margin:4px 0 16px;
+    flex-wrap:wrap;
+  }
+  .node{
+    flex:1 1 140px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:10px;padding:12px;text-align:center;min-width:0;
+  }
+  .node .nt{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px}
+  .node .nd{color:var(--muted);font-size:11px;margin-top:3px}
+  .role{
+    display:inline-block;font-family:'Space Mono',monospace;font-size:9px;
+    letter-spacing:.14em;text-transform:uppercase;padding:2px 7px;border-radius:5px;
+    margin-bottom:7px;border:1px solid var(--line);color:var(--muted);
+  }
+  .role.server{border-color:var(--cyan);color:var(--cyan)}
+  .role.client{border-color:var(--coral);color:var(--coral)}
+  .cs-note{
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:14px 16px;margin:0 0 16px;font-size:13px;color:var(--muted);
+  }
+  .cs-note .row{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start}
+  .cs-note .row:last-child{margin-bottom:0}
+  .cs-note .k{
+    font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--cyan);flex:0 0 76px;padding-top:2px;
+  }
+  .cs-note .v b{color:var(--ink)}
+  .node.svc{border-color:var(--cyan)}
+  .node.svc .nt{color:var(--cyan)}
+  .arrow{
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);
+    min-width:54px;
+  }
+  .arrow .a1{color:var(--cyan)} .arrow .a2{color:var(--gold)}
+  @media(max-width:480px){
+    .loop{flex-direction:column}
+    .arrow{flex-direction:row;gap:8px;min-width:0;padding:2px 0;transform:rotate(90deg)}
+  }
+  .opts{display:grid;grid-template-columns:1fr;gap:9px;margin-top:4px}
+  @media(min-width:520px){.opts{grid-template-columns:repeat(3,1fr)}}
+  .opt{
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:12px;
+  }
+  .opt .ot{font-family:'Space Grotesk';font-weight:600;font-size:13.5px;margin-bottom:4px}
+  .opt .od{color:var(--muted);font-size:12px}
+  .keynote{
+    margin-top:14px;font-size:13px;color:var(--ink);
+    border-left:2px solid var(--coral);padding-left:12px;
+  }
+  .keynote b{color:var(--coral)}
+
+  /* section header */
+  .sect{
+    font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--muted);
+    margin:38px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);
+  }
+
+  /* services + platforms grid */
+  .grid{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}
+  .card{
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);padding:16px;
+  }
+  .card .lname{font-size:16px;margin-bottom:3px}
+  .card .ldesc{font-size:13px;margin-bottom:11px}
+
+  /* takeaway */
+  .takeaway{
+    margin-top:34px;background:linear-gradient(135deg,#1a2735,#141d28);
+    border:1px solid var(--line);border-left:3px solid var(--coral);
+    border-radius:var(--radius);padding:20px;
+  }
+  .takeaway h3{font-family:'Space Grotesk',sans-serif;font-size:17px;margin-bottom:10px}
+  .takeaway p{font-size:14px;color:var(--muted);margin-bottom:9px}
+  .takeaway b{color:var(--ink);font-weight:600}
+  .takeaway .hl{color:var(--coral);font-family:'Space Mono',monospace;font-size:13px}
+</style>
+</head>
+<body>
+<svg class="contour" preserveAspectRatio="none" viewBox="0 0 400 800">
+  <g fill="none" stroke="#2A3B4D" stroke-width="1">
+    <path d="M-20,120 C80,80 160,160 260,110 360,70 420,140 440,120"/>
+    <path d="M-20,150 C80,110 160,190 260,140 360,100 420,170 440,150"/>
+    <path d="M-20,300 C100,260 180,340 280,300 380,270 420,330 440,310"/>
+    <path d="M-20,330 C100,290 180,370 280,330 380,300 420,360 440,340"/>
+    <path d="M-20,520 C90,480 170,560 270,520 370,490 420,550 440,530"/>
+    <path d="M-20,680 C90,640 170,720 270,680 370,650 420,710 440,690"/>
+  </g>
+</svg>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">// how a digital map gets made</div>
+    <h1>The Map Stack</h1>
+    <p class="sub">A map isn't one product — it's an assembly line. Data goes in one end; a finished map comes out the other — in a web app, a Python script, a dashboard, or a saved image. The same stations apply to all of them.</p>
+    <div class="legend">
+      <span><i class="dot c"></i>You asked about this</span>
+      <span><i class="dot f"></i>The data flow</span>
+      <span><i class="dot y"></i>The raw data</span>
+    </div>
+  </header>
+
+  <div class="pipe">
+
+    <!-- DATA -->
+    <div class="layer data">
+      <span class="corner">⌖ bedrock</span>
+      <div class="lhead"><span class="lnum">01</span><span class="lname">Data — the facts</span></div>
+      <p class="ldesc">The actual geographic information: where roads, rivers, buildings and addresses are. Just a giant database. Nothing visual yet.</p>
+      <div class="tags">
+        <span class="tag you">OpenStreetMap <span class="note">crowdsourced, free</span></span>
+        <span class="tag">Overture <span class="note">Meta/MS/AWS</span></span>
+        <span class="tag">Natural Earth <span class="note">low-detail, free</span></span>
+        <span class="tag">Your own data <span class="note">GeoJSON, your DB</span></span>
+      </div>
+    </div>
+
+    <div class="conn"></div>
+
+    <!-- TILES -->
+    <div class="layer">
+      <span class="corner">⊞ tiles</span>
+      <div class="lhead"><span class="lnum">02</span><span class="lname">Tiles — cut into squares</span></div>
+      <p class="ldesc">That huge database is sliced into thousands of small square tiles so the map loads only the bit you're looking at. This is what makes maps fast.</p>
+      <div class="tags">
+        <span class="tag">Tippecanoe <span class="note">makes tiles</span></span>
+        <span class="tag">Protomaps <span class="note">tiles in 1 file</span></span>
+        <span class="tag">Martin <span class="note">serves tiles</span></span>
+        <span class="tag">MapTiler <span class="note">hosted for you</span></span>
+      </div>
+    </div>
+
+    <div class="conn"></div>
+
+    <!-- STYLE -->
+    <div class="layer">
+      <span class="corner">◧ style</span>
+      <div class="lhead"><span class="lnum">03</span><span class="lname">Style — the look</span></div>
+      <p class="ldesc">The rulebook for appearance: what colour roads are, which fonts, what shows up when you zoom in vs out. Same data can look like a night map or a hiking map.</p>
+      <div class="tags">
+        <span class="tag">Style JSON <span class="note">the rulebook</span></span>
+        <span class="tag">Maputnik <span class="note">free visual editor</span></span>
+      </div>
+    </div>
+
+    <div class="conn"></div>
+
+    <!-- RENDER -->
+    <div class="layer render">
+      <span class="corner">◉ render</span>
+      <div class="lhead"><span class="lnum">04</span><span class="lname">Render — draw the map</span></div>
+      <p class="ldesc">The engine that turns tiles + data + style into a picture. Where it runs depends on you — a browser, a Python script, a BI tool, or a static image — but its job is the same everywhere.</p>
+      <div class="env">Web / JavaScript</div>
+      <div class="tags">
+        <span class="tag you">MapLibre GL <span class="note">open, modern</span></span>
+        <span class="tag">Leaflet <span class="note">simple, light</span></span>
+        <span class="tag">OpenLayers <span class="note">powerful, heavy</span></span>
+        <span class="tag">deck.gl <span class="note">big-data viz</span></span>
+      </div>
+      <div class="env">Python</div>
+      <div class="tags">
+        <span class="tag">Plotly <span class="note">runs on MapLibre</span></span>
+        <span class="tag">Folium <span class="note">wraps Leaflet</span></span>
+        <span class="tag">pydeck <span class="note">wraps deck.gl</span></span>
+        <span class="tag">GeoPandas <span class="note">+contextily, static</span></span>
+      </div>
+      <div class="env">BI tools</div>
+      <div class="tags">
+        <span class="tag">Power BI maps <span class="note">built-in + custom</span></span>
+        <span class="tag">Tableau <span class="note">map layers</span></span>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="render-note"><b>Notice the pattern:</b> Plotly, Folium and pydeck don't replace the web engines — they <i>wrap</i> them. So the renderer is the only layer that changes with your environment. Everything below it — data, tiles, style, the tile service — is identical whether you're in JavaScript, Python, or a BI tool.</p>
+
+  <div class="screen">
+    <div class="big">📍 The finished map</div>
+    <div class="small">web app · notebook · dashboard · saved image — wherever it ends up</div>
+  </div>
+
+  <!-- TILE SERVICE DEEP DIVE -->
+  <div class="tile-svc">
+    <div class="lname">⊞ Zoom in: the role of a tile service</div>
+    <p class="ldesc">Your map holds almost no data of its own. As it loads (and as you pan or zoom), the renderer keeps asking a <b style="color:var(--cyan)">tile service</b> — a server whose only job is to hand out tiles — for just the squares it needs right now. The map is stitched together on demand. This is true in a browser, a Python script, or a BI visual alike.</p>
+
+    <div class="loop">
+      <div class="node">
+        <span class="role client">Client</span>
+        <div class="nt">Your map</div>
+        <div class="nd">renderer (web · Python · BI)</div>
+      </div>
+      <div class="arrow">
+        <span class="a1">request ▸</span>
+        <span class="a2">◂ tiles</span>
+      </div>
+      <div class="node svc">
+        <span class="role server">Server</span>
+        <div class="nt">Tile service</div>
+        <div class="nd">serves tiles on demand</div>
+      </div>
+      <div class="arrow">
+        <span class="a1">reads ▸</span>
+      </div>
+      <div class="node">
+        <div class="nt">Data</div>
+        <div class="nd">the stored map</div>
+      </div>
+    </div>
+
+    <p class="ldesc" style="margin-bottom:10px">That loop is a plain <b style="color:var(--ink)">client–server</b> relationship over HTTP — the same one your browser has with any website. The map is the client; the tile service is the server. Two consequences fall out of this:</p>
+
+    <div class="cs-note">
+      <div class="row">
+        <div class="k">The client</div>
+        <div class="v"><b>only ever asks.</b> It pulls the tiles it needs and can't force a reply. It's also a client to several servers at once — tiles, style, fonts, geocoding, routing.</div>
+      </div>
+      <div class="row">
+        <div class="k">The server</div>
+        <div class="v"><b>can always refuse.</b> It inspects every request and may say no — rate limits, referrer checks, missing key. A block isn't a broken connection; it's the server choosing not to answer.</div>
+      </div>
+      <div class="row">
+        <div class="k">So</div>
+        <div class="v">whoever runs the server holds the power. The fixes are about that: an <b>API key</b> makes you a client it trusts; <b>self-hosting</b> makes you the server, so you stop asking permission.</div>
+      </div>
+    </div>
+
+    <p class="ldesc" style="margin-bottom:10px">Two jobs hide under the word "tiles": <b style="color:var(--ink)">building</b> them once (chop the data into tiles) and <b style="color:var(--ink)">serving</b> them live. The tile service is the serving half — and it can live in three places:</p>
+
+    <div class="opts">
+      <div class="opt">
+        <div class="ot">Provider's public server</div>
+        <div class="od">Free, but rate-limited and often restricts who's allowed to call it.</div>
+      </div>
+      <div class="opt">
+        <div class="ot">Hosted provider</div>
+        <div class="od">You get an API key; they run the server and scale it for you.</div>
+      </div>
+      <div class="opt">
+        <div class="ot">Your own server / storage</div>
+        <div class="od">You host the tiles yourself. Full control, no outside limits.</div>
+      </div>
+    </div>
+
+    <p class="keynote">The tile service is a <b>live dependency</b>, not a one-time export. If it's slow, blocks your app, or goes down, your map breaks — even when your own code is perfect. So picking the tile service is a real design decision, not a detail.</p>
+  </div>
+
+  <!-- SERVICES -->
+  <div class="sect">+ Add-on services (bolt onto the map)</div>
+  <div class="grid">
+    <div class="card">
+      <div class="lname">🔍 Search / Geocoding</div>
+      <p class="ldesc">Turns a typed address into a dot on the map — and back again.</p>
+      <div class="tags">
+        <span class="tag you">Photon <span class="note">fast autocomplete</span></span>
+        <span class="tag">Nominatim <span class="note">OSM official</span></span>
+        <span class="tag">Pelias</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="lname">🧭 Routing</div>
+      <p class="ldesc">Directions, drive time and distance between points.</p>
+      <div class="tags">
+        <span class="tag">OSRM</span>
+        <span class="tag">Valhalla</span>
+        <span class="tag">GraphHopper</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLATFORMS -->
+  <div class="sect">All-in-one platforms (skip the assembly)</div>
+  <p class="sub" style="margin-bottom:14px">These bundle several layers above into one paid product, so you don't wire it up yourself. Convenience for cost and less flexibility.</p>
+  <div class="grid">
+    <div class="card">
+      <div class="lname">CARTO <span style="color:var(--coral);font-size:11px;font-family:'Space Mono'">you asked</span></div>
+      <p class="ldesc">Spatial analytics + visualisation aimed at business/enterprise. Sits on top of your data warehouse.</p>
+    </div>
+    <div class="card">
+      <div class="lname">Mapbox</div>
+      <p class="ldesc">Full stack, developer-friendly. MapLibre is the free fork of its old engine.</p>
+    </div>
+    <div class="card">
+      <div class="lname">Google Maps Platform</div>
+      <p class="ldesc">Easiest to drop in, least flexible, pay per request.</p>
+    </div>
+    <div class="card">
+      <div class="lname">Esri ArcGIS</div>
+      <p class="ldesc">The enterprise GIS heavyweight. Deep, expensive, corporate.</p>
+    </div>
+  </div>
+
+  <div class="takeaway">
+    <h3>The one thing to remember</h3>
+    <p><b>OpenStreetMap</b> is the <span class="hl">ingredients</span>. <b>MapLibre</b> is the <span class="hl">kitchen</span> that plates them. <b>Photon</b> is the <span class="hl">waiter</span> who finds what you asked for. <b>CARTO</b> is the <span class="hl">restaurant</span> that does all three so you don't have to.</p>
+    <p>You almost never pick "one tool." You pick <b>one option per layer</b> — and you can swap any layer without touching the others.</p>
+  </div>
+</div>
+</body>
+</html>
