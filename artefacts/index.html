@@ -387,6 +387,42 @@
     background: linear-gradient(135deg, #141414 0%, #1c1c1c 100%);
   }
 
+  .card-preview.screenshot {
+    background: #111;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .card-preview.screenshot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+    filter: saturate(0.96) contrast(1.02);
+    transition: transform 0.25s ease, filter 0.25s ease;
+  }
+
+  a.card:hover .card-preview.screenshot img {
+    transform: scale(1.035);
+    filter: saturate(1.06) contrast(1.04);
+  }
+
+  .peek-badge {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    z-index: 2;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.82);
+    background: rgba(0,0,0,0.48);
+    border: 1px solid rgba(255,255,255,0.14);
+    padding: 3px 6px;
+    backdrop-filter: blur(4px);
+  }
+
   .preview-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 9px;
@@ -715,20 +751,9 @@
         <span class="card-tag investing">Investing</span>
         <span class="card-num">01</span>
 
-        <div class="card-preview warm">
-          <div class="preview-table">
-            <div class="preview-row">
-              <div class="preview-cell header wide"></div>
-              <div class="preview-cell header narrow"></div>
-              <div class="preview-cell header narrow"></div>
-              <div class="preview-cell header narrow"></div>
-            </div>
-            <div class="preview-row"><div class="preview-cell wide"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div></div>
-            <div class="preview-row"><div class="preview-cell wide"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div></div>
-            <div class="preview-row"><div class="preview-cell wide"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div></div>
-            <div class="preview-row"><div class="preview-cell wide"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div><div class="preview-cell narrow"></div></div>
-          </div>
-          <span class="preview-label" style="color: rgba(201,168,76,0.6);">BERKSHIRE · Q1 2026</span>
+        <div class="card-preview screenshot">
+          <img src="assets/previews/berkshire-13f-q1-2026.png" alt="Screenshot preview of Berkshire Hathaway 13F artefact" loading="lazy">
+          <span class="peek-badge">Sneak peek</span>
         </div>
 
         <div class="card-title">Berkshire Hathaway 13F — Q1 2026</div>
@@ -749,15 +774,9 @@
         <span class="card-tag investing">Investing · Geopolitics</span>
         <span class="card-num">02</span>
 
-        <div class="card-preview blue-dark">
-          <div class="preview-lines">
-            <div class="preview-line" style="background: rgba(100,150,255,0.8); width: 60%;"></div>
-            <div class="preview-line" style="background: rgba(100,150,255,0.5); width: 85%;"></div>
-            <div class="preview-line" style="background: rgba(100,150,255,0.3); width: 45%;"></div>
-            <div class="preview-line" style="background: rgba(100,150,255,0.5); width: 70%;"></div>
-            <div class="preview-line" style="background: rgba(100,150,255,0.3); width: 55%;"></div>
-          </div>
-          <span class="preview-label" style="color: rgba(100,150,255,0.4);">NDS · GEOPOLITICAL</span>
+        <div class="card-preview screenshot">
+          <img src="assets/previews/us-national-defense-strategy.png" alt="Screenshot preview of US National Defense Strategy artefact" loading="lazy">
+          <span class="peek-badge">Sneak peek</span>
         </div>
 
         <div class="card-title">America First, Arsenal Abroad: US National Defense Strategy</div>
@@ -809,15 +828,9 @@
             </div>
           </div>
 
-          <div class="card-preview blue-dark" style="height: 120px; width: 100%;">
-            <div class="preview-lines">
-              <div class="preview-line" style="background: rgba(79,209,197,0.8); width: 58%;"></div>
-              <div class="preview-line" style="background: rgba(244,121,107,0.5); width: 78%;"></div>
-              <div class="preview-line" style="background: rgba(224,179,65,0.5); width: 46%;"></div>
-              <div class="preview-line" style="background: rgba(79,209,197,0.35); width: 70%;"></div>
-              <div class="preview-line" style="background: rgba(244,121,107,0.3); width: 55%;"></div>
-            </div>
-            <span class="preview-label" style="color: rgba(79,209,197,0.35);">MAP STACK</span>
+          <div class="card-preview screenshot" style="height: 120px; width: 100%;">
+            <img src="assets/previews/map-stack-explained.png" alt="Screenshot preview of Map Stack artefact" loading="lazy">
+            <span class="peek-badge">Sneak peek</span>
           </div>
         </div>
       </a>
@@ -827,14 +840,9 @@
         <span class="card-tag work">Work · Reference</span>
         <span class="card-num">04</span>
 
-        <div class="card-preview blue-dark">
-          <div class="preview-grid">
-            <div class="preview-grid-cell"></div>
-            <div class="preview-grid-cell"></div>
-            <div class="preview-grid-cell"></div>
-            <div class="preview-grid-cell"></div>
-          </div>
-          <span class="preview-label" style="color: rgba(100,150,255,0.4);">ASGS · GEOGRAPHY</span>
+        <div class="card-preview screenshot">
+          <img src="assets/previews/asgs-geography-explainer.png" alt="Screenshot preview of ASGS Geography artefact" loading="lazy">
+          <span class="peek-badge">Sneak peek</span>
         </div>
 
         <div class="card-title">How Australia Is Cut Into Areas — ABS ASGS & Friends</div>
@@ -886,16 +894,9 @@
             </div>
           </div>
 
-          <div class="card-preview olive" style="height: 120px; width: 100%;">
-            <div class="preview-lines">
-              <div class="preview-line" style="background: rgba(180,200,100,0.8); width: 50%;"></div>
-              <div class="preview-line" style="background: rgba(180,200,100,0.4); width: 85%;"></div>
-              <div class="preview-line" style="background: rgba(180,200,100,0.3); width: 70%;"></div>
-              <div class="preview-line" style="background: rgba(180,200,100,0.4); width: 60%;"></div>
-              <div class="preview-line" style="background: rgba(180,200,100,0.3); width: 75%;"></div>
-              <div class="preview-line" style="background: rgba(180,200,100,0.4); width: 55%;"></div>
-            </div>
-            <span class="preview-label" style="color: rgba(180,200,100,0.3);">FIELD GUIDE</span>
+          <div class="card-preview screenshot" style="height: 120px; width: 100%;">
+            <img src="assets/previews/scraping-field-guide.png" alt="Screenshot preview of Web Scraping Field Guide artefact" loading="lazy">
+            <span class="peek-badge">Sneak peek</span>
           </div>
         </div>
       </a>
@@ -920,20 +921,9 @@
         <span class="card-tag tools">Tools · Presentation</span>
         <span class="card-num">06</span>
 
-        <div class="card-preview dark">
-          <div class="preview-lines">
-            <div class="preview-line" style="background: rgba(212,165,116,0.8); width: 62%;"></div>
-            <div class="preview-line" style="background: rgba(232,180,184,0.5); width: 82%;"></div>
-            <div class="preview-line" style="background: rgba(201,184,150,0.4); width: 48%;"></div>
-            <div class="preview-line" style="background: rgba(196,93,62,0.45); width: 70%;"></div>
-          </div>
-          <div class="preview-bars">
-            <div class="preview-bar" style="height:28px; background: #d4a574;"></div>
-            <div class="preview-bar" style="height:44px; background: #e8b4b8;"></div>
-            <div class="preview-bar" style="height:34px; background: #c9b896;"></div>
-            <div class="preview-bar" style="height:52px; background: #c45d3e;"></div>
-          </div>
-          <span class="preview-label" style="color: rgba(232,228,223,0.16);">AI JOURNEY</span>
+        <div class="card-preview screenshot">
+          <img src="assets/previews/ai-learning-journey.png" alt="Screenshot preview of My AI Learning Journey artefact" loading="lazy">
+          <span class="peek-badge">Sneak peek</span>
         </div>
 
         <div class="card-title">My AI Learning Journey</div>
