@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Australian Local AI Hardware Guide 2026</title>
+<style>
+  /* ============ TOKENS ============
+     Palette: "spec sheet" — warm charcoal, amber + teal data accents.
+     All text colours verified ≥ 5.7:1 against their backgrounds (WCAG AA). */
+  :root{
+    --bg:#14110d;            /* warm charcoal */
+    --panel:#1f1a14;         /* raised panel */
+    --panel-2:#2a231a;       /* inset / inputs */
+    --line:#3a3024;          /* hairlines */
+    --line-strong:#4c4030;
+
+    --ink:#f0e9dd;           /* 15.6:1 body */
+    --dim:#c9bca8;           /* 10.1:1 secondary */
+    --faint:#a3937c;         /* 6.3:1 captions */
+
+    --amber:#f4b14e;         /* 10.1:1 primary accent */
+    --teal:#5fd0c0;          /* 10.1:1 secondary accent */
+    --rose:#f08a8a;          /* 7.8:1 warning/no */
+
+    --mono:'SF Mono',ui-monospace,'Cascadia Code',Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --serif:'Iowan Old Style','Palatino Linotype','Book Antiqua',Georgia,serif;
+
+    --focus:0 0 0 3px var(--bg),0 0 0 6px var(--teal);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;background:#14110d;min-height:100%;color-scheme:dark}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+  body{margin:0;background:#14110d;color:var(--ink);font-family:var(--sans);
+    line-height:1.65;font-size:18px;min-height:100vh;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px}
+
+  a{color:var(--teal);text-underline-offset:3px}
+  :focus-visible{outline:none;box-shadow:var(--focus);border-radius:6px}
+
+  /* skip link */
+  .skip{position:absolute;left:-9999px;top:0;background:var(--amber);color:#14110d;
+    padding:12px 18px;font-weight:700;z-index:100;border-radius:0 0 8px 0}
+  .skip:focus{left:0}
+
+  /* ============ HEADER ============ */
+  header{border-bottom:2px solid var(--line);padding:56px 0 40px}
+  .eyebrow{font-family:var(--mono);font-size:14px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--amber);margin:0 0 18px;font-weight:600}
+  h1{font-family:var(--serif);font-size:clamp(34px,6vw,52px);line-height:1.08;
+    margin:0 0 20px;font-weight:700;letter-spacing:-.01em;color:#fff}
+  .lede{color:var(--dim);font-size:21px;max-width:660px;margin:0;line-height:1.55}
+  .lede em{color:var(--ink);font-style:italic}
+  .stamp{margin-top:26px;font-family:var(--mono);font-size:14px;color:var(--faint)}
+  .stamp b{color:var(--teal)}
+
+  /* ============ NAV ============ */
+  nav.toc{position:sticky;top:0;z-index:30;background:rgba(20,17,13,.94);
+    backdrop-filter:blur(12px);border-bottom:2px solid var(--line)}
+  nav.toc ul{display:flex;gap:4px;overflow-x:auto;list-style:none;margin:0;
+    padding:8px 24px;max-width:928px;margin:0 auto;scrollbar-width:thin}
+  nav.toc a{display:block;flex:0 0 auto;font-family:var(--mono);font-size:14px;
+    color:var(--dim);text-decoration:none;padding:10px 14px;border-radius:8px;
+    white-space:nowrap;transition:background .15s,color .15s;min-height:44px;display:flex;align-items:center}
+  nav.toc a:hover{color:var(--ink);background:var(--panel)}
+  nav.toc a[aria-current="true"]{color:var(--amber);background:var(--panel-2);font-weight:600}
+
+  /* ============ SECTIONS ============ */
+  section{padding:52px 0;border-bottom:2px solid var(--line)}
+  h2{font-family:var(--serif);font-size:30px;margin:0 0 22px;letter-spacing:-.01em;
+    color:#fff;display:flex;align-items:baseline;gap:12px;line-height:1.2}
+  h2 .n{font-family:var(--mono);font-size:17px;color:var(--amber);font-weight:600}
+  h3{font-size:21px;margin:30px 0 12px;color:#fff;font-weight:650;line-height:1.3}
+  p{margin:0 0 16px}
+  strong{color:#fff;font-weight:650}
+  em{color:var(--dim)}
+  ul{margin:0 0 16px;padding-left:24px}
+  li{margin:8px 0}
+  code{font-family:var(--mono);font-size:.86em;background:var(--panel-2);
+    padding:3px 7px;border-radius:6px;color:var(--amber);border:1px solid var(--line)}
+
+  /* TL;DR */
+  .tldr{background:var(--panel);border:2px solid var(--line-strong);
+    border-radius:16px;padding:28px 30px;margin:0;box-shadow:0 1px 0 var(--amber) inset}
+  .tldr h2{font-size:24px;margin:0 0 8px;color:var(--amber)}
+  .tldr ul{margin-bottom:0}
+
+  /* cards / tiers */
+  .grid{display:grid;gap:18px}
+  @media(min-width:660px){.grid.two{grid-template-columns:1fr 1fr}}
+  .card{background:var(--panel);border:2px solid var(--line);border-radius:14px;
+    padding:24px 26px;position:relative;overflow:hidden}
+  .card.lead{border-color:var(--amber)}
+  .card .tag-price{font-family:var(--mono);font-size:15px;color:var(--amber);margin:0 0 4px;font-weight:600}
+  .card h3{margin:0 0 14px}
+  .card h3 .star{color:var(--amber)}
+  .card p:last-child{margin-bottom:0}
+
+  .pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .pill{font-family:var(--mono);font-size:13px;padding:5px 11px;border-radius:20px;
+    border:1.5px solid var(--line-strong);color:var(--dim);font-weight:500}
+  .pill.up{color:var(--teal);border-color:var(--teal)}
+  .pill.no{color:var(--rose);border-color:var(--rose)}
+  .pill.port{color:var(--amber);border-color:var(--amber)}
+
+  /* tables */
+  .tbl-scroll{overflow-x:auto;margin:8px 0 16px;border:2px solid var(--line);border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:16px;min-width:480px}
+  th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--line)}
+  tr:last-child td{border-bottom:none}
+  th{font-family:var(--mono);font-size:13px;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--faint);background:var(--panel);font-weight:600}
+  td{color:var(--dim)}
+  td:first-child{color:#fff;font-weight:600}
+  tbody tr:hover td{background:rgba(244,177,78,.05)}
+
+  /* callouts */
+  .note{border-left:4px solid var(--amber);background:var(--panel);
+    padding:18px 22px;border-radius:0 12px 12px 0;margin:18px 0;font-size:17px}
+  .note.warn{border-color:var(--rose)}
+  .note strong{color:var(--amber)}
+  .note.warn strong{color:var(--rose)}
+
+  /* glossary terms — keyboard accessible */
+  button.term{font:inherit;color:var(--teal);background:none;border:none;padding:0;
+    cursor:help;border-bottom:2px dotted var(--teal);line-height:inherit}
+  button.term:hover{color:#fff;border-color:#fff}
+
+  /* ============ CALCULATOR ============ */
+  .calc{background:var(--panel);border:2px solid var(--line-strong);border-radius:16px;padding:28px}
+  .calc fieldset{border:none;margin:0;padding:0}
+  .calc legend{font-family:var(--mono);font-size:14px;color:var(--faint);
+    text-transform:uppercase;letter-spacing:.05em;padding:0}
+  .field{margin-top:22px}
+  .field:first-child{margin-top:0}
+  .field>label{display:block;font-size:17px;color:var(--ink);margin-bottom:12px;font-weight:600}
+  .field>label .v{font-family:var(--mono);color:var(--amber)}
+  .slider-row{display:flex;align-items:center;gap:16px}
+  input[type=range]{flex:1;height:8px;accent-color:var(--amber);cursor:pointer}
+  input[type=range]:focus-visible{box-shadow:var(--focus)}
+  .readout{font-family:var(--mono);font-size:17px;color:var(--amber);min-width:64px;text-align:right;font-weight:600}
+  select{width:100%;background:var(--panel-2);color:var(--ink);border:2px solid var(--line-strong);
+    border-radius:10px;padding:13px 14px;font-family:var(--mono);font-size:16px;min-height:48px}
+  select:hover{border-color:var(--faint)}
+
+  .result{margin-top:26px;padding:24px;border-radius:14px;background:var(--panel-2);border:2px solid var(--line)}
+  .result .cap{font-family:var(--mono);font-size:14px;color:var(--faint);text-transform:uppercase;letter-spacing:.05em}
+  .result .big{font-size:42px;font-family:var(--mono);font-weight:700;color:var(--amber);line-height:1.1;margin:6px 0 0}
+  .result .big .u{font-size:22px;color:var(--dim)}
+  .fits{margin-top:20px;display:grid;gap:10px}
+  .fits div{font-size:16px;display:flex;align-items:center;gap:10px}
+  .fits .yes{color:var(--teal);font-weight:700;font-family:var(--mono)}
+  .fits .no{color:var(--rose);font-weight:700;font-family:var(--mono)}
+  .fits .mem{color:var(--faint);font-family:var(--mono);font-size:14px;margin-left:auto}
+  .fits .nm{color:var(--ink)}
+
+  /* glossary */
+  .gloss{margin:0}
+  .gloss dt{font-weight:700;color:#fff;margin-top:24px;font-size:18px}
+  .gloss dt:first-child{margin-top:0}
+  .gloss dt .kind{font-family:var(--mono);font-size:13px;color:var(--faint);
+    margin-left:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+  .gloss dd{margin:7px 0 0;color:var(--dim);font-size:17px}
+
+  footer{padding:44px 0 72px}
+  footer p{color:var(--faint);font-size:15px;margin:0}
+
+  /* tooltip popover */
+  #tip{position:fixed;z-index:90;max-width:300px;background:#0c0a07;
+    border:2px solid var(--teal);border-radius:12px;padding:14px 16px;font-size:15px;
+    line-height:1.5;color:var(--ink);pointer-events:none;opacity:0;visibility:hidden;
+    transition:opacity .12s;box-shadow:0 12px 40px rgba(0,0,0,.7)}
+  #tip.show{opacity:1;visibility:visible}
+  #tip b{color:var(--teal);display:block;margin-bottom:4px;font-family:var(--mono);font-size:14px}
+</style>
+</head>
+<body>
+<a href="#main" class="skip">Skip to content</a>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">Buyer's Guide · 2026 · Prices in AUD</p>
+    <h1>Running powerful AI models on your own PC</h1>
+    <p class="lede">A tiered guide to local LLM hardware for a builder who wants a PC that's customizable, can grow over time, and ideally travels. Built around one rule: <em>capacity decides what you can run, bandwidth decides how fast.</em></p>
+    <p class="stamp">Tap any <b>dotted term</b> for its definition. Full glossary at the end.</p>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <ul>
+    <li><a href="#concepts">Concepts</a></li>
+    <li><a href="#calc">Calculator</a></li>
+    <li><a href="#entry">Entry</a></li>
+    <li><a href="#mid">Mid</a></li>
+    <li><a href="#high">High</a></li>
+    <li><a href="#extreme">Extreme</a></li>
+    <li><a href="#upgrade">Upgradeability</a></li>
+    <li><a href="#software">Software</a></li>
+    <li><a href="#reco">Recommendation</a></li>
+    <li><a href="#caveats">Caveats</a></li>
+    <li><a href="#glossary">Glossary</a></li>
+  </ul>
+</nav>
+
+<main class="wrap" id="main">
+
+  <section id="tldr" aria-labelledby="tldr-h">
+    <div class="tldr">
+      <h2 id="tldr-h">The short version</h2>
+      <ul>
+        <li><strong>Best balance for you</strong> (PC, customizable, upgradeable): a full ATX tower around a single <strong>RTX 5090 (32GB)</strong> — card ~AU$5,400–6,300, or ~AU$7,800 prebuilt. Runs 32B models instantly and large <button class="term" data-term="MoE" data-def="Mixture-of-Experts: a model that holds all weights in memory but activates only a few billion per token, so it runs fast even on slower memory.">MoE</button> models very well, and you can add a second GPU later.</li>
+        <li><strong>Best value entry:</strong> a used <strong>RTX 3090 (24GB)</strong> at ~AU$1,200–1,600 in a basic, expansion-ready tower.</li>
+        <li><strong>The hard truth:</strong> "small &amp; travels" and "upgradeable" are opposites. Mini-PCs and Macs are sealed; only a tower lets you add chips.</li>
+        <li><strong>For your bilingual RedNote work:</strong> the <strong>Qwen</strong> family (Apache 2.0, strong at Chinese + English) is the standout open model and runs on every tier here.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="concepts" aria-labelledby="c1">
+    <h2 id="c1"><span class="n">01</span> The concepts that matter</h2>
+    <p>Two numbers govern everything. <strong>Memory capacity</strong> — <button class="term" data-term="VRAM" data-def="Video RAM: the fast memory attached to a GPU. The model's weights must fit here, or speed collapses.">VRAM</button> on an NVIDIA card, or <button class="term" data-term="Unified memory" data-def="One memory pool shared by CPU and GPU, used by Apple Silicon and AMD Strix Halo. Big capacity, but lower bandwidth than dedicated VRAM.">unified memory</button> on a Mac or Strix Halo box — decides <em>which</em> models you can load at all. <strong>Memory bandwidth</strong> decides <em>how fast</em> they generate text.</p>
+
+    <h3>How much memory a model needs</h3>
+    <p>Rule of thumb: <code>VRAM (GB) ≈ params (billions) × bytes-per-param × 1.2</code>, where bytes-per-param is <strong>2</strong> for FP16, <strong>1</strong> for Q8, and <strong>~0.5</strong> for Q4. A 7B model needs ~4–6GB at Q4, a 32B needs ~20GB, a dense 70B needs ~40GB+. Long contexts add more, because the <button class="term" data-term="KV cache" data-def="The memory a model uses to track the current conversation. Grows with context length and can rival the weights at 32K+ tokens.">KV cache</button> grows with the conversation.</p>
+
+    <h3><button class="term" data-term="Quantization" data-def="Compressing model weights to lower numeric precision so a bigger model fits in less memory, at a small quality cost.">Quantization</button> — the lever that fits big models on small cards</h3>
+    <p><strong>Q4_K_M is the default sweet spot:</strong> about half the size of FP16 for only a 3–5% quality drop. Step up to Q5 or Q8 (near-lossless) for coding and reasoning if you have headroom; reserve FP16 for fine-tuning or maximum fidelity.</p>
+
+    <h3><button class="term" data-term="Throughput" data-def="Tokens per second — how fast the model produces text. ~5 = slow, 10–15 = comfortable, 30+ = instant.">Throughput</button> — what the speed numbers mean</h3>
+    <p>Roughly: <strong>5 tok/s</strong> is slow but usable (good for overnight batches), <strong>10–15 tok/s</strong> reads comfortably, <strong>30+ tok/s</strong> feels instant. Text generation is almost entirely <strong>bandwidth-bound</strong> — it depends on how many bytes of weights are read per token, not raw compute. That's why a 5090 feels instant and a unified-memory box feels deliberate.</p>
+
+    <div class="note">
+      <strong>The MoE trick.</strong> Modern Mixture-of-Experts models (gpt-oss 120B, Qwen3 235B, Qwen3-30B-A3B) keep all weights resident but fire only a few billion per token — gpt-oss 120B uses ~5B of ~117B each step. So a slow-bandwidth box can run a 120B MoE at usable speed yet crawl on a dense 70B. On any unified-memory machine, prefer MoE models.
+    </div>
+
+    <h3>Why bandwidth differs so much</h3>
+    <div class="tbl-scroll">
+      <table>
+        <caption class="sr-only">Memory bandwidth by hardware type</caption>
+        <thead><tr><th scope="col">Hardware</th><th scope="col">Bandwidth</th><th scope="col">Memory style</th></tr></thead>
+        <tbody>
+          <tr><td>RTX 5090 / RTX PRO 6000</td><td>1,792 GB/s</td><td>Dedicated VRAM</td></tr>
+          <tr><td>RTX 3090</td><td>936 GB/s</td><td>Dedicated VRAM</td></tr>
+          <tr><td>Mac Studio M3 Ultra</td><td>819 GB/s</td><td>Unified</td></tr>
+          <tr><td>NVIDIA DGX Spark</td><td>273 GB/s</td><td>Unified</td></tr>
+          <tr><td>AMD Ryzen AI Max+ 395</td><td>256 GB/s (~215 real)</td><td>Unified</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:15px;color:var(--faint)">From NVIDIA / AMD / Apple spec sheets. A 128GB box can <em>load</em> a 70B but runs it at single-digit tok/s; a 32GB 5090 can't load a dense 70B yet runs everything that fits at full speed.</p>
+  </section>
+
+  <section id="calc" aria-labelledby="c2">
+    <h2 id="c2"><span class="n">02</span> VRAM calculator</h2>
+    <p>Set a model size and quantization to see the memory estimate and which hardware can hold it. Estimate only — context length and runtime shift the real figure.</p>
+    <div class="calc">
+      <fieldset>
+        <legend class="sr-only">Model parameters and quantization</legend>
+        <div class="field">
+          <label for="params">Model size — <span class="v" id="pLbl">32 B</span> parameters</label>
+          <div class="slider-row">
+            <input id="params" type="range" min="1" max="235" value="32" step="1"
+                   aria-describedby="out-live" aria-valuetext="32 billion parameters">
+            <span class="readout" id="pVal" aria-hidden="true">32 B</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="quant">Quantization</label>
+          <select id="quant" aria-describedby="out-live">
+            <option value="0.5">Q4_K_M — sweet spot (~0.5 bytes/param)</option>
+            <option value="0.65">Q5_K_M — higher quality (~0.65)</option>
+            <option value="1">Q8_0 — near-lossless (~1 byte)</option>
+            <option value="2">FP16 — full precision / fine-tuning (2 bytes)</option>
+          </select>
+        </div>
+      </fieldset>
+      <div class="result">
+        <div class="cap">Estimated memory needed</div>
+        <p class="big" id="out-live" aria-live="polite"><span id="out">20</span> <span class="u">GB</span></p>
+        <div class="fits" id="fits"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="entry" aria-labelledby="c3">
+    <h2 id="c3"><span class="n">03</span> Entry tier · ~AU$1,500–3,000</h2>
+    <p>A single consumer GPU in a basic tower. The goal: learn what model sizes you actually need before spending big.</p>
+
+    <div class="card lead">
+      <p class="tag-price">~AU$1,200–1,600 GPU · ~AU$2,500–3,000 complete</p>
+      <h3>Used RTX 3090 — 24GB · the value king</h3>
+      <p>The only sub-$2,000 route to 24GB. 936 GB/s, mature <button class="term" data-term="CUDA" data-def="NVIDIA's software platform. Every major local-AI tool targets it first, so it 'just works'.">CUDA</button> support. Runs Qwen3 32B at Q4 and 7–13B models at 30–45 tok/s. In a basic ATX tower it's fully upgradeable — add a second 3090 later for 48GB.</p>
+      <div class="pills"><span class="pill up">▲ Upgradeable</span><span class="pill no">✕ Not portable</span><span class="pill">250–300W</span><span class="pill">24GB</span></div>
+    </div>
+
+    <div class="grid two">
+      <div class="card">
+        <p class="tag-price">GPU ~AU$728–800 · prebuilt ~AU$2,099</p>
+        <h3>RTX 5060 Ti — 16GB (new)</h3>
+        <p>Blackwell efficiency at ~150W. Handles up to ~14B comfortably, 7–13B fast. The low-power, low-noise entry. Upgradeable tower.</p>
+        <div class="pills"><span class="pill up">▲ Upgradeable</span><span class="pill">~150W</span><span class="pill">16GB</span></div>
+      </div>
+      <div class="card">
+        <p class="tag-price">similar value, older gen</p>
+        <h3>RTX 4060 Ti — 16GB</h3>
+        <p>A fine budget entry for 7–13B models if you find one cheap. Same upgrade path.</p>
+        <div class="pills"><span class="pill up">▲ Upgradeable</span><span class="pill">16GB</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="mid" aria-labelledby="c4">
+    <h2 id="c4"><span class="n">04</span> Mid tier · ~AU$3,000–6,000</h2>
+    <p>Flagship single GPU, or a big-capacity unified-memory mini-PC. This is where your decision really lives.</p>
+
+    <div class="card lead">
+      <p class="tag-price">card ~AU$5,399–6,299</p>
+      <h3>RTX 5090 — 32GB · the enthusiast pick <span class="star">★</span></h3>
+      <p>1,792 GB/s. Runs dense Qwen3 32B at ~61 tok/s, Qwen3-30B MoE at ~234 tok/s, gpt-oss 120B MoE very fast, and holds 250K+ token contexts in VRAM. <strong>Can't fit a dense 70B</strong> (needs ~40GB). ~575W, wants a 1000W+ PSU. Fully upgradeable in a tower.</p>
+      <div class="pills"><span class="pill up">▲ Upgradeable</span><span class="pill no">✕ Not portable</span><span class="pill">~575W</span><span class="pill">32GB</span></div>
+    </div>
+
+    <div class="card">
+      <p class="tag-price">~AU$3,000–3,100 imported · ~AU$4,750 local warranty</p>
+      <h3>AMD Ryzen AI Max+ 395 (Strix Halo) — 128GB mini-PC · the travelable one</h3>
+      <p>GMKtec EVO-X2 (imported) or Minisforum MS-S1 MAX (local AU warranty). The catch is 256 GB/s bandwidth: runs a 120B MoE at ~31–55 tok/s but a <strong>dense 70B at only ~4–6 tok/s</strong>. Up to ~96–110GB usable as VRAM. Tiny (2–5L), quiet, ~120W — but <strong>sealed forever</strong>.</p>
+      <div class="pills"><span class="pill no">✕ Sealed</span><span class="pill port">▸ Portable</span><span class="pill">~120W</span><span class="pill">128GB unified</span></div>
+    </div>
+
+    <div class="grid two">
+      <div class="card">
+        <p class="tag-price">~AU$2,800–3,400 (old stock)</p>
+        <h3>RTX 4090 — 24GB</h3>
+        <p>Out of production. 1,008 GB/s, excellent up to 32B. Still a top single-GPU buy near these prices.</p>
+        <div class="pills"><span class="pill up">▲ Upgradeable</span><span class="pill">24GB</span></div>
+      </div>
+      <div class="card">
+        <p class="tag-price">from AU$3,499</p>
+        <h3>Mac Studio M4 Max — for comparison</h3>
+        <p>Shown so you can see the tradeoff. Silent and efficient, but loses on ecosystem and tok/s versus an NVIDIA card.</p>
+        <div class="pills"><span class="pill no">✕ Sealed</span><span class="pill port">▸ Compact</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="high" aria-labelledby="c5">
+    <h2 id="c5"><span class="n">05</span> High tier · ~AU$6,000–12,000</h2>
+    <p>Dual-GPU rigs, the DGX Spark dev kit, big workstations — the point where you can run a dense 70B in one box.</p>
+
+    <div class="card lead">
+      <p class="tag-price">~AU$5,000–6,000 complete</p>
+      <h3>Dual RTX 3090 — 48GB combined · the sweet spot</h3>
+      <p>Runs a dense 70B at Q4 fully in VRAM (~15–20 tok/s). ~1,300W under load; needs a tower with a 1500W+ PSU and two spaced PCIe slots. Fully upgradeable.</p>
+      <div class="pills"><span class="pill up">▲ Upgradeable</span><span class="pill no">✕ Not portable</span><span class="pill">~1300W</span><span class="pill">48GB</span></div>
+    </div>
+
+    <div class="grid two">
+      <div class="card">
+        <p class="tag-price">AU$6,249–7,999</p>
+        <h3>NVIDIA DGX Spark — 128GB unified</h3>
+        <p>The catch is 273 GB/s: gpt-oss 120B ~36–50 tok/s, dense 32B only ~9–10 tok/s. Strength is huge prompt processing plus a turnkey datacenter-matching stack. A <strong>dev kit</strong>, not a value inference box. Sealed.</p>
+        <div class="pills"><span class="pill no">✕ Sealed</span><span class="pill port">▸ Compact</span><span class="pill">128GB</span></div>
+      </div>
+      <div class="card">
+        <p class="tag-price">AU$6,999</p>
+        <h3>Mac Studio M3 Ultra — 96GB</h3>
+        <p>Silent, ~819 GB/s, runs 70B-class models well in unified memory. The strongest sealed-box alternative if you don't need CUDA.</p>
+        <div class="pills"><span class="pill no">✕ Sealed</span><span class="pill port">▸ Compact</span><span class="pill">96GB</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="tag-price">GPUs ~AU$11,000–13,000</p>
+      <h3>Dual RTX 5090 — 64GB</h3>
+      <p>Matches or beats an H100 on 70B at a fraction of the cost (~27 tok/s on 70B). High power and heat — plan cooling and a dedicated wall circuit.</p>
+      <div class="pills"><span class="pill up">▲ Upgradeable</span><span class="pill">64GB</span></div>
+    </div>
+  </section>
+
+  <section id="extreme" aria-labelledby="c6">
+    <h2 id="c6"><span class="n">06</span> Extreme tier · AU$12,000+</h2>
+    <div class="card">
+      <p class="tag-price">~AU$17,999–18,499 (card)</p>
+      <h3>NVIDIA RTX PRO 6000 Blackwell — 96GB GDDR7 ECC</h3>
+      <p>1,792 GB/s, 96GB. Runs dense 70B comfortably and gpt-oss 120B at ~180+ tok/s; scales to four cards. The ultimate single-card local AI option.</p>
+      <div class="pills"><span class="pill up">▲ Upgradeable</span><span class="pill">96GB</span><span class="pill">600W</span></div>
+    </div>
+    <p>Also here: a Mwave AI MAX workstation (Ryzen 9 9950X3D + RTX PRO 6000) ~AU$22,999. Note: Apple pulled all ≥128GB Mac Studio memory options mid-2026 amid the RAM shortage — only scarcity-priced reseller stock remains (~AU$29,999 for 256GB).</p>
+  </section>
+
+  <section id="upgrade" aria-labelledby="c7">
+    <h2 id="c7"><span class="n">07</span> The upgradeability question</h2>
+    <p>Only a <strong>full ATX tower</strong> lets you add GPUs later. If future expansion is the goal, your base build needs:</p>
+    <ul>
+      <li><strong>PSU:</strong> 1000W+ for a single 5090; <strong>1500–1600W</strong> if you plan dual high-end GPUs.</li>
+      <li><strong>Motherboard:</strong> ATX with <strong>two physically spaced PCIe x16 slots</strong> so a second triple-slot card fits and breathes.</li>
+      <li><strong>CPU/platform:</strong> a Ryzen 9 or Core Ultra is fine for two GPUs; <strong>Threadripper</strong> for 3–4 or lots of PCIe lanes.</li>
+      <li><strong>Case + cooling + power circuit:</strong> high-airflow case and wall-circuit headroom (dual 5090s can pull &gt;1kW).</li>
+    </ul>
+    <div class="note warn">
+      <strong>Portability and upgradeability are opposites.</strong> Mini-PCs (Strix Halo, DGX Spark) and Macs are sealed — soldered memory, no internal GPU expansion. Some Strix Halo boxes add <button class="term" data-term="OCuLink" data-def="A port for connecting an external GPU — but only at PCIe 4.0 x4 bandwidth, much slower than an internal slot.">OCuLink</button> for an external GPU, but only at PCIe 4.0 x4. You can't have both — decide which matters more before you spend.
+    </div>
+  </section>
+
+  <section id="software" aria-labelledby="c8">
+    <h2 id="c8"><span class="n">08</span> Software &amp; models</h2>
+    <h3>Ecosystem — NVIDIA is the easy path</h3>
+    <p><strong>CUDA just works.</strong> Ollama, LM Studio, llama.cpp, vLLM, TensorRT-LLM — all target NVIDIA first, on Windows and Linux. <strong>AMD ROCm</strong> has matured (v7.x, working Ollama/llama.cpp/vLLM on Linux) but Windows is still fragile; the RX 7900 XTX (24GB, ~AU$1,200+) is the value AMD card only if you're on Linux and happy to debug. <strong>Apple Metal/MLX</strong> works well via llama.cpp and MLX.</p>
+
+    <h3>Easy runners</h3>
+    <ul>
+      <li><strong>LM Studio</strong> — polished GUI, model browser, click-to-run. Best for getting started and quick experiments.</li>
+      <li><strong>Ollama</strong> — command line plus an OpenAI-compatible API. Best for coding agents and automation. Both use llama.cpp underneath, so speed is near-identical; many people run both.</li>
+    </ul>
+
+    <h3>Models for your use cases</h3>
+    <p>For general experimentation, coding agents, and especially <strong>bilingual EN/ZH content for RedNote</strong>, the <strong>Qwen</strong> family (Alibaba, Apache 2.0) is the strongest all-rounder — Chinese-first <em>and</em> excellent English, from 0.6B edge models to 235B MoE flagships, with dedicated Qwen Coder variants. Also strong: <strong>DeepSeek</strong> (reasoning/coding), <strong>Gemma</strong> (efficient), <strong>gpt-oss</strong> (fast MoE), <strong>Llama</strong>, <strong>Mistral</strong>.</p>
+  </section>
+
+  <section id="reco" aria-labelledby="c9">
+    <h2 id="c9"><span class="n">09</span> The staged recommendation</h2>
+    <div class="card lead">
+      <h3>Stage 1 — Best value entry</h3>
+      <p>A <strong>used RTX 3090 (24GB)</strong> in an expansion-ready ATX tower (~AU$2,500–3,000). Run Qwen3 32B at Q4 and learn what you actually need. <em>Move on when you're consistently waiting on 32B output or hitting the 24GB ceiling.</em></p>
+    </div>
+    <div class="card lead">
+      <h3>Stage 2 — Best balance for you <span class="star">★</span></h3>
+      <p>A full ATX tower around a single <strong>RTX 5090 (32GB)</strong>, 1200–1600W PSU, two spaced PCIe slots, Ryzen 9 CPU (~AU$7,500–9,000 complete). Runs everything up to 32B instantly and big MoE models very well — then <strong>add a second GPU later</strong> for 56–64GB. This nails all three of your priorities: PC, customizable, upgradeable.</p>
+    </div>
+    <div class="card">
+      <h3>Stage 3 — Only if you must run dense 70B+ in one box</h3>
+      <p>Either <strong>dual RTX 3090/5090</strong> (stays upgradeable) or a sealed <strong>96GB RTX PRO 6000</strong> workstation (~AU$18,000+). Confirm you truly need dense 70B rather than an MoE alternative first — a single 5090 already handles those.</p>
+    </div>
+    <div class="note">
+      <strong>The portability fork:</strong> if travelling with the machine matters most, a <strong>Strix Halo 128GB mini-PC</strong> (~AU$3,000 imported / ~AU$4,750 local) is the best travelable PC for big-but-slow models — just accept it's sealed and slow on dense models.
+      <br><br>
+      <strong>When to skip all this:</strong> a <strong>Mac Studio</strong> suits you only if you want near-silence and big unified memory without CUDA. <strong>Cloud rental</strong> (~AU$1.20/hr for a 5090) wins if your use is occasional — buying only pays off after ~700–1,400 active hours, so rent first if you'll run models just a few times a week.
+    </div>
+  </section>
+
+  <section id="caveats" aria-labelledby="c10">
+    <h2 id="c10"><span class="n">10</span> Caveats</h2>
+    <ul>
+      <li><strong>Prices are unusually volatile.</strong> A DRAM/GDDR shortage through late 2025–2026 pushed prices sharply up — the RTX 5090 entry price roughly doubled from its ~US$1,999 Nov 2025 low to over US$3,000 by Feb 2026, and some consumer memory rose up to ~89% in Q2 2026. Verify live pricing before buying.</li>
+      <li><strong>Imported mini-PCs</strong> (GMKtec, Beelink, Framework) may ship from the US, bill in USD, and lack local warranty — budget 10% GST, shipping, and RMA-to-China risk.</li>
+      <li><strong>All tok/s figures are approximate</strong> and shift with quantization, context length, runtime (llama.cpp vs vLLM vs SGLang), and drivers. Treat the <em>relative ordering</em> as the durable signal.</li>
+      <li><strong>Used GPU prices vary</strong> by condition — inspect, stress-test, or buy from sellers offering a warranty.</li>
+    </ul>
+  </section>
+
+  <section id="glossary" aria-labelledby="c11">
+    <h2 id="c11"><span class="n">11</span> Glossary</h2>
+    <dl class="gloss">
+      <dt>VRAM <span class="kind">capacity</span></dt>
+      <dd>Video RAM — the fast memory physically attached to a GPU. A model's weights must fit in VRAM (or unified memory) or speed collapses. The most important spec for deciding which models you can run.</dd>
+
+      <dt>Unified memory <span class="kind">capacity</span></dt>
+      <dd>One large pool shared between CPU and GPU, used by Apple Silicon and AMD Strix Halo. Gives huge capacity cheaply (128GB+) but at lower bandwidth than dedicated VRAM, so big dense models load but run slowly.</dd>
+
+      <dt>Memory bandwidth <span class="kind">speed</span></dt>
+      <dd>How many bytes of memory the chip reads per second (GB/s). Because text generation is bandwidth-bound, this number basically is your tokens/sec ceiling. 1,792 GB/s feels instant; 256 GB/s feels deliberate.</dd>
+
+      <dt>Throughput / tokens per second <span class="kind">speed</span></dt>
+      <dd>How fast the model produces text. A token is roughly a word-piece. ~5 = slow but usable; 10–15 = comfortable reading speed; 30+ = instant and interactive.</dd>
+
+      <dt>Quantization (Q4, Q5, Q8, FP16) <span class="kind">capacity</span></dt>
+      <dd>Compressing weights to lower numeric precision so a bigger model fits in less memory. Q4_K_M ≈ 0.5 bytes/param (sweet spot, ~3–5% quality loss); Q8 ≈ 1 byte (near-lossless); FP16 = 2 bytes (full precision, for fine-tuning).</dd>
+
+      <dt>Parameters (B) <span class="kind">model size</span></dt>
+      <dd>The number of learned weights, in billions. Bigger generally means smarter but needs more memory. The first thing you check against your VRAM budget.</dd>
+
+      <dt>Dense model <span class="kind">architecture</span></dt>
+      <dd>Activates all its parameters for every token. A dense 70B genuinely needs ~40GB+ and full bandwidth — the hardest case for slow-memory boxes.</dd>
+
+      <dt>MoE / Mixture-of-Experts <span class="kind">architecture</span></dt>
+      <dd>Holds all weights in memory but activates only a few expert sub-networks per token (gpt-oss 120B fires ~5B of ~117B). Runs far faster than its size suggests — the key to making unified-memory boxes useful.</dd>
+
+      <dt>KV cache <span class="kind">memory</span></dt>
+      <dd>The working memory a model uses to track the current conversation. Grows with context length and can rival the weights at 32K+ tokens — extra VRAM to budget for long prompts.</dd>
+
+      <dt>Context window <span class="kind">memory</span></dt>
+      <dd>How much text (in tokens) the model can consider at once. Longer windows are powerful but consume more memory via the KV cache.</dd>
+
+      <dt>CUDA <span class="kind">software</span></dt>
+      <dd>NVIDIA's GPU compute platform. Every major local-AI tool targets it first, which is why NVIDIA cards "just work" and are the path of least resistance.</dd>
+
+      <dt>ROCm <span class="kind">software</span></dt>
+      <dd>AMD's answer to CUDA. Much improved (v7.x) and solid on Linux, but Windows support is still fragile — usable if you're comfortable debugging.</dd>
+
+      <dt>Metal / MLX <span class="kind">software</span></dt>
+      <dd>Apple's GPU framework (Metal) and ML library (MLX). Run local models well on Mac via llama.cpp and MLX.</dd>
+
+      <dt>Ollama <span class="kind">runner</span></dt>
+      <dd>A command-line tool with an OpenAI-compatible API for running local models. Best for developers, coding agents, and automation.</dd>
+
+      <dt>LM Studio <span class="kind">runner</span></dt>
+      <dd>A polished desktop GUI with a model browser and click-to-run. Best for getting started and quick experiments. Uses llama.cpp under the hood, like Ollama.</dd>
+
+      <dt>llama.cpp <span class="kind">engine</span></dt>
+      <dd>The open-source inference engine that powers both Ollama and LM Studio — the reason their token speeds are near-identical.</dd>
+
+      <dt>vLLM <span class="kind">engine</span></dt>
+      <dd>A high-throughput serving engine optimised for many simultaneous requests — used more in production than single-user desktop chat.</dd>
+
+      <dt>ATX tower <span class="kind">form factor</span></dt>
+      <dd>A standard full-size desktop case and motherboard. The only form factor that lets you add or swap GPUs over time — the upgradeable choice.</dd>
+
+      <dt>PCIe slot / lanes <span class="kind">hardware</span></dt>
+      <dd>The high-speed connectors GPUs plug into. For multi-GPU you want two physically spaced x16 slots and a platform with enough lanes to feed them.</dd>
+
+      <dt>PSU <span class="kind">hardware</span></dt>
+      <dd>Power supply unit. A single 5090 wants 1000W+; dual high-end GPUs want 1500–1600W. Size up front if you plan to expand.</dd>
+
+      <dt>OCuLink <span class="kind">hardware</span></dt>
+      <dd>A port on some mini-PCs for attaching an external GPU — but only at PCIe 4.0 x4 bandwidth, far slower than an internal slot. A compromised upgrade path for otherwise-sealed boxes.</dd>
+
+      <dt>Strix Halo / Ryzen AI Max+ 395 <span class="kind">product</span></dt>
+      <dd>AMD's high-end APU with up to 128GB unified memory. Powers small, quiet mini-PCs that can load huge models — but at low bandwidth, so best with MoE models.</dd>
+
+      <dt>DGX Spark <span class="kind">product</span></dt>
+      <dd>NVIDIA's compact 128GB unified-memory developer kit (GB10 chip). Mirrors NVIDIA's datacenter software stack but is bandwidth-limited (273 GB/s) — a dev tool more than a value inference box.</dd>
+    </dl>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Compiled from NVIDIA / AMD / Apple spec sheets, Australian retailer listings (Scorptec, PLE, Mwave, PCCaseGear, Centre Com) and community benchmarks (Hardware Corner, ACEMAGIC, Level1Techs, llama.cpp). Prices in AUD, accurate to early 2026 and volatile — verify before buying. Tokens/sec figures approximate.</p>
+  </div>
+</footer>
+
+<div id="tip" role="status" aria-live="polite"></div>
+
+<style>
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0,0,0,0);white-space:nowrap;border:0}
+</style>
+
+<script>
+// ---------- VRAM calculator ----------
+(function(){
+  const params=document.getElementById('params');
+  const quant=document.getElementById('quant');
+  const out=document.getElementById('out');
+  const pVal=document.getElementById('pVal');
+  const pLbl=document.getElementById('pLbl');
+  const fits=document.getElementById('fits');
+
+  const targets=[
+    {name:'RTX 5060 Ti / 4060 Ti',mem:16},
+    {name:'RTX 3090 / 4090',mem:24},
+    {name:'RTX 5090',mem:32},
+    {name:'Dual RTX 3090',mem:48},
+    {name:'Dual RTX 5090',mem:64},
+    {name:'RTX PRO 6000',mem:96},
+    {name:'Strix Halo 128GB (≈110 usable)',mem:110},
+  ];
+
+  function calc(){
+    const p=+params.value, bpp=+quant.value;
+    const gb=p*bpp*1.2;
+    const shown=gb<10?gb.toFixed(1):Math.round(gb);
+    out.textContent=shown;
+    pVal.textContent=p+' B';
+    pLbl.textContent=p+' B';
+    params.setAttribute('aria-valuetext',p+' billion parameters');
+    fits.innerHTML=targets.map(t=>{
+      const ok=t.mem>=gb;
+      return `<div><span class="${ok?'yes':'no'}" aria-hidden="true">${ok?'✓':'✕'}</span>`
+           + `<span class="nm">${t.name}</span>`
+           + `<span class="mem">${t.mem}GB ${ok?'fits':'too small'}</span></div>`;
+    }).join('');
+  }
+  params.addEventListener('input',calc);
+  quant.addEventListener('change',calc);
+  calc();
+})();
+
+// ---------- keyboard + pointer tooltips ----------
+(function(){
+  const tip=document.getElementById('tip');
+  let openEl=null, sticky=false, openedAt=0;
+
+  function place(x,y){
+    const w=300, pad=12;
+    let left=x+14, top=y+18;
+    if(left+w>window.innerWidth-pad) left=window.innerWidth-w-pad;
+    if(left<pad) left=pad;
+    const h=tip.offsetHeight||130;
+    if(top+h>window.innerHeight-pad) top=y-h-14;
+    tip.style.left=left+'px';
+    tip.style.top=top+'px';
+  }
+  function show(el,x,y,isSticky){
+    tip.innerHTML='<b>'+el.dataset.term+'</b>'+el.dataset.def;
+    tip.classList.add('show');
+    place(x,y);
+    openEl=el; sticky=isSticky; openedAt=Date.now();
+  }
+  function hide(){tip.classList.remove('show');openEl=null;sticky=false;}
+
+  document.querySelectorAll('button.term').forEach(el=>{
+    // hover (desktop): transient, closes when pointer leaves
+    el.addEventListener('mouseenter',e=>{ if(!sticky) show(el,e.clientX,e.clientY,false); });
+    el.addEventListener('mousemove',e=>{ if(openEl===el && !sticky) place(e.clientX,e.clientY); });
+    el.addEventListener('mouseleave',()=>{ if(!sticky) hide(); });
+    // tap / Enter / Space: sticky toggle (Enter & Space fire click on a <button>)
+    el.addEventListener('click',e=>{
+      e.preventDefault();
+      const r=el.getBoundingClientRect();
+      if(openEl===el && sticky) hide();
+      else show(el,r.left,r.bottom,true);
+    });
+    el.addEventListener('keydown',e=>{ if(e.key==='Escape'){ hide(); el.blur(); } });
+    el.addEventListener('blur',()=>{ if(sticky) hide(); });
+  });
+  // a sticky tooltip closes on scroll (past a short grace) or on outside tap
+  window.addEventListener('scroll',()=>{ if(openEl && sticky && Date.now()-openedAt>400) hide(); },{passive:true});
+  document.addEventListener('click',e=>{
+    if(openEl && sticky && !e.target.closest('button.term')) hide();
+  },true);
+})();
+
+// ---------- scrollspy ----------
+(function(){
+  const links=[...document.querySelectorAll('nav.toc a')];
+  const map=new Map(links.map(l=>[l.getAttribute('href').slice(1),l]));
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(en=>{
+      if(en.isIntersecting){
+        links.forEach(l=>l.removeAttribute('aria-current'));
+        const l=map.get(en.target.id);
+        if(l)l.setAttribute('aria-current','true');
+      }
+    });
+  },{rootMargin:'-45% 0px -50% 0px'});
+  map.forEach((l,id)=>{const s=document.getElementById(id);if(s)obs.observe(s);});
+})();
+</script>
+</body>
+</html>
