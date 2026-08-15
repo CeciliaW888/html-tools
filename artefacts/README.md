@@ -12,6 +12,8 @@ Interactive, single-file HTML artefacts — each one replaces a wall of markdown
 | 04 | How Australia Is Cut Into Areas — ABS ASGS & Friends | Work · Reference | [`asgs-geography-explainer.html`](asgs-geography-explainer.html) |
 | 05 | Web Scraping: A Field Guide — Edition II | Learning · Technical | [`scraping-field-guide.html`](scraping-field-guide.html) |
 | 06 | My AI Learning Journey | Tools · Presentation | [`ai-learning-journey.html`](ai-learning-journey.html) |
+| 07 | Australian Local AI Hardware Guide 2026 | Learning · Hardware | [`local-ai-hardware-guide.html`](local-ai-hardware-guide.html) |
+| 08 | World Order — Interactive Concept Network | Learning · Geopolitics | [`world-order-concept-network.html`](world-order-concept-network.html) |
 
 Cards with a file are clickable in the gallery; the rest are placeholders for artefacts not yet exported here.
 
