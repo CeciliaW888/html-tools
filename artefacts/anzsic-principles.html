@@ -103,14 +103,39 @@
   .rung-t small{display:block; color:var(--muted); font-size:.84rem; line-height:1.45}
   .rung-0{background:color-mix(in srgb,var(--accent) 7%,var(--card))}
 
-  .hier{
-    font-family:"JetBrains Mono",ui-monospace,monospace; font-size:.8rem; line-height:1.9;
-    background:var(--code-bg); border:1px solid var(--card-line); border-radius:12px;
-    padding:1.1rem 1.4rem; margin:1.6rem 0; overflow-x:auto; color:var(--muted); white-space:pre;
+  .levels{
+    margin:1.8rem 0; border:1px solid var(--card-line); border-radius:12px;
+    background:var(--card); overflow-x:auto;
   }
-  .hier b{color:var(--ink); font-weight:600}
-  .hier i{color:var(--accent-ink); font-style:normal}
+  .lv{
+    display:grid; grid-template-columns:5.5rem 1fr 8.5rem; gap:1rem; align-items:baseline;
+    padding:.85rem 1.2rem; border-bottom:1px solid var(--card-line);
+    padding-left:calc(1.2rem + var(--d) * 1.15rem);
+  }
+  .lv:last-child{border-bottom:0}
+  .lv-code{
+    font-family:"JetBrains Mono",ui-monospace,monospace; font-size:.95rem; font-weight:600;
+    color:var(--accent-ink); font-variant-numeric:tabular-nums;
+  }
+  .lv-name{font-size:.95rem; font-weight:600}
+  .lv-name small{display:block; font-weight:400; color:var(--muted); font-size:.83rem; line-height:1.45}
+  .lv-count{
+    font-family:"JetBrains Mono",ui-monospace,monospace; font-size:.8rem; color:var(--muted);
+    text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;
+  }
+  .lv-count b{color:var(--ink); font-weight:600; font-size:.95rem}
+  .lv-total{
+    display:flex; justify-content:space-between; gap:1rem; padding:.7rem 1.2rem;
+    font-family:"JetBrains Mono",ui-monospace,monospace; font-size:.75rem; color:var(--muted);
+    background:color-mix(in srgb,var(--accent) 6%,var(--card)); border-top:1px solid var(--card-line);
+  }
 
+  .fine{font-size:.85rem; color:var(--muted); margin-top:-.4rem}
+  code{
+    font-family:"JetBrains Mono",ui-monospace,monospace; font-size:.87em;
+    background:var(--code-bg); border:1px solid var(--card-line);
+    border-radius:4px; padding:.08em .35em; color:var(--accent-ink);
+  }
   .meth{
     font-size:.9rem; color:var(--muted); border-top:1px solid var(--hairline);
     margin-top:3.5rem; padding-top:1.4rem;
@@ -158,17 +183,24 @@
   </div>
   <blockquote>
     <p>The activity with the highest value added is the predominant activity. &hellip; sales of goods and services; wages and salaries; or number of employees &hellip; Care needs to be taken with the use of these proxy measures.</p>
-    <div class="src"><span class="badge badge-voted">verified 3&ndash;0</span><a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/methods-classification">ABS &middot; Methods</a><a href="https://www.workcover.wa.gov.au/wp-content/uploads/2021/08/ANZSIC-12920_2006.pdf">ANZSIC 1292.0 &sect;4.5&ndash;4.6</a></div>
+    <div class="src"><span class="badge badge-voted">verified 3&ndash;0</span><a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/methods-classification">ABS &middot; Methods</a><a href="https://www.workcover.wa.gov.au/wp-content/uploads/2026/06/ANZSIC-12920_2006.pdf">ANZSIC 1292.0 &sect;4.5&ndash;4.6</a></div>
   </blockquote>
   <p>This ladder is why outside-in classification is defensible at all: official coding is already a proxy chain, and website text, directory categories, and trading names extend the same chain further from the books. It is also why a business name loses to activity evidence &mdash; a name may describe a former activity or none at all, while the revenue sits elsewhere.</p>
 
-  <h2>Top-down through the hierarchy</h2>
-  <p>Multi-activity units are assigned division first, then successively subdivision, group, and class <span class="src inline-badge"><span class="badge badge-voted">verified 3&ndash;0</span></span> &mdash; the ABS, Stats NZ and ISIC all prefer this because it keeps higher-level aggregates consistent.</p>
-  <div class="hier"><b>Division</b>      A&ndash;S    <i>one letter &mdash; assigned first</i>
-<b>Subdivision</b>    73    <i>two digits</i>
-<b>Group</b>         731    <i>three digits</i>
-<b>Class</b>        7313    <i>four digits &mdash; assigned last, needs the most evidence</i></div>
-  <p>An inference pipeline that reports division and subdivision, and withholds the 4-digit class without strong evidence, is mirroring the standard&rsquo;s own logic &mdash; not being timid.</p>
+  <h2>The four levels</h2>
+  <p>ANZSIC is a strict hierarchy, alphanumeric by design: a leading letter for the division, then two, three and four digits. Each code carries its own ancestry &mdash; class <code>1111</code> sits in group <code>111</code>, subdivision <code>11</code>, division <code>C</code>. The ABS&rsquo;s own worked example, drilled all the way down:</p>
+  <div class="levels">
+    <div class="lv" style="--d:0"><span class="lv-code">C</span><span class="lv-name">Manufacturing<small>Division &mdash; one letter, A&ndash;S</small></span><span class="lv-count"><b>19</b><br>divisions</span></div>
+    <div class="lv" style="--d:1"><span class="lv-code">11</span><span class="lv-name">Food Product Manufacturing<small>Subdivision &mdash; two digits</small></span><span class="lv-count"><b>86</b><br>subdivisions</span></div>
+    <div class="lv" style="--d:2"><span class="lv-code">111</span><span class="lv-name">Meat and Meat Product Manufacturing<small>Group &mdash; three digits</small></span><span class="lv-count"><b>214</b><br>groups</span></div>
+    <div class="lv" style="--d:3"><span class="lv-code">1111</span><span class="lv-name">Meat Processing<small>Class &mdash; four digits, the finest level</small></span><span class="lv-count"><b>506</b><br>classes</span></div>
+    <div class="lv-total"><span>19 + 86 + 214 + 506</span><span>= 825 entries</span></div>
+  </div>
+  <p class="fine">Counts taken directly from the ABS master code list <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/numbering-system-and-titles/division-subdivision-group-and-class-codes-and-titles">Division, subdivision, group and class codes and titles</a>, counted by level rather than quoted: the four levels sum to exactly the table&rsquo;s 825 rows with none unaccounted for.</p>
+
+  <h2>Assignment runs top-down</h2>
+  <p>Multi-activity units are assigned division first, then successively subdivision, group, and class <span class="src inline-badge"><span class="badge badge-voted">verified 3&ndash;0</span></span> &mdash; the ABS, Stats NZ and ISIC all prefer this to jumping straight at a class, because it keeps the higher-level aggregates consistent.</p>
+  <p>Depth is therefore not a measure of effort but of evidence. Those 506 classes are separated by fine distinctions &mdash; whether a unit <em>makes</em> mining machinery or <em>repairs</em> it puts it in different divisions entirely &mdash; and such distinctions are rarely legible from outside a business. An inference pipeline that reports division and subdivision, and withholds the four-digit class unless the evidence genuinely reaches it, is mirroring the standard&rsquo;s own logic rather than being timid.</p>
 
   <h2>Vertical integration</h2>
   <p>A unit performing successive production stages is coded by whichever stage adds more value. Where that cannot be assessed, <em>the unit is classified to the activity which represents the last or final stage of production</em> &mdash; the final-stage rule is the tiebreak, per the same ABS Methods page <span class="src inline-badge"><span class="badge badge-voted">verified 2&ndash;0</span></span>. Expect vertically integrated businesses to legitimately resemble several divisions at once.</p>
@@ -189,7 +221,7 @@
 
   <div class="meth">
     <p><b>Method &amp; evidence status.</b> Findings come from a fan-out research workflow (six search angles, source fetch, three-vote adversarial verification per claim) plus two direct verbatim fetches of ABS pages whose votes did not complete. Badges mark provenance: <span class="badge badge-voted">verified 3&ndash;0</span> survived adversarial voting; <span class="badge badge-fetch">fetched verbatim</span> was quoted directly from the ABS page. Two related claims remain deliberately excluded as unverified: that ANZSIC 1993 mixed demand-side criteria which 2006 removed, and that the 2006 retail/wholesale boundary was redrawn onto production-process traits. Plausible and sourced, but their verification votes never ran &mdash; so they are not asserted here.</p>
-    <p><b>Sources.</b> ABS ANZSIC 2006 Rev 2.0: <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/nature-and-objectives-classification">Nature and objectives</a> &middot; <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/methods-classification">Methods</a> &middot; <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/unit-classification">Units of classification</a> &middot; <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/detailed-classification/o">Division O</a> &middot; <a href="https://www.workcover.wa.gov.au/wp-content/uploads/2021/08/ANZSIC-12920_2006.pdf">ANZSIC 1292.0 (PDF)</a>.</p>
+    <p><b>Sources.</b> ABS ANZSIC 2006 Rev 2.0: <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/nature-and-objectives-classification">Nature and objectives</a> &middot; <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/methods-classification">Methods</a> &middot; <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/unit-classification">Units of classification</a> &middot; <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/detailed-classification/o">Division O</a> &middot; <a href="https://www.workcover.wa.gov.au/wp-content/uploads/2026/06/ANZSIC-12920_2006.pdf">ANZSIC 1292.0 (PDF)</a>.</p>
   </div>
 </div>
 </body>
