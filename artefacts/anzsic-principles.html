@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What ANZSIC Classifies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..600&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --paper:#f5f0eb; --card:#ffffff; --ink:#2d2d2d; --muted:#6f6459;
+    --accent:#c4825a; --accent-ink:#a4633c; --hairline:#e4dcd2; --card-line:#e9e2d9;
+    --good:#5a7d5a; --code-bg:#fdfbf8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#201b16; --card:#2a241d; --ink:#ece5db; --muted:#a79c8e;
+      --accent:#d79a70; --accent-ink:#dca47e; --hairline:#39322a; --card-line:#3d352c;
+      --good:#8fae8f; --code-bg:#262019;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#201b16; --card:#2a241d; --ink:#ece5db; --muted:#a79c8e;
+    --accent:#d79a70; --accent-ink:#dca47e; --hairline:#39322a; --card-line:#3d352c;
+    --good:#8fae8f; --code-bg:#262019;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Geist",system-ui,-apple-system,sans-serif;
+    font-size:16.5px; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:46rem; margin:0 auto; padding:4.5rem 1.5rem 6rem}
+  .eyebrow{
+    font-family:"JetBrains Mono",ui-monospace,monospace; font-size:.72rem;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent-ink);
+    margin:0 0 1.1rem; font-weight:500;
+  }
+  h1{
+    font-family:"Fraunces",Georgia,serif; font-weight:400; font-optical-sizing:auto;
+    font-size:clamp(2.4rem,6vw,3.4rem); line-height:1.08; letter-spacing:-.01em;
+    margin:0 0 1.2rem; text-wrap:balance;
+  }
+  .dek{font-size:1.14rem; line-height:1.6; color:var(--muted); margin:0 0 .4rem; max-width:38rem}
+  .dek strong{color:var(--ink); font-weight:600}
+  h2{
+    font-family:"Fraunces",Georgia,serif; font-weight:500; font-size:1.55rem;
+    line-height:1.25; margin:3.2rem 0 .9rem; letter-spacing:-.005em; text-wrap:balance;
+  }
+  p{margin:0 0 1.05rem; max-width:44rem}
+  a{color:var(--accent-ink); text-decoration:underline; text-decoration-color:color-mix(in srgb,var(--accent) 45%,transparent); text-underline-offset:3px}
+  a:hover{text-decoration-color:var(--accent-ink)}
+  a:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:2px}
+  em{font-family:"Fraunces",Georgia,serif; font-style:italic}
+
+  .verdict{display:flex; flex-direction:column; gap:.7rem; margin:2.4rem 0 0}
+  .v-row{
+    display:grid; grid-template-columns:1.6rem 9.5rem 1fr; gap:.9rem; align-items:baseline;
+    padding:.85rem 1.1rem; background:var(--card); border:1px solid var(--card-line); border-radius:10px;
+  }
+  .v-mark{font-family:"Fraunces",Georgia,serif; font-size:1.05rem; text-align:center}
+  .v-yes .v-mark{color:var(--good)} .v-no .v-mark{color:var(--muted)} .v-part .v-mark{color:var(--accent-ink)}
+  .v-crit{font-weight:600; font-size:.95rem}
+  .v-note{color:var(--muted); font-size:.92rem; line-height:1.5}
+
+  blockquote{
+    margin:1.6rem 0; padding:1.35rem 1.5rem 1.15rem; background:var(--card);
+    border:1px solid var(--card-line); border-radius:12px;
+  }
+  blockquote p{
+    font-family:"Fraunces",Georgia,serif; font-size:1.05rem; line-height:1.55;
+    font-weight:350; margin:0 0 .8rem;
+  }
+  blockquote p:before{content:"\201C"; color:var(--accent)}
+  blockquote p:after{content:"\201D"; color:var(--accent)}
+  .src{
+    display:flex; flex-wrap:wrap; gap:.6rem; align-items:center;
+    font-family:"JetBrains Mono",ui-monospace,monospace; font-size:.72rem; color:var(--muted);
+  }
+  .src a{font-size:.72rem}
+  .badge{
+    padding:.14rem .55rem; border-radius:99px; border:1px solid var(--card-line);
+    letter-spacing:.05em; white-space:nowrap;
+  }
+  .badge-voted{color:var(--good); border-color:color-mix(in srgb,var(--good) 35%,transparent)}
+  .badge-fetch{color:var(--accent-ink); border-color:color-mix(in srgb,var(--accent) 40%,transparent)}
+  .inline-badge{display:inline-flex; vertical-align:baseline}
+
+  .ladder{margin:1.8rem 0; display:flex; flex-direction:column; max-width:34rem}
+  .rung{
+    display:grid; grid-template-columns:2.6rem 1fr; gap:1rem; align-items:center;
+    padding:.75rem 1.1rem; background:var(--card); border:1px solid var(--card-line);
+  }
+  .rung:first-child{border-radius:12px 12px 0 0}
+  .rung:last-child{border-radius:0 0 12px 12px}
+  .rung + .rung{border-top:0}
+  .rung-n{
+    font-family:"JetBrains Mono",ui-monospace,monospace; font-size:.72rem; color:var(--accent-ink);
+    letter-spacing:.08em;
+  }
+  .rung-t{font-size:.95rem}
+  .rung-t small{display:block; color:var(--muted); font-size:.84rem; line-height:1.45}
+  .rung-0{background:color-mix(in srgb,var(--accent) 7%,var(--card))}
+
+  .hier{
+    font-family:"JetBrains Mono",ui-monospace,monospace; font-size:.8rem; line-height:1.9;
+    background:var(--code-bg); border:1px solid var(--card-line); border-radius:12px;
+    padding:1.1rem 1.4rem; margin:1.6rem 0; overflow-x:auto; color:var(--muted); white-space:pre;
+  }
+  .hier b{color:var(--ink); font-weight:600}
+  .hier i{color:var(--accent-ink); font-style:normal}
+
+  .meth{
+    font-size:.9rem; color:var(--muted); border-top:1px solid var(--hairline);
+    margin-top:3.5rem; padding-top:1.4rem;
+  }
+  .meth p{margin-bottom:.7rem}
+  .meth b{color:var(--ink); font-weight:600}
+  @media (max-width:560px){ .v-row{grid-template-columns:1.4rem 1fr} .v-note{grid-column:2} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">ANZSIC 2006 &middot; Sourced research &middot; Aug 2026</p>
+  <h1>What ANZSIC Classifies</h1>
+  <p class="dek">The Australian and New Zealand Standard Industrial Classification codes a business by <strong>the productive activity it carries out</strong> &mdash; not the customer it serves, and not its products as such.</p>
+
+  <div class="verdict">
+    <div class="v-row v-yes"><span class="v-mark">&#10003;</span><span class="v-crit">Own activity</span><span class="v-note">The classifying variable: similar inputs, similar transformation processes, similar outputs.</span></div>
+    <div class="v-row v-part"><span class="v-mark">&#189;</span><span class="v-crit">Products</span><span class="v-note">Outputs are one leg of the production function, but a product classification is a different instrument. ANZSIC codes producers.</span></div>
+    <div class="v-row v-no"><span class="v-mark">&#10007;</span><span class="v-crit">Customer / market</span><span class="v-note">Never the criterion. Two businesses doing the same work share a class regardless of clientele.</span></div>
+  </div>
+
+  <h2>The supply-side framework</h2>
+  <p>ANZSIC 2006 was built on explicitly supply-side industry definitions. The grouping logic is the production function, not the demand side:</p>
+  <blockquote>
+    <p>The conceptual framework adopted for the development of ANZSIC 2006 uses supply-side based industry definitions and groupings. &hellip; business units in a particular class will use similar inputs and apply similar transformation processes to produce similar outputs.</p>
+    <div class="src"><span class="badge badge-voted">verified 3&ndash;0</span><a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/nature-and-objectives-classification">ABS &middot; Nature and objectives</a></div>
+  </blockquote>
+  <p>One practical consequence: the same word can point at different classes when the production context differs &mdash; the class <em>scope notes</em> carry those qualifiers, so titles alone are never enough to code from.</p>
+
+  <h2>One unit, one code, by predominant activity</h2>
+  <p>Real businesses do many things. ANZSIC forces a single class anyway, and openly acknowledges the tension:</p>
+  <blockquote>
+    <p>Each unit has to be classified uniquely to one class so that only those units with the same predominant activities are brought together to form a class. &hellip; It is common for a business unit to engage in a range of activities wider than those designated as belonging to a particular class.</p>
+    <div class="src"><span class="badge badge-voted">verified 3&ndash;0</span><a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/nature-and-objectives-classification">ABS &middot; Nature and objectives</a></div>
+  </blockquote>
+  <p>Mixed evidence about a genuinely mixed business is therefore not a contradiction to resolve. The question is which activity <em>predominates</em>, not which is exclusive.</p>
+
+  <h2>Predominance is measured by value added &mdash; down a proxy ladder</h2>
+  <p>The measuring stick is value added: the activity contributing the most determines the code. Because value added is rarely observable, the ABS itself falls back through proxies in a stated order of preference &mdash; with an explicit caution that they can mislead:</p>
+  <div class="ladder">
+    <div class="rung rung-0"><span class="rung-n">RULE</span><span class="rung-t"><b>Value added</b><small>The activity with the highest value added is the predominant activity.</small></span></div>
+    <div class="rung"><span class="rung-n">P1</span><span class="rung-t">Sales of goods and services<small>Revenue mix &mdash; the first substitute when value added is unavailable.</small></span></div>
+    <div class="rung"><span class="rung-n">P2</span><span class="rung-t">Wages and salaries</span></div>
+    <div class="rung"><span class="rung-n">P3</span><span class="rung-t">Number of employees</span></div>
+  </div>
+  <blockquote>
+    <p>The activity with the highest value added is the predominant activity. &hellip; sales of goods and services; wages and salaries; or number of employees &hellip; Care needs to be taken with the use of these proxy measures.</p>
+    <div class="src"><span class="badge badge-voted">verified 3&ndash;0</span><a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/methods-classification">ABS &middot; Methods</a><a href="https://www.workcover.wa.gov.au/wp-content/uploads/2021/08/ANZSIC-12920_2006.pdf">ANZSIC 1292.0 &sect;4.5&ndash;4.6</a></div>
+  </blockquote>
+  <p>This ladder is why outside-in classification is defensible at all: official coding is already a proxy chain, and website text, directory categories, and trading names extend the same chain further from the books. It is also why a business name loses to activity evidence &mdash; a name may describe a former activity or none at all, while the revenue sits elsewhere.</p>
+
+  <h2>Top-down through the hierarchy</h2>
+  <p>Multi-activity units are assigned division first, then successively subdivision, group, and class <span class="src inline-badge"><span class="badge badge-voted">verified 3&ndash;0</span></span> &mdash; the ABS, Stats NZ and ISIC all prefer this because it keeps higher-level aggregates consistent.</p>
+  <div class="hier"><b>Division</b>      A&ndash;S    <i>one letter &mdash; assigned first</i>
+<b>Subdivision</b>    73    <i>two digits</i>
+<b>Group</b>         731    <i>three digits</i>
+<b>Class</b>        7313    <i>four digits &mdash; assigned last, needs the most evidence</i></div>
+  <p>An inference pipeline that reports division and subdivision, and withholds the 4-digit class without strong evidence, is mirroring the standard&rsquo;s own logic &mdash; not being timid.</p>
+
+  <h2>Vertical integration</h2>
+  <p>A unit performing successive production stages is coded by whichever stage adds more value. Where that cannot be assessed, <em>the unit is classified to the activity which represents the last or final stage of production</em> &mdash; the final-stage rule is the tiebreak, per the same ABS Methods page <span class="src inline-badge"><span class="badge badge-voted">verified 2&ndash;0</span></span>. Expect vertically integrated businesses to legitimately resemble several divisions at once.</p>
+
+  <h2>Ownership is not a criterion</h2>
+  <p>The Division O scope notes state the rule in all three directions:</p>
+  <blockquote>
+    <p>Government ownership is not a criterion for classification to this industry division.</p>
+    <p>Government units producing &lsquo;private sector like&rsquo; goods and services are classified to the same industry as private sector units engaged in similar activities.</p>
+    <p>Private sector units engaged in public administration or military defence are classified to the Public Administration and Safety Division.</p>
+    <div class="src"><span class="badge badge-fetch">fetched verbatim</span><a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/detailed-classification/o">ABS &middot; Division O scope notes</a></div>
+  </blockquote>
+  <p>Even the &ldquo;government exception&rdquo; is an activity rule: public administration is itself an activity, and a private contractor performing it lands in Division O too. An entity-type gate in a pipeline is therefore a heuristic shortcut &mdash; it works because certain entity types reliably <em>imply</em> public-administration activity. That is exactly why government-owned commercial entities must fall through the gate to be coded on what they do, and why the inverse case &mdash; a private firm performing public administration &mdash; can never be caught by entity type.</p>
+
+  <h2>The unit is the producer, not the legal entity</h2>
+  <p>ANZSIC is applied to producing units &mdash; the Type of Activity Unit in Australia, the Kind of Activity Unit in New Zealand: <em>&ldquo;Industries are formed by grouping business units that are mainly engaged in undertaking similar economic activities&rdquo;</em> (<a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/unit-classification">ABS, Units of classification</a> &mdash; fetched verbatim). The same page anchors ANZSIC internationally: the 1993 SNA recommends grouping producing units by principal activity according to ISIC.</p>
+  <p>A customer record keyed to an ABN is a <em>legal entity</em>, not a producing unit. For single-activity small businesses the distinction is invisible; for conglomerates it is why one code per ABN can be honestly wrong &mdash; and one more reason abstention is a valid output.</p>
+
+  <div class="meth">
+    <p><b>Method &amp; evidence status.</b> Findings come from a fan-out research workflow (six search angles, source fetch, three-vote adversarial verification per claim) plus two direct verbatim fetches of ABS pages whose votes did not complete. Badges mark provenance: <span class="badge badge-voted">verified 3&ndash;0</span> survived adversarial voting; <span class="badge badge-fetch">fetched verbatim</span> was quoted directly from the ABS page. Two related claims remain deliberately excluded as unverified: that ANZSIC 1993 mixed demand-side criteria which 2006 removed, and that the 2006 retail/wholesale boundary was redrawn onto production-process traits. Plausible and sourced, but their verification votes never ran &mdash; so they are not asserted here.</p>
+    <p><b>Sources.</b> ABS ANZSIC 2006 Rev 2.0: <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/nature-and-objectives-classification">Nature and objectives</a> &middot; <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/methods-classification">Methods</a> &middot; <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/unit-classification">Units of classification</a> &middot; <a href="https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-industrial-classification-anzsic/2006-revision-2-0/detailed-classification/o">Division O</a> &middot; <a href="https://www.workcover.wa.gov.au/wp-content/uploads/2021/08/ANZSIC-12920_2006.pdf">ANZSIC 1292.0 (PDF)</a>.</p>
+  </div>
+</div>
+</body>
+</html>
