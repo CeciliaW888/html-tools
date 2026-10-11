@@ -3,445 +3,1140 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Map Stack, Explained</title>
+<title>How a Web Map Is Built</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0E1620;
-    --panel:#17212E;
-    --panel2:#1E2B3A;
-    --ink:#E7EEF4;
-    --muted:#8EA1B2;
-    --line:#2A3B4D;
-    --coral:#F4796B;      /* "you asked about this" / map markers */
-    --cyan:#4FD1C5;       /* the flow / connections */
-    --gold:#E0B341;       /* the data bedrock */
-    --radius:14px;
+    --bg:#0e1c27;
+    --panel:#142a3a;
+    --panel2:#183247;
+    --line:#26445c;
+    --ink:#e7eef3;
+    --muted:#93a8b8;
+    --sea:#173a52;
+    --land:#c9b47e;
+    --flow:#53cfc2;     /* interaction, selection, requests */
+    --flow-soft:rgba(83,207,194,.12);
+    --asked:#f2846f;    /* tools you asked about */
+    --ok:#7fd18b; --no:#f2846f;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{-webkit-text-size-adjust:100%}
-  body{
-    background:var(--bg);
-    color:var(--ink);
-    font-family:'Inter',system-ui,sans-serif;
-    line-height:1.55;
-    padding:22px 16px 64px;
-    position:relative;
-    overflow-x:hidden;
-  }
-  /* contour background */
-  .contour{
-    position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
-  }
-  .wrap{position:relative;z-index:1;max-width:680px;margin:0 auto}
+  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden}
+  :focus-visible{outline:2px solid var(--flow);outline-offset:2px}
+  button{font:inherit;color:inherit;cursor:pointer}
+  a{color:var(--flow)}
+  code,.mono{font-family:'JetBrains Mono',monospace;font-size:.88em}
+  .w{max-width:1160px;margin:0 auto;padding:0 20px}
 
-  header{margin-bottom:26px}
-  .eyebrow{
-    font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;
-    text-transform:uppercase;color:var(--cyan);margin-bottom:10px;
-  }
-  h1{
-    font-family:'Space Grotesk',sans-serif;font-weight:700;
-    font-size:clamp(28px,8vw,40px);line-height:1.05;letter-spacing:-.02em;
-  }
-  .sub{color:var(--muted);font-size:15px;margin-top:12px;max-width:48ch}
-  .legend{
-    display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;
-    font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);
-  }
-  .legend span{display:inline-flex;align-items:center;gap:7px}
-  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-  .dot.c{background:var(--coral)} .dot.y{background:var(--gold)} .dot.f{background:var(--cyan)}
+  nav.top{display:flex;justify-content:space-between;gap:16px;padding:18px 0;font-size:13px;color:var(--muted)}
+  nav.top a{color:inherit;text-decoration:none}
+  nav.top a:hover{color:var(--ink)}
 
-  /* layer cards */
-  .pipe{position:relative;margin-top:8px}
-  .layer{
-    position:relative;background:var(--panel);
-    border:1px solid var(--line);border-radius:var(--radius);
-    padding:18px 18px 16px;margin-bottom:0;
-  }
-  .layer .corner{
-    position:absolute;top:9px;right:11px;font-family:'Space Mono',monospace;
-    font-size:10px;color:var(--muted);letter-spacing:.1em;opacity:.7;
-  }
-  .lhead{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
-  .lnum{
-    font-family:'Space Mono',monospace;font-size:12px;font-weight:700;
-    color:var(--cyan);
-  }
-  .lname{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:18px}
-  .ldesc{color:var(--muted);font-size:13.5px;margin-bottom:12px;max-width:52ch}
-  .tags{display:flex;flex-wrap:wrap;gap:7px}
-  .tag{
-    font-family:'Space Mono',monospace;font-size:11.5px;
-    background:var(--panel2);border:1px solid var(--line);
-    color:var(--ink);padding:5px 9px;border-radius:7px;white-space:nowrap;
-  }
-  .tag .note{color:var(--muted);font-size:10px}
-  .tag.you{
-    border-color:var(--coral);color:#fff;
-    box-shadow:inset 0 0 0 1px rgba(244,121,107,.25);
-  }
-  .tag.you::before{
-    content:"";width:6px;height:6px;border-radius:50%;background:var(--coral);
-    display:inline-block;margin-right:6px;vertical-align:1px;
-  }
+  h1{font-family:Fraunces,serif;font-weight:700;font-size:clamp(40px,7vw,76px);line-height:1;letter-spacing:-.025em;margin-top:28px}
+  .lede{max-width:64ch;font-size:18px;color:var(--muted);margin-top:16px}
+  .key{font-size:13px;color:var(--muted);margin-top:14px}
+  .key i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--asked);margin-right:7px}
 
-  /* connector between layers */
-  .conn{display:flex;justify-content:center;height:26px;position:relative}
-  .conn::before{
-    content:"";width:2px;height:100%;
-    background:linear-gradient(var(--cyan),var(--cyan));opacity:.55;
-  }
-  .conn::after{
-    content:"▼";position:absolute;bottom:-2px;color:var(--cyan);
-    font-size:10px;opacity:.8;
-  }
+  /* route overview */
+  .route{list-style:none;counter-reset:r;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:36px}
+  .route li{counter-increment:r}
+  .route a{display:block;height:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;text-decoration:none;color:var(--ink);font-size:14.5px;font-weight:500;line-height:1.35;transition:border-color .2s}
+  .route a::before{content:counter(r);display:block;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--flow);font-weight:400;margin-bottom:4px}
+  .route a:hover{border-color:var(--flow)}
+  .route a span{display:block;font-weight:400;font-size:12.5px;color:var(--muted);margin-top:2px}
 
-  /* data layer accent */
-  .layer.data{border-color:rgba(224,179,65,.4)}
-  .layer.data .lnum{color:var(--gold)}
-  .layer.render{border-color:rgba(79,209,197,.35)}
+  /* chapters */
+  section.ch{padding:104px 0 0}
+  .ch-head{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:24px}
+  .ch-num{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--flow)}
+  h2{font-family:Fraunces,serif;font-weight:600;font-size:clamp(30px,4.2vw,44px);line-height:1.08;letter-spacing:-.015em}
+  .intro{max-width:66ch;color:var(--muted);font-size:17px;margin-top:6px}
+  .intro b,.intro strong{color:var(--ink);font-weight:600}
+  h3{font-size:18px;font-weight:600;margin-bottom:6px}
+  p.t{color:var(--muted);font-size:15px;max-width:68ch}
+  p.t b,p.t strong{color:var(--ink);font-weight:600}
+  .gap{margin-top:40px}
 
-  /* environment sub-labels inside the render layer */
-  .env{
-    font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.14em;
-    text-transform:uppercase;color:var(--muted);
-    margin:14px 0 8px;display:flex;align-items:center;gap:8px;
-  }
-  .env:first-of-type{margin-top:6px}
-  .env::after{content:"";flex:1;height:1px;background:var(--line)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:20px}
+  .cols{display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:860px){.cols.c2{grid-template-columns:1fr 1fr}.cols.c3{grid-template-columns:repeat(3,1fr)}}
+  .cols h3{margin-bottom:4px}
+  .cols p{font-size:14.5px;color:var(--muted)}
+  .cols p b,.cols p strong{color:var(--ink);font-weight:600}
 
-  /* render-note callout */
-  .render-note{
-    margin-top:10px;background:var(--panel2);
-    border:1px solid var(--line);border-left:3px solid var(--cyan);
-    border-radius:10px;padding:14px 16px;font-size:13.5px;color:var(--muted);
-  }
-  .render-note b{color:var(--cyan)}
-  .render-note i{color:var(--ink);font-style:normal;font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th{text-align:left;font-weight:600;font-size:13px;color:var(--muted);padding:8px 14px 8px 0;border-bottom:1px solid var(--line)}
+  td{padding:10px 14px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  td:first-child{font-weight:600;white-space:nowrap}
+  td.m{color:var(--muted)}
+  .tbl{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 20px 10px}
+  .asked::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--asked);margin-left:8px;vertical-align:1px}
 
-  /* the screen endpoint */
-  .screen{
-    margin-top:26px;text-align:center;background:var(--panel2);
-    border:1px dashed var(--cyan);border-radius:var(--radius);padding:18px;
-  }
-  .screen .big{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px}
-  .screen .small{color:var(--muted);font-size:13px;margin-top:3px}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:14px;color:var(--ink)}
+  .chip[aria-pressed="true"],.chip[aria-selected="true"]{border-color:var(--flow);background:var(--flow-soft);color:var(--ink)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .note{margin-top:18px;background:var(--flow-soft);border-left:3px solid var(--flow);padding:14px 18px;border-radius:0 6px 6px 0;max-width:820px;font-size:15px}
+  .note b{font-weight:600}
+  .warn{margin-top:18px;border:1px solid var(--asked);border-radius:6px;padding:14px 18px;max-width:820px;font-size:15px;background:var(--panel)}
 
-  /* tile service deep-dive */
-  .tile-svc{
-    margin-top:28px;background:var(--panel);
-    border:1px solid var(--line);border-radius:var(--radius);
-    padding:20px;
-  }
-  .tile-svc .lname{font-size:18px;margin-bottom:6px}
-  .tile-svc .ldesc{font-size:13.5px;margin-bottom:16px;max-width:54ch}
-  .loop{
-    display:flex;align-items:stretch;gap:8px;margin:4px 0 16px;
-    flex-wrap:wrap;
-  }
-  .node{
-    flex:1 1 140px;background:var(--panel2);border:1px solid var(--line);
-    border-radius:10px;padding:12px;text-align:center;min-width:0;
-  }
-  .node .nt{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px}
-  .node .nd{color:var(--muted);font-size:11px;margin-top:3px}
-  .role{
-    display:inline-block;font-family:'Space Mono',monospace;font-size:9px;
-    letter-spacing:.14em;text-transform:uppercase;padding:2px 7px;border-radius:5px;
-    margin-bottom:7px;border:1px solid var(--line);color:var(--muted);
-  }
-  .role.server{border-color:var(--cyan);color:var(--cyan)}
-  .role.client{border-color:var(--coral);color:var(--coral)}
-  .cs-note{
-    background:var(--panel2);border:1px solid var(--line);border-radius:10px;
-    padding:14px 16px;margin:0 0 16px;font-size:13px;color:var(--muted);
-  }
-  .cs-note .row{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start}
-  .cs-note .row:last-child{margin-bottom:0}
-  .cs-note .k{
-    font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--cyan);flex:0 0 76px;padding-top:2px;
-  }
-  .cs-note .v b{color:var(--ink)}
-  .node.svc{border-color:var(--cyan)}
-  .node.svc .nt{color:var(--cyan)}
-  .arrow{
-    display:flex;flex-direction:column;justify-content:center;align-items:center;
-    font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);
-    min-width:54px;
-  }
-  .arrow .a1{color:var(--cyan)} .arrow .a2{color:var(--gold)}
-  @media(max-width:480px){
-    .loop{flex-direction:column}
-    .arrow{flex-direction:row;gap:8px;min-width:0;padding:2px 0;transform:rotate(90deg)}
-  }
-  .opts{display:grid;grid-template-columns:1fr;gap:9px;margin-top:4px}
-  @media(min-width:520px){.opts{grid-template-columns:repeat(3,1fr)}}
-  .opt{
-    background:var(--panel2);border:1px solid var(--line);border-radius:10px;
-    padding:12px;
-  }
-  .opt .ot{font-family:'Space Grotesk';font-weight:600;font-size:13.5px;margin-bottom:4px}
-  .opt .od{color:var(--muted);font-size:12px}
-  .keynote{
-    margin-top:14px;font-size:13px;color:var(--ink);
-    border-left:2px solid var(--coral);padding-left:12px;
-  }
-  .keynote b{color:var(--coral)}
+  /* code (light) */
+  pre{background:#0b1720;border:1px solid var(--line);border-radius:8px;padding:16px 18px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.65;color:var(--ink)}
+  pre .c{color:#7d93a4}
+  pre .s{color:#9fd6a6}
+  pre .k{color:var(--flow)}
 
-  /* section header */
-  .sect{
-    font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.16em;
-    text-transform:uppercase;color:var(--muted);
-    margin:38px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);
-  }
+  /* ---------- 1. map types ---------- */
+  .types{display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:960px){.types{grid-template-columns:1fr 340px}}
+  .types canvas{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:var(--sea)}
+  .types .side h3{font-family:Fraunces,serif;font-size:24px;font-weight:600;margin:14px 0 8px}
+  .types dl{display:grid;grid-template-columns:1fr;gap:10px;font-size:14.5px}
+  .types dt{font-weight:600}
+  .types dd{color:var(--muted);margin-top:-6px}
+  .caption{font-size:12.5px;color:var(--muted);margin-top:6px}
 
-  /* services + platforms grid */
-  .grid{display:grid;grid-template-columns:1fr;gap:12px}
-  @media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}
-  .card{
-    background:var(--panel);border:1px solid var(--line);
-    border-radius:var(--radius);padding:16px;
-  }
-  .card .lname{font-size:16px;margin-bottom:3px}
-  .card .ldesc{font-size:13px;margin-bottom:11px}
+  /* ---------- 2. coordinates ---------- */
+  .coord{display:grid;grid-template-columns:1fr;gap:20px;align-items:center}
+  @media(min-width:900px){.coord{grid-template-columns:1fr 360px}}
+  .coord canvas{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:var(--sea)}
+  .coord .big{font-family:'JetBrains Mono',monospace;font-size:22px;margin:10px 0}
 
-  /* takeaway */
-  .takeaway{
-    margin-top:34px;background:linear-gradient(135deg,#1a2735,#141d28);
-    border:1px solid var(--line);border-left:3px solid var(--coral);
-    border-radius:var(--radius);padding:20px;
-  }
-  .takeaway h3{font-family:'Space Grotesk',sans-serif;font-size:17px;margin-bottom:10px}
-  .takeaway p{font-size:14px;color:var(--muted);margin-bottom:9px}
-  .takeaway b{color:var(--ink);font-weight:600}
-  .takeaway .hl{color:var(--coral);font-family:'Space Mono',monospace;font-size:13px}
+  /* ---------- 3. projection ---------- */
+  .proj{display:grid;grid-template-columns:1fr;gap:24px;align-items:center}
+  @media(min-width:900px){.proj{grid-template-columns:1fr 340px}}
+  .proj svg{width:100%;height:auto;display:block;background:var(--sea);border:1px solid var(--line);border-radius:8px}
+  .proj input{width:100%;accent-color:var(--flow)}
+  .proj .big{font-family:'JetBrains Mono',monospace;font-size:34px;color:var(--flow);line-height:1.1}
+
+  /* ---------- 4. pyramid ---------- */
+  .hero{display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:980px){.hero{grid-template-columns:1fr 340px;align-items:start}}
+  .scene{position:relative;height:560px;perspective:1500px;cursor:grab;touch-action:none;user-select:none;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:radial-gradient(ellipse at 50% 40%,#16334a 0%,var(--bg) 70%)}
+  .scene.dragging{cursor:grabbing}
+  .rig{position:absolute;left:46%;top:50%;width:0;height:0;transform-style:preserve-3d}
+  @media(max-width:600px){.scene{height:440px}.rig{left:38%}}
+  .level{position:absolute;transform-style:preserve-3d;transition:opacity .3s}
+  .level canvas{position:absolute;inset:0;width:100%;height:100%;box-shadow:0 0 0 1px rgba(231,238,243,.25),0 24px 40px -18px rgba(0,0,0,.5)}
+  .level .grid{position:absolute;inset:0;display:grid}
+  .level .t{box-shadow:inset 0 0 0 .5px rgba(231,238,243,.28);transition:background .15s}
+  .level .t:hover{background:rgba(83,207,194,.3)}
+  .level .t.sel{background:rgba(83,207,194,.5);box-shadow:inset 0 0 0 2px var(--flow)}
+  .level .t.kid{background:rgba(83,207,194,.25);box-shadow:inset 0 0 0 1px var(--flow)}
+  .level .t.par{background:rgba(242,132,111,.35)}
+  .level .tag{position:absolute;left:100%;top:0;margin-left:14px;white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);transform-origin:left center;transform:rotateZ(calc(var(--rz) * -1)) rotateX(calc(var(--rx) * -1))}
+  .scene[data-focus] .level{opacity:.2}
+  .scene[data-focus="0"] .level[data-z="0"],.scene[data-focus="1"] .level[data-z="1"],
+  .scene[data-focus="2"] .level[data-z="2"],.scene[data-focus="3"] .level[data-z="3"]{opacity:1}
+  .hint{position:absolute;left:14px;bottom:12px;font-size:12.5px;color:var(--muted);pointer-events:none}
+  .levels{position:absolute;right:12px;top:12px;display:flex;gap:6px}
+  .levels button{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:4px 10px;font-size:13px;color:var(--muted)}
+  .levels button[aria-pressed="true"]{color:var(--ink);border-color:var(--flow)}
+  .loading{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:14px}
+  .side{display:flex;flex-direction:column;gap:16px}
+  .readout dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+  .readout dt{color:var(--muted)}
+  .readout dd{font-family:'JetBrains Mono',monospace;font-size:13px;word-break:break-all}
+  .readout .big{font-family:'JetBrains Mono',monospace;font-size:28px;color:var(--flow);line-height:1.1;margin-bottom:6px}
+  .readout p,.zoomer p{font-size:13px;color:var(--muted);margin-top:10px}
+  .zoomer input{width:100%;accent-color:var(--flow);margin:6px 0 12px}
+  .zoomer .zval{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)}
+  .zoomer dl{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:14px}
+  .zoomer dt{color:var(--muted)}
+  .zoomer dd{font-family:'JetBrains Mono',monospace;font-size:13.5px;text-align:right}
+
+  .rv{display:grid;grid-template-columns:1fr;gap:20px;max-width:760px}
+  @media(min-width:640px){.rv{grid-template-columns:1fr 1fr}}
+  .rv figure{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+  .rv canvas,.rv img{display:block;width:100%;aspect-ratio:1;border-radius:4px}
+  .rv figcaption{margin-top:10px;font-size:14px;color:var(--muted)}
+  .rv figcaption b{color:var(--ink);font-weight:600}
+  .rv-note{min-height:3.2em;margin-top:14px;font-size:15px;color:var(--muted);max-width:70ch}
+
+  /* ---------- 5. simulator ---------- */
+  .sim{display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:960px){.sim{grid-template-columns:440px 1fr}}
+  .viewport{position:relative;width:100%;aspect-ratio:3/2;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:var(--sea)}
+  .viewport canvas{position:absolute;inset:0;width:100%;height:100%}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .controls button{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px 12px;font-size:14px}
+  .controls button:hover{border-color:var(--flow)}
+  .controls label{font-size:13.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px;width:100%;margin-top:6px}
+  .controls select{font:inherit;font-size:14px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:6px 8px}
+  .log{background:var(--panel);border:1px solid var(--line);border-radius:8px;height:360px;overflow:auto;font-family:'JetBrains Mono',monospace;font-size:12.5px}
+  .log .row{display:grid;grid-template-columns:40px 1fr;gap:10px;padding:6px 12px;border-bottom:1px solid #1d3547}
+  .log .s200{color:var(--ok)} .log .s4xx{color:var(--no)}
+  .log .why{grid-column:2;color:var(--muted);font-family:Inter,sans-serif;font-size:12.5px}
+  .log .empty{padding:14px;color:var(--muted);font-family:Inter,sans-serif}
+  .stats{display:flex;gap:18px;font-size:13.5px;color:var(--muted);margin-top:8px}
+  .stats b{color:var(--ink);font-family:'JetBrains Mono',monospace;font-weight:400}
+
+  /* ---------- 7. renderer picker ---------- */
+  .picker .grp{font-size:12.5px;color:var(--muted);width:100%;margin-top:6px}
+  .picker{display:flex;flex-wrap:wrap;gap:8px}
+  .pipe{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+  @media(min-width:900px){.pipe{flex-direction:row;align-items:stretch}}
+  .step{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 16px 18px;transition:opacity .3s,border-color .3s}
+  .step .n{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+  .step h3{font-family:Fraunces,serif;font-weight:600;font-size:22px;margin:2px 0 6px}
+  .step p{font-size:14px;color:var(--muted)}
+  .step .where{margin-top:10px;font-size:13px;color:var(--flow)}
+  .step.off{opacity:.4}
+  .step.moved{border-color:var(--asked)}
+  .step.moved .where{color:var(--asked)}
+
+  /* ---------- recipes ---------- */
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  .recipe h3{font-family:Fraunces,serif;font-size:24px;font-weight:600;margin-bottom:6px}
+  .recipe .steps-used{font-size:13.5px;color:var(--muted);margin:6px 0 14px}
+  .recipe .steps-used b{color:var(--ink);font-weight:600}
+  .recipe ol.how{margin:12px 0 0 20px;color:var(--muted);font-size:15px}
+  .recipe ol.how li{margin-bottom:6px}
+  .recipe ol.how b{color:var(--ink);font-weight:600}
+
+  .checklist{list-style:none;display:grid;grid-template-columns:1fr;gap:10px;max-width:860px}
+  .checklist li{display:grid;grid-template-columns:22px 1fr;gap:10px;font-size:15px}
+  .checklist li::before{content:"";width:14px;height:14px;border:1.5px solid var(--flow);border-radius:3px;margin-top:4px}
+  .checklist li span{color:var(--muted)}
+
+  .summary ol{list-style:none;counter-reset:s;display:grid;gap:14px;max-width:860px}
+  .summary li{counter-increment:s;display:grid;grid-template-columns:36px 1fr;font-size:16px}
+  .summary li::before{content:counter(s);font-family:'JetBrains Mono',monospace;color:var(--flow)}
+  .summary li span{color:var(--muted)}
+  section.ch.summary{padding-bottom:120px}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<svg class="contour" preserveAspectRatio="none" viewBox="0 0 400 800">
-  <g fill="none" stroke="#2A3B4D" stroke-width="1">
-    <path d="M-20,120 C80,80 160,160 260,110 360,70 420,140 440,120"/>
-    <path d="M-20,150 C80,110 160,190 260,140 360,100 420,170 440,150"/>
-    <path d="M-20,300 C100,260 180,340 280,300 380,270 420,330 440,310"/>
-    <path d="M-20,330 C100,290 180,370 280,330 380,300 420,360 440,340"/>
-    <path d="M-20,520 C90,480 170,560 270,520 370,490 420,550 440,530"/>
-    <path d="M-20,680 C90,640 170,720 270,680 370,650 420,710 440,690"/>
-  </g>
-</svg>
+<div class="w">
+  <nav class="top"><a href="index.html">← Artefact gallery</a></nav>
 
-<div class="wrap">
-  <header>
-    <div class="eyebrow">// how a digital map gets made</div>
-    <h1>The Map Stack</h1>
-    <p class="sub">A map isn't one product — it's an assembly line. Data goes in one end; a finished map comes out the other — in a web app, a Python script, a dashboard, or a saved image. The same stations apply to all of them.</p>
-    <div class="legend">
-      <span><i class="dot c"></i>You asked about this</span>
-      <span><i class="dot f"></i>The data flow</span>
-      <span><i class="dot y"></i>The raw data</span>
-    </div>
-  </header>
+  <h1>How a web map is built</h1>
+  <p class="lede">Every map visual, whether it's a web app, a Python notebook, a Power BI report or a saved image, goes through the same chain: choose what to show, get the data, project it, tile it, serve it, style it, draw it and publish it. This guide walks the chain in that order. Each chapter tells you the decision you make at that step and the tools that do it.</p>
+  <p class="key"><i></i>Tools you asked about</p>
 
-  <div class="pipe">
+  <ol class="route" aria-label="Chapters">
+    <li><a href="#ch-types">Decide what to show<span>map types, basemap vs data</span></a></li>
+    <li><a href="#ch-data">Get the data<span>formats, sources, coordinates</span></a></li>
+    <li><a href="#ch-proj">Project it<span>Web Mercator</span></a></li>
+    <li><a href="#ch-tiles">Tile it, or not<span>pyramid, raster vs vector</span></a></li>
+    <li><a href="#ch-serve">Serve the tiles<span>hosting, keys, limits</span></a></li>
+    <li><a href="#ch-style">Style it<span>layers, colour, order</span></a></li>
+    <li><a href="#ch-render">Render it<span>pick a library, go 3D</span></a></li>
+    <li><a href="#ch-interact">Add interaction<span>popups, search, routing</span></a></li>
+    <li><a href="#ch-publish">Publish<span>checklist</span></a></li>
+    <li><a href="#ch-recipes">Recipes<span>code to start from</span></a></li>
+  </ol>
 
-    <!-- DATA -->
-    <div class="layer data">
-      <span class="corner">⌖ bedrock</span>
-      <div class="lhead"><span class="lnum">01</span><span class="lname">Data — the facts</span></div>
-      <p class="ldesc">The actual geographic information: where roads, rivers, buildings and addresses are. Just a giant database. Nothing visual yet.</p>
-      <div class="tags">
-        <span class="tag you">OpenStreetMap <span class="note">crowdsourced, free</span></span>
-        <span class="tag">Overture <span class="note">Meta/MS/AWS</span></span>
-        <span class="tag">Natural Earth <span class="note">low-detail, free</span></span>
-        <span class="tag">Your own data <span class="note">GeoJSON, your DB</span></span>
+  <!-- ===== 1. MAP TYPES ===== -->
+  <section class="ch" id="ch-types">
+    <div class="ch-head"><span class="ch-num">Chapter 1</span><h2>Decide what the map must show</h2>
+      <p class="intro">Almost every map visual has two parts. The <b>basemap</b> gives context: land, water, roads, labels. Usually you borrow it from a provider. The <b>data layer</b> carries your message: your stores, your sales by region, your delivery routes. Most of your effort goes into the data layer, and its form depends on the question you're answering.</p></div>
+
+    <div class="types">
+      <div>
+        <div class="chips" role="group" aria-label="Map type" id="type-chips">
+          <button class="chip" data-type="points" aria-pressed="true">Points</button>
+          <button class="chip" data-type="bubbles" aria-pressed="false">Sized circles</button>
+          <button class="chip" data-type="choropleth" aria-pressed="false">Filled regions</button>
+          <button class="chip" data-type="heat" aria-pressed="false">Heatmap</button>
+          <button class="chip" data-type="lines" aria-pressed="false">Lines and flows</button>
+        </div>
+        <canvas id="types" width="960" height="520" style="margin-top:14px" aria-label="Example of the selected map type"></canvas>
+        <p class="caption">City positions are real. Values and flows are illustrative.</p>
+      </div>
+      <div class="side card" aria-live="polite">
+        <span class="ch-num">Map type</span>
+        <h3 id="ty-name"></h3>
+        <dl>
+          <dt>Use it for</dt><dd id="ty-use"></dd>
+          <dt>Data you need</dt><dd id="ty-data"></dd>
+          <dt>Watch out for</dt><dd id="ty-trap"></dd>
+        </dl>
       </div>
     </div>
+  </section>
 
-    <div class="conn"></div>
+  <!-- ===== 2. DATA ===== -->
+  <section class="ch" id="ch-data">
+    <div class="ch-head"><span class="ch-num">Chapter 2</span><h2>Get the data into a geographic format</h2>
+      <p class="intro">Map data is either <b>vector</b> (points, lines and polygons, such as stores, roads and suburb boundaries) or <b>raster</b> (a grid of pixels, such as satellite imagery or elevation). Positions are stored as <b>longitude and latitude</b> on the WGS 84 system, code EPSG:4326. That's what a GPS gives you.</p></div>
 
-    <!-- TILES -->
-    <div class="layer">
-      <span class="corner">⊞ tiles</span>
-      <div class="lhead"><span class="lnum">02</span><span class="lname">Tiles — cut into squares</span></div>
-      <p class="ldesc">That huge database is sliced into thousands of small square tiles so the map loads only the bit you're looking at. This is what makes maps fast.</p>
-      <div class="tags">
-        <span class="tag">Tippecanoe <span class="note">makes tiles</span></span>
-        <span class="tag">Protomaps <span class="note">tiles in 1 file</span></span>
-        <span class="tag">Martin <span class="note">serves tiles</span></span>
-        <span class="tag">MapTiler <span class="note">hosted for you</span></span>
-      </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Format</th><th>What it is</th><th>Use it when</th></tr></thead>
+        <tbody>
+          <tr><td>CSV with lat/lon columns</td><td class="m">A plain table with two coordinate columns</td><td class="m">You only have points. It's the easiest way into Power BI, Plotly or Folium.</td></tr>
+          <tr><td>GeoJSON</td><td class="m">Text file of features and properties, the web standard. Coordinates are always [longitude, latitude].</td><td class="m">Points, lines or polygons up to a few MB. Every web library reads it directly.</td></tr>
+          <tr><td>Shapefile</td><td class="m">An older GIS format split across several files (.shp, .dbf, .shx, .prj)</td><td class="m">Government boundary downloads often come this way. Convert it to GeoJSON or GeoPackage.</td></tr>
+          <tr><td>GeoPackage</td><td class="m">A modern single-file GIS database</td><td class="m">You work in QGIS or GeoPandas and want one tidy file.</td></tr>
+          <tr><td>GeoParquet</td><td class="m">A columnar format for large datasets</td><td class="m">Millions of features, or analysis in Python or a data warehouse. Overture publishes in it.</td></tr>
+          <tr><td>GeoTIFF</td><td class="m">A raster image with location attached</td><td class="m">Imagery, elevation, land cover.</td></tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="conn"></div>
-
-    <!-- STYLE -->
-    <div class="layer">
-      <span class="corner">◧ style</span>
-      <div class="lhead"><span class="lnum">03</span><span class="lname">Style — the look</span></div>
-      <p class="ldesc">The rulebook for appearance: what colour roads are, which fonts, what shows up when you zoom in vs out. Same data can look like a night map or a hiking map.</p>
-      <div class="tags">
-        <span class="tag">Style JSON <span class="note">the rulebook</span></span>
-        <span class="tag">Maputnik <span class="note">free visual editor</span></span>
+    <div class="cols c2 gap">
+      <div class="card">
+        <h3>Where the data comes from</h3>
+        <table>
+          <tbody>
+            <tr><td class="asked">OpenStreetMap</td><td class="m">Crowdsourced roads, buildings and places. Free, and you must credit "OpenStreetMap" with a link to its copyright page.</td></tr>
+            <tr><td>Overture Maps</td><td class="m">Open map data from Amazon, Meta, Microsoft and TomTom</td></tr>
+            <tr><td>Natural Earth</td><td class="m">Free low-detail world data: countries, coastlines, rivers</td></tr>
+            <tr><td>Official boundaries</td><td class="m">Statistical areas from a national statistics office. In Australia that's the ABS (see the <a href="asgs-geography-explainer.html">ASGS explainer</a>).</td></tr>
+            <tr><td>Your own data</td><td class="m">Spreadsheets of addresses, sales, assets</td></tr>
+          </tbody>
+        </table>
       </div>
-    </div>
-
-    <div class="conn"></div>
-
-    <!-- RENDER -->
-    <div class="layer render">
-      <span class="corner">◉ render</span>
-      <div class="lhead"><span class="lnum">04</span><span class="lname">Render — draw the map</span></div>
-      <p class="ldesc">The engine that turns tiles + data + style into a picture. Where it runs depends on you — a browser, a Python script, a BI tool, or a static image — but its job is the same everywhere.</p>
-      <div class="env">Web / JavaScript</div>
-      <div class="tags">
-        <span class="tag you">MapLibre GL <span class="note">open, modern</span></span>
-        <span class="tag">Leaflet <span class="note">simple, light</span></span>
-        <span class="tag">OpenLayers <span class="note">powerful, heavy</span></span>
-        <span class="tag">deck.gl <span class="note">big-data viz</span></span>
-      </div>
-      <div class="env">Python</div>
-      <div class="tags">
-        <span class="tag">Plotly <span class="note">runs on MapLibre</span></span>
-        <span class="tag">Folium <span class="note">wraps Leaflet</span></span>
-        <span class="tag">pydeck <span class="note">wraps deck.gl</span></span>
-        <span class="tag">GeoPandas <span class="note">+contextily, static</span></span>
-      </div>
-      <div class="env">BI tools</div>
-      <div class="tags">
-        <span class="tag">Power BI maps <span class="note">built-in + custom</span></span>
-        <span class="tag">Tableau <span class="note">map layers</span></span>
+      <div class="card">
+        <h3>Preparing it</h3>
+        <p class="t"><b>Addresses into coordinates:</b> run them through a geocoder such as Nominatim, Photon or a paid API, then keep the lat/lon so you don't geocode again. Public Nominatim allows one request per second, so batch jobs need your own instance or a paid service.</p>
+        <p class="t" style="margin-top:10px"><b>Values onto regions:</b> join your table to boundary polygons with a shared code (a postcode or region ID), not a name. Names are ambiguous.</p>
+        <p class="t" style="margin-top:10px"><b>Shrink big boundaries:</b> simplify polygons with mapshaper or GeoPandas before using them on the web. Detailed coastlines can be tens of MB.</p>
+        <p class="t" style="margin-top:10px"><b>Shapes crossing the 180° line:</b> GeoJSON expects them split in two (common around Fiji, Russia and Alaska). Unsplit shapes draw as a band across the whole map.</p>
+        <p class="t" style="margin-top:10px"><b>Tools:</b> QGIS (free desktop GIS), GeoPandas (Python), GDAL's <code>ogr2ogr</code> (converts anything to anything).</p>
       </div>
     </div>
 
-  </div>
-
-  <p class="render-note"><b>Notice the pattern:</b> Plotly, Folium and pydeck don't replace the web engines — they <i>wrap</i> them. So the renderer is the only layer that changes with your environment. Everything below it — data, tiles, style, the tile service — is identical whether you're in JavaScript, Python, or a BI tool.</p>
-
-  <div class="screen">
-    <div class="big">📍 The finished map</div>
-    <div class="small">web app · notebook · dashboard · saved image — wherever it ends up</div>
-  </div>
-
-  <!-- TILE SERVICE DEEP DIVE -->
-  <div class="tile-svc">
-    <div class="lname">⊞ Zoom in: the role of a tile service</div>
-    <p class="ldesc">Your map holds almost no data of its own. As it loads (and as you pan or zoom), the renderer keeps asking a <b style="color:var(--cyan)">tile service</b> — a server whose only job is to hand out tiles — for just the squares it needs right now. The map is stitched together on demand. This is true in a browser, a Python script, or a BI visual alike.</p>
-
-    <div class="loop">
-      <div class="node">
-        <span class="role client">Client</span>
-        <div class="nt">Your map</div>
-        <div class="nd">renderer (web · Python · BI)</div>
+    <div class="coord gap">
+      <canvas id="coord" width="900" height="480" aria-label="Where a point lands with each coordinate order"></canvas>
+      <div class="card">
+        <h3>The most common mapping bug</h3>
+        <p class="t">Libraries disagree on coordinate order. GeoJSON, MapLibre, deck.gl and Plotly use <b>[longitude, latitude]</b>. Leaflet and Folium use <b>[latitude, longitude]</b>.</p>
+        <div class="big" id="co-val">[-74.01, 40.71]</div>
+        <div class="chips" role="group" aria-label="Coordinate order">
+          <button class="chip" data-co="right" aria-pressed="true">Read as [lon, lat]</button>
+          <button class="chip" data-co="wrong" aria-pressed="false">Swap them</button>
+        </div>
+        <p class="t" id="co-note" style="margin-top:12px">New York, read correctly.</p>
       </div>
-      <div class="arrow">
-        <span class="a1">request ▸</span>
-        <span class="a2">◂ tiles</span>
-      </div>
-      <div class="node svc">
-        <span class="role server">Server</span>
-        <div class="nt">Tile service</div>
-        <div class="nd">serves tiles on demand</div>
-      </div>
-      <div class="arrow">
-        <span class="a1">reads ▸</span>
-      </div>
-      <div class="node">
-        <div class="nt">Data</div>
-        <div class="nd">the stored map</div>
+    </div>
+  </section>
+
+  <!-- ===== 3. PROJECTION ===== -->
+  <section class="ch" id="ch-proj">
+    <div class="ch-head"><span class="ch-num">Chapter 3</span><h2>Project it onto a flat screen</h2>
+      <p class="intro">The Earth is round and screens are flat, so every map uses a <b>projection</b>. Web maps use <b>Web Mercator</b> (EPSG:3857). It draws the world as a square, keeps shapes and angles true and stretches sizes toward the poles. It stops at about 85° north and south.</p></div>
+
+    <div class="proj">
+      <svg id="merc" viewBox="0 0 600 600" aria-label="Mercator stretching demonstration"></svg>
+      <div class="card">
+        <label for="lat" class="mono" style="color:var(--muted)">Latitude <span id="latv">0</span>°</label>
+        <input id="lat" type="range" min="0" max="84" value="0">
+        <div class="big" id="area">1.0×</div>
+        <p class="t" id="latnote">At the equator a 1,000 km square is drawn at its true size.</p>
+        <p class="t" style="margin-top:10px">Greenland sits near 72°N, so it's drawn about 10 times too large in area. That's why it rivals Africa on screen, although Africa is about 14 times bigger. Across Greenland's own latitudes the stretch runs from about 4× in the south to over 60× in the far north.</p>
       </div>
     </div>
 
-    <p class="ldesc" style="margin-bottom:10px">That loop is a plain <b style="color:var(--ink)">client–server</b> relationship over HTTP — the same one your browser has with any website. The map is the client; the tile service is the server. Two consequences fall out of this:</p>
+    <div class="cols c3 gap">
+      <div><h3>Usually you don't project anything</h3><p>Keep your data in latitude/longitude. MapLibre, Leaflet, Plotly and Power BI convert it to Web Mercator as they draw.</p></div>
+      <div><h3>Static maps need you to do it</h3><p>To draw over web tiles in Python, convert first: <code>gdf.to_crs(epsg=3857)</code>. Otherwise your data and the basemap won't line up.</p></div>
+      <div><h3>Compare areas? Change projection</h3><p>A world choropleth in Mercator exaggerates high-latitude countries. For printed thematic maps, an equal-area projection such as Equal Earth is fairer. MapLibre GL JS 5 (January 2025) can also draw the map as a globe, which avoids the stretch when zoomed out. Look up any code at <a href="https://epsg.io">epsg.io</a>.</p></div>
+    </div>
+  </section>
 
-    <div class="cs-note">
-      <div class="row">
-        <div class="k">The client</div>
-        <div class="v"><b>only ever asks.</b> It pulls the tiles it needs and can't force a reply. It's also a client to several servers at once — tiles, style, fonts, geocoding, routing.</div>
+  <!-- ===== 4. TILES ===== -->
+  <section class="ch" id="ch-tiles">
+    <div class="ch-head"><span class="ch-num">Chapter 4</span><h2>Cut it into tiles, or skip this step</h2>
+      <p class="intro">A basemap of the whole world is far too big to download, so it's cut into a <b>pyramid of tiles</b>. Zoom 0 is one tile showing the world, and each level splits every tile into four. Your map fetches only the tiles on screen. Turn the pyramid, hover a tile for its address, and click one to see its children.</p></div>
+
+    <div class="hero">
+      <div class="scene" id="scene" aria-label="3D tile pyramid, zoom levels 0 to 3. Drag to rotate.">
+        <div class="rig" id="rig"></div>
+        <div class="levels" role="group" aria-label="Highlight a zoom level">
+          <button type="button" data-z="all" aria-pressed="true">All</button>
+          <button type="button" data-z="0" aria-pressed="false">z0</button>
+          <button type="button" data-z="1" aria-pressed="false">z1</button>
+          <button type="button" data-z="2" aria-pressed="false">z2</button>
+          <button type="button" data-z="3" aria-pressed="false">z3</button>
+        </div>
+        <p class="hint">Drag to rotate. Hover a tile for its address. Click a tile to see its four children.</p>
+        <div class="loading" id="loading">Loading coastlines…</div>
       </div>
-      <div class="row">
-        <div class="k">The server</div>
-        <div class="v"><b>can always refuse.</b> It inspects every request and may say no — rate limits, referrer checks, missing key. A block isn't a broken connection; it's the server choosing not to answer.</div>
-      </div>
-      <div class="row">
-        <div class="k">So</div>
-        <div class="v">whoever runs the server holds the power. The fixes are about that: an <b>API key</b> makes you a client it trusts; <b>self-hosting</b> makes you the server, so you stop asking permission.</div>
+      <div class="side">
+        <div class="card readout" aria-live="polite">
+          <h3>Tile address</h3>
+          <div class="big" id="r-zxy">z / x / y</div>
+          <dl>
+            <dt>Request</dt><dd id="r-url">/tiles/z/x/y.png</dd>
+            <dt>West–east</dt><dd id="r-lon">–</dd>
+            <dt>South–north</dt><dd id="r-lat">–</dd>
+          </dl>
+          <p id="r-note">x counts from the left and y from the top, as in Google, OpenStreetMap and OGC WMTS. The older TMS scheme counts y from the bottom.</p>
+        </div>
+        <div class="card zoomer">
+          <h3>How fast it grows</h3>
+          <label class="zval" for="zr">Zoom level <span id="zv">0</span></label>
+          <input id="zr" type="range" min="0" max="22" value="0">
+          <dl>
+            <dt>Tiles at this level</dt><dd id="zt">1</dd>
+            <dt>World width</dt><dd id="zw">256 px</dd>
+            <dt>Ground per pixel</dt><dd id="zm">156.5 km</dd>
+            <dt>Scale at 96 dpi</dt><dd id="zs">1 : 591,658,711</dd>
+          </dl>
+          <p>256 px tiles, measured at the equator. Many services now use 512 px tiles, which shifts the figures by one level. Published scales also differ with the assumed pixel size: OGC's standard uses 0.28 mm pixels and gets 1 : 559,082,264 at zoom 0.</p>
+        </div>
       </div>
     </div>
 
-    <p class="ldesc" style="margin-bottom:10px">Two jobs hide under the word "tiles": <b style="color:var(--ink)">building</b> them once (chop the data into tiles) and <b style="color:var(--ink)">serving</b> them live. The tile service is the serving half — and it can live in three places:</p>
-
-    <div class="opts">
-      <div class="opt">
-        <div class="ot">Provider's public server</div>
-        <div class="od">Free, but rate-limited and often restricts who's allowed to call it.</div>
-      </div>
-      <div class="opt">
-        <div class="ot">Hosted provider</div>
-        <div class="od">You get an API key; they run the server and scale it for you.</div>
-      </div>
-      <div class="opt">
-        <div class="ot">Your own server / storage</div>
-        <div class="od">You host the tiles yourself. Full control, no outside limits.</div>
-      </div>
+    <div class="cols c3 gap">
+      <div><h3>Each level keeps its own detail</h3><p>When tiles are built, each zoom level gets only what suits its scale. The top shows land and sea, and lower levels add borders, roads and buildings. Notice the borders appear from z2 above.</p></div>
+      <div><h3>Built once, fetched often</h3><p>The pyramid is generated in advance and stored. Some servers, such as Martin, can also build tiles from a database when they're requested.</p></div>
+      <div><h3>Two kinds of tile</h3><p><b>Raster tiles</b> are pictures (PNG, JPEG, WebP) with the style baked in. <b>Vector tiles</b> (the Mapbox Vector Tile format, <code>.mvt</code>, often also served as <code>.pbf</code>) carry shapes and attributes, and get coloured later. Try both below.</p></div>
     </div>
 
-    <p class="keynote">The tile service is a <b>live dependency</b>, not a one-time export. If it's slow, blocks your app, or goes down, your map breaks — even when your own code is perfect. So picking the tile service is a real design decision, not a detail.</p>
-  </div>
+    <h3 class="gap" style="font-family:Fraunces,serif;font-size:24px">Raster tiles are pictures, vector tiles are data</h3>
+    <p class="t" style="margin-bottom:14px">Both tiles cover the same square, z2 x2 y1. Restyle them.</p>
+    <div class="chips" role="group" aria-label="Choose a style" id="style-chips" style="margin-bottom:16px">
+      <button class="chip" data-style="standard" aria-pressed="true">Standard</button>
+      <button class="chip" data-style="night" aria-pressed="false">Night</button>
+      <button class="chip" data-style="print" aria-pressed="false">Greyscale</button>
+      <button class="chip" data-style="borders" aria-pressed="false">Borders only</button>
+    </div>
+    <div class="rv">
+      <figure><img id="raster" alt="Raster tile 2/2/1 with a fixed style"><figcaption><b>Raster</b> · <code>/2/2/1.png</code> · the style is part of the image</figcaption></figure>
+      <figure><canvas id="vector" width="512" height="512" aria-label="Vector tile 2/2/1 drawn with the chosen style"></canvas><figcaption><b>Vector</b> · <code>/2/2/1.mvt</code> · coloured by the chosen style</figcaption></figure>
+    </div>
+    <p class="rv-note" id="rv-note"></p>
 
-  <!-- SERVICES -->
-  <div class="sect">+ Add-on services (bolt onto the map)</div>
-  <div class="grid">
-    <div class="card">
-      <div class="lname">🔍 Search / Geocoding</div>
-      <p class="ldesc">Turns a typed address into a dot on the map — and back again.</p>
-      <div class="tags">
-        <span class="tag you">Photon <span class="note">fast autocomplete</span></span>
-        <span class="tag">Nominatim <span class="note">OSM official</span></span>
-        <span class="tag">Pelias</span>
+    <div class="cols c2 gap">
+      <div class="card">
+        <h3>Do you need to make tiles?</h3>
+        <p class="t"><b>For the basemap: no.</b> Use a provider's tiles: OpenStreetMap, MapTiler, CARTO, or a Protomaps build.</p>
+        <p class="t" style="margin-top:10px"><b>For your own data: usually not.</b> A GeoJSON file of up to a few MB, or a few tens of thousands of features, can be loaded straight into the map.</p>
+        <p class="t" style="margin-top:10px"><b>Only for large data</b>, such as every building in a country or millions of points, cut your own vector tiles.</p>
+      </div>
+      <div class="card">
+        <h3>Tile tools and files</h3>
+        <table><tbody>
+          <tr><td>Tippecanoe</td><td class="m">Turns GeoJSON, FlatGeobuf or CSV into vector tiles, decides what to keep at each zoom, and can write PMTiles directly. Now maintained by Felt.</td></tr>
+          <tr><td>PMTiles</td><td class="m">A whole pyramid in one file, readable from plain cloud storage (from Protomaps)</td></tr>
+          <tr><td>MBTiles</td><td class="m">A pyramid stored in one SQLite file, served by a tile server. Rows are stored in TMS order, so y is flipped.</td></tr>
+          <tr><td>Martin</td><td class="m">Tile server for PostGIS (built on request), MBTiles, PMTiles, Cloud-Optimised GeoTIFF and GeoJSON</td></tr>
+          <tr><td>MapTiler</td><td class="m">Builds tiles from your data (MapTiler Engine) and hosts them</td></tr>
+        </tbody></table>
       </div>
     </div>
-    <div class="card">
-      <div class="lname">🧭 Routing</div>
-      <p class="ldesc">Directions, drive time and distance between points.</p>
-      <div class="tags">
-        <span class="tag">OSRM</span>
-        <span class="tag">Valhalla</span>
-        <span class="tag">GraphHopper</span>
+  </section>
+
+  <!-- ===== 5. SERVE ===== -->
+  <section class="ch" id="ch-serve">
+    <div class="ch-head"><span class="ch-num">Chapter 5</span><h2>Serve the tiles</h2>
+      <p class="intro">Your map holds almost no data of its own. It asks a <b>tile service</b>, a server that hands out tiles by address, for each square it needs. Move the map and watch the requests, then change the server's rules.</p></div>
+
+    <div class="sim">
+      <div>
+        <div class="viewport"><canvas id="vp" width="840" height="560"></canvas></div>
+        <div class="controls">
+          <button type="button" data-a="left" aria-label="Pan left">←</button>
+          <button type="button" data-a="right" aria-label="Pan right">→</button>
+          <button type="button" data-a="up" aria-label="Pan up">↑</button>
+          <button type="button" data-a="down" aria-label="Pan down">↓</button>
+          <button type="button" data-a="in">Zoom in</button>
+          <button type="button" data-a="out">Zoom out</button>
+          <button type="button" data-a="reset">Reset</button>
+          <label>Server rules
+            <select id="rules">
+              <option value="public">Free public server: 40 requests, then rate-limited</option>
+              <option value="nokey">Hosted provider, no API key sent</option>
+              <option value="key">Hosted provider, with your API key</option>
+              <option value="self">Your own server or storage</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div>
+        <div class="log" id="log" role="log" aria-label="Tile requests"><div class="empty">Requests appear when this section comes into view.</div></div>
+        <div class="stats"><span>Requests <b id="st-n">0</b></span><span>Answered <b id="st-ok">0</b></span><span>Refused <b id="st-no">0</b></span></div>
       </div>
     </div>
-  </div>
 
-  <!-- PLATFORMS -->
-  <div class="sect">All-in-one platforms (skip the assembly)</div>
-  <p class="sub" style="margin-bottom:14px">These bundle several layers above into one paid product, so you don't wire it up yourself. Convenience for cost and less flexibility.</p>
-  <div class="grid">
-    <div class="card">
-      <div class="lname">CARTO <span style="color:var(--coral);font-size:11px;font-family:'Space Mono'">you asked</span></div>
-      <p class="ldesc">Spatial analytics + visualisation aimed at business/enterprise. Sits on top of your data warehouse.</p>
+    <div class="tbl gap">
+      <table>
+        <thead><tr><th>Where tiles come from</th><th>How it works</th><th>Watch for</th></tr></thead>
+        <tbody>
+          <tr><td>A free public server</td><td class="m">For example tile.openstreetmap.org. No key needed.</td><td class="m">No uptime guarantee, and access can be withdrawn at any time. You must show attribution, send a real User-Agent and Referer, and cache tiles for at least 7 days. Bulk or offline downloading is banned. Fine for a demo, not for a product.</td></tr>
+          <tr><td>A hosted provider</td><td class="m">MapTiler, CARTO, Mapbox, Stadia and others. You get an API key.</td><td class="m">Free tiers have monthly limits, after which you pay per map load or per tile. Restrict the key to your domain.</td></tr>
+          <tr><td>Your own server or storage</td><td class="m">Host a PMTiles file on cloud storage, or run a tile server.</td><td class="m">No outside limits. You handle updates, uptime and bandwidth.</td></tr>
+        </tbody>
+      </table>
     </div>
-    <div class="card">
-      <div class="lname">Mapbox</div>
-      <p class="ldesc">Full stack, developer-friendly. MapLibre is the free fork of its old engine.</p>
-    </div>
-    <div class="card">
-      <div class="lname">Google Maps Platform</div>
-      <p class="ldesc">Easiest to drop in, least flexible, pay per request.</p>
-    </div>
-    <div class="card">
-      <div class="lname">Esri ArcGIS</div>
-      <p class="ldesc">The enterprise GIS heavyweight. Deep, expensive, corporate.</p>
-    </div>
-  </div>
+    <p class="warn">The tile service is a live dependency, not a one-time download. If it's slow, refuses you or goes down, your map breaks, even when your own code is fine. A <b>403</b> means you're not allowed (missing key, wrong domain). A <b>429</b> means you've sent too many requests.</p>
+  </section>
 
-  <div class="takeaway">
-    <h3>The one thing to remember</h3>
-    <p><b>OpenStreetMap</b> is the <span class="hl">ingredients</span>. <b>MapLibre</b> is the <span class="hl">kitchen</span> that plates them. <b>Photon</b> is the <span class="hl">waiter</span> who finds what you asked for. <b>CARTO</b> is the <span class="hl">restaurant</span> that does all three so you don't have to.</p>
-    <p>You almost never pick "one tool." You pick <b>one option per layer</b> — and you can swap any layer without touching the others.</p>
-  </div>
+  <!-- ===== 6. STYLE ===== -->
+  <section class="ch" id="ch-style">
+    <div class="ch-head"><span class="ch-num">Chapter 6</span><h2>Style it</h2>
+      <p class="intro">With vector tiles, a <b>Style JSON</b> decides how everything looks. It's a list of layers drawn in order, bottom to top: water, land, roads, <b>your data</b>, then labels. Each layer picks features from a source, filters them, and sets colours, widths, fonts and the zoom range where it appears. With raster tiles this step already happened on the server.</p></div>
+
+    <div class="cols c2">
+      <div>
+        <pre><span class="c">// one layer from a Style JSON: your sales regions, coloured by value</span>
+{
+  <span class="k">"id"</span>: <span class="s">"sales-regions"</span>,
+  <span class="k">"type"</span>: <span class="s">"fill"</span>,
+  <span class="k">"source"</span>: <span class="s">"regions"</span>,
+  <span class="k">"minzoom"</span>: 4,
+  <span class="k">"paint"</span>: {
+    <span class="k">"fill-color"</span>: [<span class="s">"interpolate"</span>, [<span class="s">"linear"</span>], [<span class="s">"get"</span>, <span class="s">"sales_per_head"</span>],
+      0, <span class="s">"#e6f2f0"</span>,
+      500, <span class="s">"#0f857a"</span>],
+    <span class="k">"fill-opacity"</span>: 0.8
+  }
+}</pre>
+        <p class="caption">The colour comes from each feature's own value. This is called data-driven styling.</p>
+      </div>
+      <div class="card">
+        <h3>Rules that make thematic maps readable</h3>
+        <p class="t"><b>Put your data under the labels.</b> Insert your layer below the first label layer so place names stay readable.</p>
+        <p class="t" style="margin-top:10px"><b>Pick the colour scale for the data.</b> Use a <i>sequential</i> scale (light to dark) for amounts. Use <i>diverging</i> (two colours from a midpoint) for above/below a target, and <i>categorical</i> (distinct hues) for types. Avoid rainbow scales.</p>
+        <p class="t" style="margin-top:10px"><b>Map rates, not counts, on regions.</b> Big regions have big totals. Divide by population or area first.</p>
+        <p class="t" style="margin-top:10px"><b>Mute the basemap.</b> A light or grey basemap lets your data stand out.</p>
+        <p class="t" style="margin-top:10px"><b>Tools:</b> Maputnik (free visual Style JSON editor), MapTiler's style editor, or a ready-made style from your tile provider.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 7. RENDER ===== -->
+  <section class="ch" id="ch-render">
+    <div class="ch-head"><span class="ch-num">Chapter 7</span><h2>Render it: pick the library</h2>
+      <p class="intro">The renderer draws tiles, style and your data on screen. Your choice decides which kind of tile you can use, and that changes where the styling step happens. Pick one and watch the steps re-order.</p></div>
+
+    <div class="picker" role="group" aria-label="Pick a renderer">
+      <span class="grp">Web</span>
+      <button class="chip asked" data-r="maplibre" aria-pressed="true">MapLibre GL</button>
+      <button class="chip" data-r="leaflet" aria-pressed="false">Leaflet</button>
+      <button class="chip" data-r="openlayers" aria-pressed="false">OpenLayers</button>
+      <button class="chip" data-r="deckgl" aria-pressed="false">deck.gl</button>
+      <span class="grp">Python</span>
+      <button class="chip" data-r="plotly" aria-pressed="false">Plotly (map charts)</button>
+      <button class="chip" data-r="folium" aria-pressed="false">Folium</button>
+      <button class="chip" data-r="pydeck" aria-pressed="false">pydeck</button>
+      <button class="chip" data-r="contextily" aria-pressed="false">GeoPandas + contextily</button>
+      <span class="grp">BI tools</span>
+      <button class="chip" data-r="powerbi" aria-pressed="false">Power BI</button>
+      <button class="chip" data-r="tableau" aria-pressed="false">Tableau</button>
+    </div>
+    <div class="pipe" id="pipe">
+      <div class="step" data-s="data"><span class="n"></span><h3>Data</h3><p>Your points, lines or regions in latitude/longitude.</p><p class="where"></p></div>
+      <div class="step" data-s="tiles"><span class="n"></span><h3>Tiles</h3><p></p><p class="where"></p></div>
+      <div class="step" data-s="style"><span class="n"></span><h3>Style</h3><p></p><p class="where"></p></div>
+      <div class="step" data-s="render"><span class="n"></span><h3>Render</h3><p></p><p class="where"></p></div>
+    </div>
+    <p class="note" id="verdict" aria-live="polite"></p>
+
+    <div class="tbl gap">
+      <table>
+        <thead><tr><th>Library</th><th>Coordinate order</th><th>Draws with</th><th>Best for</th></tr></thead>
+        <tbody>
+          <tr><td class="asked">MapLibre GL JS</td><td class="m">[lon, lat]</td><td class="m">WebGL</td><td class="m">Custom-styled vector maps, large datasets, 3D, no vendor lock-in</td></tr>
+          <tr><td>Leaflet</td><td class="m">[lat, lon]</td><td class="m">SVG or Canvas</td><td class="m">Simple maps with markers and popups, quick to learn, many plugins</td></tr>
+          <tr><td>OpenLayers</td><td class="m">[lon, lat], projected</td><td class="m">Canvas or WebGL</td><td class="m">GIS-heavy apps with many projections and formats</td></tr>
+          <tr><td>deck.gl</td><td class="m">[lon, lat]</td><td class="m">WebGL</td><td class="m">Hundreds of thousands of points, arcs, hexbins, 3D columns</td></tr>
+          <tr><td>Folium (Python)</td><td class="m">[lat, lon]</td><td class="m">Leaflet</td><td class="m">Quick interactive maps from a notebook, saved as HTML</td></tr>
+          <tr><td>Plotly (Python)</td><td class="m">lat=, lon= columns</td><td class="m">MapLibre</td><td class="m">Maps inside Plotly dashboards, scatter and choropleth</td></tr>
+          <tr><td>GeoPandas + contextily</td><td class="m">CRS-aware</td><td class="m">Matplotlib</td><td class="m">Static images for reports and print</td></tr>
+          <tr><td>Power BI, Tableau</td><td class="m">Latitude / Longitude fields</td><td class="m">Built-in visuals</td><td class="m">Maps in business dashboards, filtered with the rest of the report</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note"><b>Lots of points?</b> SVG-based Leaflet slows down past a few thousand markers. Use clustering, switch to its Canvas renderer, or move to a WebGL library such as MapLibre or deck.gl, which handle hundreds of thousands.</p>
+
+    <h3 class="gap" style="font-family:Fraunces,serif;font-size:26px" id="ch-3d">Going 3D: extruded blocks or photorealistic cities</h3>
+    <p class="t" style="margin-bottom:18px">"3D buildings" means two different things, built from different data with different tools.</p>
+    <div class="cols c2">
+      <div class="card">
+        <h3>Extruded buildings</h3>
+        <p class="t">Building footprints raised to their height as plain blocks you can colour by any value. The heights come from OpenStreetMap's <code>height</code> and <code>building:levels</code> tags, or from Overture.</p>
+        <p class="t" style="margin-top:10px"><b>Tools:</b> MapLibre or Mapbox (a <code>fill-extrusion</code> layer in the Style JSON), deck.gl, Plotly. It's cheap and fully styleable. It works anywhere building data exists, but it looks like a model, not a photo.</p>
+        <p class="t" style="margin-top:10px"><b>Terrain:</b> the same style spec has <code>hillshade</code> and <code>color-relief</code> layers that shade hills and colour by height from an elevation source.</p>
+      </div>
+      <div class="card">
+        <h3>Photorealistic 3D</h3>
+        <p class="t">A textured mesh of real buildings, trees and terrain, captured from aerial imagery. Google's <b>Photorealistic 3D Tiles</b> cover thousands of cities (Google quotes 2,500+ in 49 countries) and are delivered in the open <b>OGC 3D Tiles</b> format, a 3D version of the tile pyramid.</p>
+        <p class="t" style="margin-top:10px"><b>Tools:</b> CesiumJS, deck.gl's <code>Tile3DLayer</code>, or Google's own 3D Maps in the Maps JavaScript API. You need a Google Maps Platform key with the Map Tiles API enabled. Billing is per root tileset request, and each request opens a session of up to 3 hours. You must show the tiles' attributions on one line plus the Google Maps logo, and you can't cache them beyond Google's terms or use them offline. Coverage is mainly large cities.</p>
+      </div>
+    </div>
+<pre style="margin-top:20px"><span class="c">// CesiumJS: Google's photorealistic city mesh on a page</span>
+<span class="c">// (load Cesium's JS and CSS, and add &lt;div id="viewer"&gt;&lt;/div&gt;)</span>
+Cesium.GoogleMaps.defaultApiKey = <span class="s">'YOUR_GOOGLE_MAPS_KEY'</span>;
+<span class="k">const</span> viewer = <span class="k">new</span> Cesium.Viewer(<span class="s">'viewer'</span>, { globe: <span class="k">false</span> });   <span class="c">// the tiles include their own terrain</span>
+viewer.scene.primitives.add(<span class="k">await</span> Cesium.createGooglePhotorealistic3DTileset());
+viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(151.2093, -33.8688, 900) });  <span class="c">// lon, lat, height in m</span></pre>
+    <p class="caption">Just want to look, without building anything? Google Earth on the web and the 3D view in Google Maps or Apple Maps use the same kind of data.</p>
+  </section>
+
+  <!-- ===== 8. INTERACTION ===== -->
+  <section class="ch" id="ch-interact">
+    <div class="ch-head"><span class="ch-num">Chapter 8</span><h2>Add interaction and services</h2>
+      <p class="intro">A map visual is only useful if people can read it and ask it questions. Add these to the data layer, and add search or routing as separate services.</p></div>
+    <div class="cols c3">
+      <div class="card"><h3>Popups and tooltips</h3><p>Show the value behind a point or region on hover or click. Keep it to the two or three fields that answer the question.</p></div>
+      <div class="card"><h3>Legend and title</h3><p>A thematic map without a legend can't be read. State what the colour or size means, the units and the date of the data.</p></div>
+      <div class="card"><h3>Zoom to the data</h3><p>Open the map fitted to your features (<code>fitBounds</code>), not the whole world. Add clustering when points overlap.</p></div>
+      <div class="card"><h3 class="asked">Search (geocoding)</h3><p>A search box turns typed addresses into positions. Photon gives fast autocomplete. Nominatim is OpenStreetMap's own, but its public server forbids autocomplete. Pelias is another open option.</p></div>
+      <div class="card"><h3>Routing</h3><p>Directions, travel time and distance. OSRM, Valhalla and GraphHopper run on OpenStreetMap data, self-hosted or through a provider.</p></div>
+      <div class="card"><h3>Filters and time</h3><p>Let people narrow by category or date. In BI tools this comes free through slicers. On the web, filter the layer rather than reloading data.</p></div>
+    </div>
+  </section>
+
+  <!-- ===== 9. PUBLISH ===== -->
+  <section class="ch" id="ch-publish">
+    <div class="ch-head"><span class="ch-num">Chapter 9</span><h2>Publish</h2>
+      <p class="intro">Before the map goes in front of people, check these.</p></div>
+    <ul class="checklist">
+      <li><div>Attribution is visible. <span>Credit "OpenStreetMap", linked to openstreetmap.org/copyright, plus your tile provider. It can sit behind an (i) button as long as people can find it.</span></div></li>
+      <li><div>API keys are restricted to your domain and kept out of public code repositories.</div></li>
+      <li><div>You know your usage limits. <span>Estimate map loads per month against the provider's free tier and price.</span></div></li>
+      <li><div>The map has a title, a legend with units, and a data date.</div></li>
+      <li><div>Colour isn't the only signal. <span>Add labels, a table or a text summary for people who can't tell the colours apart.</span></div></li>
+      <li><div>It works on a phone. <span>Check load time on mobile data and that popups fit the screen.</span></div></li>
+      <li><div>Coordinates were checked. <span>A few known places land where they should.</span></div></li>
+    </ul>
+  </section>
+
+  <!-- ===== RECIPES ===== -->
+  <section class="ch" id="ch-recipes">
+    <div class="ch-head"><span class="ch-num">Recipes</span><h2>Five ways to start</h2>
+      <p class="intro">Each recipe maps the same file, <code>stores.geojson</code>, a set of points with a <code>name</code> property, centred on Sydney. Pick the one that matches where your map will live.</p></div>
+    <div class="tabs" role="tablist" aria-label="Recipes">
+      <button class="chip" role="tab" data-rec="leaflet" aria-selected="true">Quick web map</button>
+      <button class="chip" role="tab" data-rec="maplibre" aria-selected="false">Custom-styled web map</button>
+      <button class="chip" role="tab" data-rec="python" aria-selected="false">Python notebook</button>
+      <button class="chip" role="tab" data-rec="static" aria-selected="false">Static image</button>
+      <button class="chip" role="tab" data-rec="powerbi" aria-selected="false">Power BI</button>
+    </div>
+
+    <div class="recipe" data-rec="leaflet" role="tabpanel">
+      <h3>Leaflet + OpenStreetMap raster tiles</h3>
+      <p class="steps-used">You handle: <b>data</b> and <b>render</b>. Tiles, style and serving come from OpenStreetMap. Fine for prototypes. Switch to a provider for real traffic. Written for Leaflet 1.9, the stable release. Leaflet 2 (in alpha) replaces calls like <code>L.marker()</code> with classes like <code>new Marker()</code>.</p>
+<pre><span class="c">&lt;!-- in the page: Leaflet's CSS and JS from unpkg, and &lt;div id="map" style="height:500px"&gt;&lt;/div&gt; --&gt;</span>
+<span class="k">const</span> map = L.map(<span class="s">'map'</span>).setView([-33.87, 151.21], 11);   <span class="c">// [lat, lon]</span>
+
+L.tileLayer(<span class="s">'https://tile.openstreetmap.org/{z}/{x}/{y}.png'</span>, {
+  maxZoom: 19,
+  attribution: <span class="s">'&lt;a href="https://www.openstreetmap.org/copyright"&gt;OpenStreetMap&lt;/a&gt;'</span>
+}).addTo(map);
+
+fetch(<span class="s">'stores.geojson'</span>).then(r =&gt; r.json()).then(data =&gt; {
+  <span class="k">const</span> layer = L.geoJSON(data)
+    .bindPopup(l =&gt; l.feature.properties.name)
+    .addTo(map);
+  map.fitBounds(layer.getBounds());
+});</pre>
+    </div>
+
+    <div class="recipe" data-rec="maplibre" role="tabpanel" hidden>
+      <h3>MapLibre + hosted vector tiles + your layer</h3>
+      <p class="steps-used">You handle: <b>data</b>, <b>your layer's style</b> and <b>render</b>. The basemap's tiles, style and serving come from a provider (here MapTiler, which needs a free key).</p>
+<pre><span class="k">const</span> map = <span class="k">new</span> maplibregl.Map({
+  container: <span class="s">'map'</span>,
+  style: <span class="s">'https://api.maptiler.com/maps/streets-v2/style.json?key=YOUR_KEY'</span>,
+  center: [151.21, -33.87],   <span class="c">// [lon, lat]</span>
+  zoom: 11
+});
+
+map.on(<span class="s">'load'</span>, () =&gt; {
+  map.addSource(<span class="s">'stores'</span>, { type: <span class="s">'geojson'</span>, data: <span class="s">'stores.geojson'</span> });
+
+  <span class="c">// draw under the first label layer so place names stay on top</span>
+  <span class="k">const</span> firstLabel = map.getStyle().layers.find(l =&gt; l.type === <span class="s">'symbol'</span>).id;
+  map.addLayer({
+    id: <span class="s">'stores'</span>, type: <span class="s">'circle'</span>, source: <span class="s">'stores'</span>,
+    paint: { <span class="s">'circle-radius'</span>: 6, <span class="s">'circle-color'</span>: <span class="s">'#f2846f'</span> }
+  }, firstLabel);
+
+  map.on(<span class="s">'click'</span>, <span class="s">'stores'</span>, e =&gt;
+    <span class="k">new</span> maplibregl.Popup().setLngLat(e.lngLat)
+      .setText(e.features[0].properties.name).addTo(map));
+});</pre>
+    </div>
+
+    <div class="recipe" data-rec="python" role="tabpanel" hidden>
+      <h3>Folium or Plotly in a notebook</h3>
+      <p class="steps-used">You handle: <b>data</b> and <b>render</b>. Folium uses Leaflet and raster tiles. Plotly uses MapLibre with CARTO's vector basemaps.</p>
+<pre><span class="c"># Folium: interactive map saved as an HTML file</span>
+<span class="k">import</span> folium
+
+m = folium.Map(location=[-33.87, 151.21], zoom_start=11)   <span class="c"># [lat, lon]</span>
+folium.GeoJson(<span class="s">"stores.geojson"</span>,
+               tooltip=folium.GeoJsonTooltip(fields=[<span class="s">"name"</span>])).add_to(m)
+m.save(<span class="s">"stores_map.html"</span>)
+
+<span class="c"># Plotly: a map inside a chart or dashboard, from a table with lat/lon columns</span>
+<span class="k">import</span> geopandas <span class="k">as</span> gpd, plotly.express <span class="k">as</span> px
+
+gdf = gpd.read_file(<span class="s">"stores.geojson"</span>)
+gdf[<span class="s">"lat"</span>], gdf[<span class="s">"lon"</span>] = gdf.geometry.y, gdf.geometry.x
+fig = px.scatter_map(gdf, lat=<span class="s">"lat"</span>, lon=<span class="s">"lon"</span>, hover_name=<span class="s">"name"</span>,
+                     zoom=10, map_style=<span class="s">"carto-positron"</span>)
+fig.show()</pre>
+    </div>
+
+    <div class="recipe" data-rec="static" role="tabpanel" hidden>
+      <h3>GeoPandas + contextily for a PNG</h3>
+      <p class="steps-used">You handle: <b>data</b>, <b>projection</b> and <b>render</b>. contextily downloads raster tiles for the area and stitches them behind your plot.</p>
+<pre><span class="k">import</span> geopandas <span class="k">as</span> gpd
+<span class="k">import</span> contextily <span class="k">as</span> cx
+
+gdf = gpd.read_file(<span class="s">"stores.geojson"</span>).to_crs(epsg=3857)   <span class="c"># match the web tiles</span>
+ax = gdf.plot(figsize=(8, 8), color=<span class="s">"#d4553c"</span>, markersize=30)
+cx.add_basemap(ax, source=cx.providers.CartoDB.Positron)
+ax.set_axis_off()
+ax.figure.savefig(<span class="s">"stores_map.png"</span>, dpi=200, bbox_inches=<span class="s">"tight"</span>)</pre>
+    </div>
+
+    <div class="recipe" data-rec="powerbi" role="tabpanel" hidden>
+      <h3>Power BI</h3>
+      <p class="steps-used">You handle: <b>data</b> and <b>styling of your layer</b>. The basemap, tiles and serving are Microsoft's. No code needed.</p>
+      <ol class="how">
+        <li><b>Prepare the table.</b> Give each row Latitude and Longitude columns. Place names also work, but they're geocoded by Bing/Azure and can land in the wrong country.</li>
+        <li><b>Set the data category.</b> In Column tools, mark the columns as Latitude and Longitude (or City, Postcode, State), so Power BI reads them correctly.</li>
+        <li><b>Add the Azure Maps visual.</b> Microsoft plans to deprecate the older Bing-based Map and Filled map visuals but hasn't set a date. Their Upgrade maps button converts them. Drag latitude and longitude into the location wells and a measure into Size or Legend.</li>
+        <li><b>For filled regions,</b> use the Azure Maps visual's reference layer (GeoJSON, WKT, KML, SHP or CSV, up to 30,000 features) or the Shape map visual with your own TopoJSON or GeoJSON file (up to 1,500 data points). Join on a region code.</li>
+        <li><b>Check the tenant settings.</b> Your admin controls "Map and filled map visuals" and "Users can use the Azure Maps visual", because they send location data to Microsoft's map service. That data may be processed outside your tenant's region if the admin allows it.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===== PLATFORMS ===== -->
+  <section class="ch">
+    <div class="ch-head"><span class="ch-num">Shortcuts</span><h2>Platforms that do several steps for you</h2>
+      <p class="intro">These bundle data, tiles, styling and hosting into one product. You trade money and flexibility for speed.</p></div>
+    <div class="tbl">
+      <table><tbody>
+        <tr><td class="asked">CARTO</td><td class="m">Spatial analysis and maps on top of your data warehouse (BigQuery, Snowflake and others). Also offers free basemaps.</td></tr>
+        <tr><td>MapTiler</td><td class="m">Turns your files into tiles, hosts them, and provides basemap styles and an editor.</td></tr>
+        <tr><td>Mapbox</td><td class="m">Full developer stack: tiles, styles, Studio editor, search and routing. MapLibre is the open-source fork of its earlier engine.</td></tr>
+        <tr><td>Google Maps Platform</td><td class="m">Easiest to drop in, with strong places and Street View, but limited styling. Priced per request.</td></tr>
+        <tr><td>Esri ArcGIS</td><td class="m">Enterprise GIS covering analysis, data management and publishing. Deep and expensive.</td></tr>
+      </tbody></table>
+    </div>
+  </section>
+
+  <section class="ch summary">
+    <div class="ch-head"><span class="ch-num">Summary</span><h2>The chain in one breath</h2></div>
+    <ol>
+      <li><div>Start from the question. <span>Choose points, sized circles, filled regions, a heatmap or lines, on a muted basemap.</span></div></li>
+      <li><div>Get the data in latitude/longitude. <span>Use GeoJSON or CSV for small sets and join regions by code. Mind [lon, lat] vs [lat, lon].</span></div></li>
+      <li><div>Web maps use Web Mercator. <span>Libraries project for you. Static maps and area comparisons need care.</span></div></li>
+      <li><div>Basemaps come as a tile pyramid. <span>Borrow one. Only tile your own data when it's large.</span></div></li>
+      <li><div>Raster or vector decides where style happens. <span>Raster is styled on the server. Vector is styled in your app with a Style JSON.</span></div></li>
+      <li><div>The tile service is a live dependency. <span>Keys, limits and attribution decide whether your map keeps loading.</span></div></li>
+      <li><div>The renderer sets your options. <span>Leaflet and Folium for simple raster maps, MapLibre for styled vector maps, deck.gl for big data, BI visuals for dashboards.</span></div></li>
+    </ol>
+  </section>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script>
+(async function () {
+  const TAU = Math.PI * 2;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const R = id => document.getElementById(id);
+
+  // ---------- geography ----------
+  let land, borders, coast, countries;
+  try {
+    const [l, c] = await Promise.all([
+      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/land-110m.json').then(r => r.json()),
+      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json').then(r => r.json()),
+    ]);
+    land = topojson.feature(l, l.objects.land);
+    coast = topojson.mesh(l, l.objects.land);
+    countries = topojson.feature(c, c.objects.countries).features;
+    borders = topojson.mesh(c, c.objects.countries, (a, b) => a !== b);
+  } catch (e) {
+    R('loading').textContent = 'Coastlines could not load. Maps are shown without them.';
+  }
+
+  const PALETTES = {
+    standard: { sea: '#173a52', land: '#c9b47e', border: '#7f6e45', coast: '#e7dcb8', grat: 'rgba(231,238,243,.12)' },
+    night:    { sea: '#0b1620', land: '#1d3242', border: '#4d6f86', coast: '#5fb8ad', grat: 'rgba(95,184,173,.08)' },
+    print:    { sea: '#e4e4e4', land: '#ffffff', border: '#9a9a9a', coast: '#555555', grat: 'rgba(0,0,0,.06)' },
+    borders:  { sea: '#0e1c27', land: '#0e1c27', border: '#53cfc2', coast: '#e7eef3', grat: 'rgba(0,0,0,0)' },
+  };
+  function proj(worldPx, ox, oy, S) {
+    return d3.geoMercator().scale(worldPx / TAU).translate([worldPx / 2 - ox, worldPx / 2 - oy])
+      .clipExtent([[0, 0], [S, S * 10]]).precision(0.4);
+  }
+  function paint(ctx, w, h, projection, detail, pal) {
+    ctx.fillStyle = pal.sea; ctx.fillRect(0, 0, w, h);
+    if (!land) return;
+    const path = d3.geoPath(projection, ctx);
+    if (detail >= 3) { ctx.beginPath(); path(d3.geoGraticule10()); ctx.strokeStyle = pal.grat; ctx.lineWidth = 1; ctx.stroke(); }
+    ctx.beginPath(); path(land); ctx.fillStyle = pal.land; ctx.fill();
+    if (detail >= 1) { ctx.beginPath(); path(coast); ctx.strokeStyle = pal.coast; ctx.lineWidth = detail >= 2 ? 1 : .8; ctx.stroke(); }
+    if (detail >= 2) { ctx.beginPath(); path(borders); ctx.strokeStyle = pal.border; ctx.lineWidth = .8; ctx.stroke(); }
+  }
+
+  // ---------- 1. map types ----------
+  // [lon, lat, approximate metro population in millions]
+  const CITIES = [
+    [139.69, 35.69, 37], [77.21, 28.61, 32], [121.47, 31.23, 29], [-46.63, -23.55, 22], [-99.13, 19.43, 22],
+    [31.24, 30.04, 21], [72.88, 19.08, 21], [116.41, 39.90, 21], [90.41, 23.81, 23], [135.50, 34.69, 19],
+    [-74.01, 40.71, 19], [67.01, 24.86, 17], [-58.38, -34.60, 15], [28.98, 41.01, 16], [3.38, 6.52, 15],
+    [120.98, 14.60, 14], [-43.17, -22.91, 13], [-118.24, 34.05, 12], [37.62, 55.76, 12], [2.35, 48.86, 11],
+    [106.85, -6.21, 11], [-0.13, 51.51, 9], [100.50, 13.76, 11], [-77.04, -12.05, 11], [-74.07, 4.71, 11],
+    [28.05, -26.20, 6], [151.21, -33.87, 5], [-79.38, 43.65, 6], [103.82, 1.35, 6], [36.82, -1.29, 5],
+  ];
+  const TYPES = {
+    points: { name: 'Points', use: 'Showing where things are: stores, incidents, assets.', data: 'A latitude and longitude per row (CSV or GeoJSON).', trap: 'Past a few hundred points they overlap. Cluster them or switch to a heatmap.' },
+    bubbles: { name: 'Sized circles', use: 'Comparing totals at places: sales per store, population per city.', data: 'Locations plus a numeric value. Scale the circle area, not the radius, to the value.', trap: 'Big circles hide small ones. Draw the largest first and make them semi-transparent.' },
+    choropleth: { name: 'Filled regions (choropleth)', use: 'Comparing a rate across areas: income per person, share of customers.', data: 'Boundary polygons, a value per region, and a shared code to join them.', trap: 'Map rates, not raw counts, or the biggest regions always look largest. Mercator also inflates high-latitude regions.' },
+    heat: { name: 'Heatmap', use: 'Showing where many points concentrate.', data: 'Many points, optionally weighted by a value.', trap: 'A heatmap of anything tends to mirror where people live. Normalise or compare against population.' },
+    lines: { name: 'Lines and flows', use: 'Routes, networks, and movement between places.', data: 'Line geometry, or origin–destination pairs with a volume.', trap: 'Too many lines become a hairball. Filter to the top flows or bundle them.' },
+  };
+  const tc = R('types'), tctx = tc.getContext('2d'), TW = tc.width, TH = tc.height;
+  const tproj = d3.geoMercator().center([10, 18]).scale(TW / TAU * 1.08).translate([TW / 2, TH / 2]);
+  const tpath = d3.geoPath(tproj, tctx);
+  const hash = id => { let x = parseInt(id, 10) || 7; x = (x * 2654435761) % 4294967296; return (x % 1000) / 1000; };
+  const seq = d3.scaleSequential(d3.interpolateRgb('#1f3d52', '#53cfc2')).domain([0, 1]);
+  function drawType(key) {
+    tctx.clearRect(0, 0, TW, TH);
+    tctx.fillStyle = '#173a52'; tctx.fillRect(0, 0, TW, TH);
+    if (land) {
+      if (key === 'choropleth') {
+        countries.forEach(f => { tctx.beginPath(); tpath(f); tctx.fillStyle = seq(hash(f.id)); tctx.fill(); });
+        tctx.beginPath(); tpath(borders); tctx.strokeStyle = '#0e1c27'; tctx.lineWidth = .8; tctx.stroke();
+      } else {
+        tctx.beginPath(); tpath(land); tctx.fillStyle = '#2a4a63'; tctx.fill();
+        tctx.beginPath(); tpath(borders); tctx.strokeStyle = '#3c5f79'; tctx.lineWidth = .7; tctx.stroke();
+      }
+    }
+    const pts = CITIES.map(c => [...tproj([c[0], c[1]]), c[2]]);
+    if (key === 'points') {
+      pts.forEach(([x, y]) => { tctx.beginPath(); tctx.arc(x, y, 4.5, 0, TAU); tctx.fillStyle = '#f2846f'; tctx.fill(); tctx.strokeStyle = '#0e1c27'; tctx.lineWidth = 1.5; tctx.stroke(); });
+    } else if (key === 'bubbles') {
+      [...pts].sort((a, b) => b[2] - a[2]).forEach(([x, y, v]) => { tctx.beginPath(); tctx.arc(x, y, Math.sqrt(v) * 4.2, 0, TAU); tctx.fillStyle = 'rgba(242,132,111,.45)'; tctx.fill(); tctx.strokeStyle = '#f2846f'; tctx.lineWidth = 1; tctx.stroke(); });
+    } else if (key === 'heat') {
+      tctx.globalCompositeOperation = 'screen';
+      pts.forEach(([x, y, v]) => {
+        const r = 22 + v * 1.6, g = tctx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, `rgba(242,132,111,${Math.min(.85, .25 + v / 50)})`); g.addColorStop(1, 'rgba(242,132,111,0)');
+        tctx.fillStyle = g; tctx.beginPath(); tctx.arc(x, y, r, 0, TAU); tctx.fill();
+      });
+      tctx.globalCompositeOperation = 'source-over';
+    } else if (key === 'lines') {
+      const hubs = [[-0.13, 51.51], [103.82, 1.35], [-74.01, 40.71]];
+      tctx.lineWidth = 1.4; tctx.strokeStyle = 'rgba(83,207,194,.7)';
+      hubs.forEach(h => CITIES.forEach((c, i) => { if (i % 3 === hubs.indexOf(h)) { tctx.beginPath(); tpath({ type: 'LineString', coordinates: [h, [c[0], c[1]]] }); tctx.stroke(); } }));
+      hubs.forEach(h => { const [x, y] = tproj(h); tctx.beginPath(); tctx.arc(x, y, 5, 0, TAU); tctx.fillStyle = '#53cfc2'; tctx.fill(); });
+    }
+    const t = TYPES[key];
+    R('ty-name').textContent = t.name; R('ty-use').textContent = t.use; R('ty-data').textContent = t.data; R('ty-trap').textContent = t.trap;
+    document.querySelectorAll('#type-chips .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.type === key));
+  }
+  document.querySelectorAll('#type-chips .chip').forEach(c => c.addEventListener('click', () => drawType(c.dataset.type)));
+  drawType('points');
+
+  // ---------- 2. coordinate order ----------
+  const cc = R('coord'), cctx = cc.getContext('2d'), CW = cc.width, CH = cc.height;
+  const cproj = d3.geoMercator().center([0, -2]).scale(CW / TAU * .78).translate([CW / 2, CH / 2]);
+  const cpath = d3.geoPath(cproj, cctx);
+  function drawCoord(mode) {
+    cctx.fillStyle = '#173a52'; cctx.fillRect(0, 0, CW, CH);
+    if (land) { cctx.beginPath(); cpath(land); cctx.fillStyle = '#c9b47e'; cctx.fill(); cctx.beginPath(); cpath(coast); cctx.strokeStyle = '#e7dcb8'; cctx.lineWidth = .8; cctx.stroke(); }
+    const ny = [-74.01, 40.71], swapped = [40.71, -74.01];
+    const pin = (p, col, label) => {
+      const [x, y] = cproj(p);
+      cctx.beginPath(); cctx.arc(x, y, 8, 0, TAU); cctx.fillStyle = col; cctx.fill(); cctx.strokeStyle = '#0e1c27'; cctx.lineWidth = 2; cctx.stroke();
+      cctx.font = '600 15px Inter, sans-serif'; cctx.fillStyle = '#e7eef3'; cctx.fillText(label, x + 14, y + 5);
+    };
+    if (mode === 'right') pin(ny, '#53cfc2', 'New York');
+    else { pin(ny, 'rgba(83,207,194,.35)', 'meant to be here'); pin(swapped, '#f2846f', 'lands here: Antarctica'); }
+    R('co-val').textContent = mode === 'right' ? '[-74.01, 40.71]' : '[40.71, -74.01]';
+    R('co-note').textContent = mode === 'right'
+      ? 'New York, read correctly as longitude −74.01, latitude 40.71.'
+      : 'Swapped, the library reads longitude 40.71, latitude −74.01, which is on the Antarctic ice sheet, due south of Africa. If the swapped latitude is beyond ±90 (Sydney\'s 151.21), MapLibre throws "Invalid LngLat latitude value: must be between -90 and 90" instead.';
+    document.querySelectorAll('[data-co]').forEach(c => c.setAttribute('aria-pressed', c.dataset.co === mode));
+  }
+  document.querySelectorAll('[data-co]').forEach(c => c.addEventListener('click', () => drawCoord(c.dataset.co)));
+  drawCoord('right');
+
+  // ---------- 3. Mercator stretch ----------
+  const svg = R('merc'), NS = 'http://www.w3.org/2000/svg';
+  const mp = d3.geoMercator().scale(600 / TAU).translate([300, 300]).clipExtent([[0, 0], [600, 600]]);
+  const mk = (tag, attrs) => { const el = document.createElementNS(NS, tag); for (const k in attrs) el.setAttribute(k, attrs[k]); svg.appendChild(el); return el; };
+  if (land) mk('path', { d: d3.geoPath(mp)(land), fill: '#c9b47e', stroke: '#7f6e45', 'stroke-width': .6 });
+  mk('line', { x1: 0, x2: 600, y1: 300, y2: 300, stroke: 'rgba(231,238,243,.35)', 'stroke-dasharray': '4 4' });
+  const sq = mk('path', { fill: 'rgba(83,207,194,.25)', stroke: '#53cfc2', 'stroke-width': 2 });
+  const ref = mk('rect', { fill: 'none', stroke: 'rgba(231,238,243,.6)', 'stroke-dasharray': '3 3' });
+  const LON = 20;
+  function square(lat) {
+    // 1,000 km on the ground: about 9° of latitude, and 9°/cos(lat) of longitude.
+    const dLat = 1000 / 111.32 / 2, dLon = dLat / Math.cos(lat * Math.PI / 180);
+    return [[LON - dLon, lat - dLat], [LON + dLon, lat - dLat], [LON + dLon, lat + dLat], [LON - dLon, lat + dLat]].map(p => mp(p));
+  }
+  const base = square(0), bw = base[1][0] - base[0][0], bh = base[0][1] - base[2][1];
+  function drawMerc() {
+    const lat = +R('lat').value, pts = square(lat);
+    sq.setAttribute('d', 'M' + pts.map(p => p.join(',')).join('L') + 'Z');
+    const cx = (pts[0][0] + pts[1][0]) / 2, cy = (pts[0][1] + pts[2][1]) / 2;
+    ref.setAttribute('x', cx - bw / 2); ref.setAttribute('y', cy - bh / 2); ref.setAttribute('width', bw); ref.setAttribute('height', bh);
+    const k = 1 / Math.cos(lat * Math.PI / 180);
+    R('latv').textContent = lat;
+    R('area').textContent = (k * k).toFixed(1) + '×';
+    R('latnote').textContent = lat === 0
+      ? 'At the equator a 1,000 km square is drawn at its true size.'
+      : `At ${lat}° each side is drawn ${k.toFixed(2)}× longer, so the area looks ${(k * k).toFixed(1)}× bigger. The dashed outline shows its true size.`;
+  }
+  R('lat').addEventListener('input', drawMerc); drawMerc();
+
+  // ---------- 4. 3D pyramid ----------
+  const scene = R('scene'), rig = R('rig');
+  const small = innerWidth < 600;
+  const SIZES = small ? [56, 104, 152, 200] : [84, 150, 216, 282];
+  const GAP = small ? 70 : 105;
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const levelTiles = [];
+  for (let z = 3; z >= 0; z--) {
+    const s = SIZES[z], n = 2 ** z;
+    const el = document.createElement('div');
+    el.className = 'level'; el.dataset.z = z;
+    el.style.cssText = `width:${s}px;height:${s}px;left:${-s / 2}px;top:${-s / 2}px;transform:translateZ(${(3 - z) * GAP}px)`;
+    const cv = document.createElement('canvas'); cv.width = cv.height = s * dpr;
+    el.appendChild(cv);
+    const grid = document.createElement('div'); grid.className = 'grid';
+    grid.style.gridTemplateColumns = `repeat(${n},1fr)`;
+    const tiles = [];
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const t = document.createElement('div'); t.className = 't'; t.dataset.x = x; t.dataset.y = y; t.dataset.z = z;
+      grid.appendChild(t); tiles.push(t);
+    }
+    el.appendChild(grid);
+    const tag = document.createElement('span'); tag.className = 'tag';
+    tag.textContent = `z${z} · ${n * n} tile${n * n > 1 ? 's' : ''}`;
+    el.appendChild(tag);
+    rig.appendChild(el);
+    levelTiles[z] = { cv, tiles, s };
+  }
+  levelTiles.forEach(({ cv, s }, z) => { const W = s * dpr; paint(cv.getContext('2d'), W, W, proj(W, 0, 0, W), z, PALETTES.standard); });
+  R('loading').remove();
+
+  let rx = 62, rz = -20;
+  function setRig() {
+    rig.style.transform = `rotateX(${rx}deg) rotateZ(${rz}deg) translateZ(${-1.5 * GAP}px)`;
+    scene.style.setProperty('--rz', rz + 'deg'); scene.style.setProperty('--rx', rx + 'deg');
+  }
+  setRig();
+  let drag = null;
+  scene.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    drag = { x: e.clientX, y: e.clientY, rx, rz, moved: false };
+    scene.setPointerCapture(e.pointerId);
+  });
+  scene.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (Math.abs(dx) + Math.abs(dy) > 4) { drag.moved = true; scene.classList.add('dragging'); }
+    rz = drag.rz + dx * 0.4; rx = Math.max(20, Math.min(78, drag.rx - dy * 0.3));
+    setRig();
+  });
+  scene.addEventListener('pointerup', e => {
+    const wasDrag = drag && drag.moved;
+    drag = null; scene.classList.remove('dragging');
+    if (!wasDrag) {
+      // pointer capture retargets events, so find the tile under the pointer
+      const hit = document.elementsFromPoint(e.clientX, e.clientY).find(el => el.classList.contains('t'));
+      if (hit) selectTile(hit);
+    }
+  });
+  const lonOf = (x, n) => x / n * 360 - 180;
+  const latOf = (y, n) => Math.atan(Math.sinh(Math.PI * (1 - 2 * y / n))) * 180 / Math.PI;
+  const fmtLon = v => `${Math.abs(v).toFixed(1)}°${v < 0 ? 'W' : v > 0 ? 'E' : ''}`;
+  const fmtLat = v => `${Math.abs(v).toFixed(1)}°${v < 0 ? 'S' : v > 0 ? 'N' : ''}`;
+  function show(t) {
+    const z = +t.dataset.z, x = +t.dataset.x, y = +t.dataset.y, n = 2 ** z;
+    R('r-zxy').textContent = `${z} / ${x} / ${y}`;
+    R('r-url').textContent = `/tiles/${z}/${x}/${y}.png`;
+    R('r-lon').textContent = `${fmtLon(lonOf(x, n))} to ${fmtLon(lonOf(x + 1, n))}`;
+    R('r-lat').textContent = `${fmtLat(latOf(y + 1, n))} to ${fmtLat(latOf(y, n))}`;
+  }
+  rig.addEventListener('pointerover', e => { if (!drag && e.target.classList.contains('t')) show(e.target); });
+  function selectTile(t) {
+    document.querySelectorAll('.t.sel,.t.kid,.t.par').forEach(el => el.classList.remove('sel', 'kid', 'par'));
+    const z = +t.dataset.z, x = +t.dataset.x, y = +t.dataset.y;
+    t.classList.add('sel'); show(t);
+    if (z < 3) levelTiles[z + 1].tiles.filter(k => (k.dataset.x >> 1) === x && (k.dataset.y >> 1) === y).forEach(k => k.classList.add('kid'));
+    if (z > 0) { const p = levelTiles[z - 1].tiles.find(k => +k.dataset.x === x >> 1 && +k.dataset.y === y >> 1); p && p.classList.add('par'); }
+    R('r-note').textContent = z < 3
+      ? `Its four children on zoom ${z + 1} are x ${2 * x}–${2 * x + 1}, y ${2 * y}–${2 * y + 1}: double the numbers, then add 0 or 1.`
+      : `Its parent on zoom 2 is ${x >> 1} / ${y >> 1}: halve the numbers and round down.`;
+  }
+  document.querySelectorAll('.levels button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.levels button').forEach(o => o.setAttribute('aria-pressed', o === b));
+    if (b.dataset.z === 'all') delete scene.dataset.focus; else scene.dataset.focus = b.dataset.z;
+  }));
+  // One slow turn when the pyramid first comes into view, so it reads as 3D.
+  const spinIO = new IntersectionObserver(es => {
+    if (!es[0].isIntersecting) return; spinIO.disconnect();
+    if (reduce) return;
+    const start = performance.now(), from = rz;
+    (function spin(now) {
+      if (drag) return;
+      const t = Math.min(1, (now - start) / 2400);
+      rz = from + 50 * (1 - Math.pow(1 - t, 3)); setRig();
+      if (t < 1) requestAnimationFrame(spin);
+    })(start);
+  }, { threshold: .4 });
+  spinIO.observe(scene);
+
+  const zr = R('zr');
+  function zoomStats() {
+    const z = +zr.value;
+    R('zv').textContent = z;
+    R('zt').textContent = (4 ** z).toLocaleString('en');
+    R('zw').textContent = (256 * 2 ** z).toLocaleString('en') + ' px';
+    const m = 156543.03 / 2 ** z;
+    R('zm').textContent = m >= 1000 ? (m / 1000).toFixed(1) + ' km' : m >= 1 ? m.toFixed(1) + ' m' : (m * 100).toFixed(1) + ' cm';
+    R('zs').textContent = '1 : ' + Math.round(591658711 / 2 ** z).toLocaleString('en');
+  }
+  zr.addEventListener('input', zoomStats); zoomStats();
+
+  // ---------- raster vs vector ----------
+  const TILE = { z: 2, x: 2, y: 1 };
+  const tileProj = (S, t) => proj(S * 2 ** t.z, t.x * S, t.y * S, S);
+  const rc = document.createElement('canvas'); rc.width = rc.height = 512;
+  paint(rc.getContext('2d'), 512, 512, tileProj(512, TILE), 3, PALETTES.standard);
+  R('raster').src = rc.toDataURL('image/png');
+  const vctx = R('vector').getContext('2d');
+  const NOTE = {
+    standard: 'Both tiles look the same until you change the style.',
+    night: 'The vector tile redraws in night colours straight away. The raster tile can\'t change: a night version means the provider renders and cuts a whole new set of pictures.',
+    print: 'Same data, new rules. The vector tile needed only a different style file. The raster tile is still the standard picture.',
+    borders: 'Hiding layers works the same way: the vector style switches the land fill off. A raster picture has no layers left to switch.',
+  };
+  function restyle(key) {
+    paint(vctx, 512, 512, tileProj(512, TILE), 3, PALETTES[key]);
+    document.querySelectorAll('#style-chips .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.style === key));
+    R('rv-note').textContent = NOTE[key];
+  }
+  document.querySelectorAll('#style-chips .chip').forEach(c => c.addEventListener('click', () => restyle(c.dataset.style)));
+  restyle('standard');
+
+  // ---------- 5. tile request simulator ----------
+  const vp = R('vp'), vpx = vp.getContext('2d');
+  const VW = 840, VH = 560, TS = 210; // about 4 x 3 tiles on screen
+  const sim = { z: 3, cx: .53, cy: .33, seen: new Map(), n: 0, ok: 0, no: 0, used: 0 };
+  const logEl = R('log');
+  function answer(rule) {
+    if (rule === 'nokey') return [403, 'Forbidden: no API key sent'];
+    if (rule === 'public' && ++sim.used > 40) return [429, 'Too many requests: free limit reached'];
+    return [200, ''];
+  }
+  function logRow(code, url, why) {
+    if (logEl.querySelector('.empty')) logEl.innerHTML = '';
+    const row = document.createElement('div'); row.className = 'row';
+    row.innerHTML = `<span class="${code === 200 ? 's200' : 's4xx'}">${code}</span><span>GET ${url}</span>${why ? `<span class="why">${why}</span>` : ''}`;
+    logEl.appendChild(row); logEl.scrollTop = logEl.scrollHeight;
+  }
+  function drawSim() {
+    const z = sim.z, n = 2 ** z, world = TS * n, rule = R('rules').value;
+    const ox = sim.cx * world - VW / 2, oy = sim.cy * world - VH / 2;
+    vpx.fillStyle = '#0b1720'; vpx.fillRect(0, 0, VW, VH);
+    const x0 = Math.floor(ox / TS), y0 = Math.floor(oy / TS), x1 = Math.floor((ox + VW - 1) / TS), y1 = Math.floor((oy + VH - 1) / TS);
+    for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
+      if (ty < 0 || ty >= n) continue;
+      const wx = ((tx % n) + n) % n, key = `${z}/${wx}/${ty}`, px = tx * TS - ox, py = ty * TS - oy;
+      let status = sim.seen.get(key);
+      if (status === undefined) {
+        const [code, why] = answer(rule);
+        sim.n++; code === 200 ? sim.ok++ : sim.no++;
+        sim.seen.set(key, code); logRow(code, `/tiles/${key}.mvt`, why); status = code;
+      }
+      if (status === 200) {
+        vpx.save(); vpx.translate(px, py); vpx.beginPath(); vpx.rect(0, 0, TS, TS); vpx.clip();
+        paint(vpx, TS, TS, proj(world, wx * TS, ty * TS, TS), Math.min(z, 3), PALETTES.standard);
+        vpx.restore();
+      } else {
+        vpx.fillStyle = '#1a2a37'; vpx.fillRect(px, py, TS, TS);
+        vpx.fillStyle = '#f2846f'; vpx.font = '600 30px "JetBrains Mono", monospace'; vpx.textAlign = 'center';
+        vpx.fillText(status, px + TS / 2, py + TS / 2 + 10);
+      }
+      vpx.strokeStyle = 'rgba(231,238,243,.18)'; vpx.lineWidth = 1; vpx.strokeRect(px + .5, py + .5, TS, TS);
+      vpx.font = '15px "JetBrains Mono", monospace'; vpx.textAlign = 'left';
+      const lw = vpx.measureText(key).width;
+      vpx.fillStyle = 'rgba(14,28,39,.85)'; vpx.beginPath(); vpx.roundRect(px + 8, py + 8, lw + 16, 24, 12); vpx.fill();
+      vpx.fillStyle = '#e7eef3'; vpx.fillText(key, px + 16, py + 25);
+    }
+    R('st-n').textContent = sim.n; R('st-ok').textContent = sim.ok; R('st-no').textContent = sim.no;
+  }
+  document.querySelectorAll('.controls button').forEach(b => b.addEventListener('click', () => {
+    const step = 1 / 2 ** sim.z, a = b.dataset.a;
+    if (a === 'left') sim.cx -= step; if (a === 'right') sim.cx += step;
+    if (a === 'up') sim.cy = Math.max(.05, sim.cy - step); if (a === 'down') sim.cy = Math.min(.95, sim.cy + step);
+    if (a === 'in' && sim.z < 6) sim.z++; if (a === 'out' && sim.z > 2) sim.z--;
+    if (a === 'reset') { Object.assign(sim, { z: 3, cx: .53, cy: .33, n: 0, ok: 0, no: 0, used: 0 }); sim.seen.clear(); logEl.innerHTML = ''; }
+    drawSim();
+  }));
+  R('rules').addEventListener('change', () => { sim.used = 0; sim.seen.forEach((v, k) => { if (v !== 200) sim.seen.delete(k); }); drawSim(); });
+  // Draw the first view when the section scrolls in, so the log starts with the reader.
+  const simIO = new IntersectionObserver(es => { if (es[0].isIntersecting) { drawSim(); simIO.disconnect(); } }, { threshold: .3 });
+  simIO.observe(vp);
+
+  // ---------- 7. renderer picker ----------
+  const RENDERERS = {
+    maplibre:   { kind: 'vector', text: '<b>MapLibre GL reads vector tiles and a Style JSON</b>, so styling happens in the browser and you can restyle at any time. It can also show raster tiles.' },
+    leaflet:    { kind: 'raster', text: '<b>Leaflet shows raster tiles by default.</b> The look was decided by whoever made the tiles, so there\'s no Style JSON step in your app. You still style your own data layer. Vector basemaps need a plugin.' },
+    openlayers: { kind: 'vector', text: '<b>OpenLayers handles both kinds.</b> With vector tiles it can apply a Style JSON through the ol-mapbox-style package.' },
+    deckgl:     { kind: 'vector', text: '<b>deck.gl draws your data layers</b> and usually sits on a MapLibre or Mapbox basemap, which uses vector tiles and a Style JSON.' },
+    plotly:     { kind: 'vector', text: '<b>Plotly\'s map charts (scatter_map, choropleth_map) run on MapLibre</b> with vector basemap styles. The older *_mapbox charts were removed in Plotly 7, so rename old code to scatter_map and map_style. No Mapbox token is needed.' },
+    folium:     { kind: 'raster', text: '<b>Folium wraps Leaflet, so it inherits raster tiles.</b> You choose a tile provider, and its look comes baked into the images.' },
+    pydeck:     { kind: 'vector', text: '<b>pydeck wraps deck.gl.</b> Its basemaps are vector styles drawn by MapLibre or Mapbox underneath.' },
+    contextily: { kind: 'raster', text: '<b>contextily downloads raster tiles and stitches them into a static image</b> behind your GeoPandas plot. The style is whatever the provider rendered.' },
+    powerbi:    { kind: 'vendor', text: '<b>Power BI\'s map visuals use Microsoft\'s basemap.</b> You add and style your data on top but can\'t swap the layers underneath.' },
+    tableau:    { kind: 'vendor', text: '<b>Tableau\'s maps use Tableau\'s own basemaps.</b> You can pick its styles or add a custom map service, but the vendor runs the stack.' },
+  };
+  const STEP = {
+    vector: { order: ['data', 'tiles', 'style', 'render'],
+      tiles: ['Vector tiles: shapes and attributes, no colours.', 'Built once, then served'],
+      style: ['A Style JSON lists the layers in order (basemap, your data, labels) with colours, fonts and zoom ranges.', 'In your app, on every frame'],
+      render: ['The engine combines tiles, style and your data into the picture.', 'In the browser or notebook'] },
+    raster: { order: ['data', 'style', 'tiles', 'render'],
+      style: ['The provider styles the basemap first, on its own servers.', 'Before tiling, on the server'],
+      tiles: ['The styled basemap is cut into PNG or JPEG pictures.', 'Built by the provider'],
+      render: ['The engine lays the pictures side by side and draws your data on top.', 'In the browser or notebook'] },
+    vendor: { order: ['data', 'tiles', 'style', 'render'],
+      tiles: ['Chosen and hosted by the vendor.', 'Not your choice'],
+      style: ['Basemap style chosen by the vendor. You style your own data.', 'Mostly not your choice'],
+      render: ['The BI visual draws the basemap with your data on top.', 'Inside the BI tool'] },
+  };
+  const pipe = R('pipe');
+  function pickRenderer(key, animate) {
+    const r = RENDERERS[key], st = STEP[r.kind];
+    document.querySelectorAll('.picker .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.r === key));
+    const steps = [...pipe.children];
+    const first = new Map(steps.map(s => [s, s.getBoundingClientRect()]));
+    st.order.forEach((k, i) => {
+      const el = pipe.querySelector(`[data-s="${k}"]`);
+      el.style.order = i;
+      el.querySelector('.n').textContent = `Step ${i + 1}`;
+      if (st[k]) { el.querySelectorAll('p')[0].textContent = st[k][0]; el.querySelector('.where').textContent = st[k][1]; }
+      else el.querySelector('.where').textContent = 'Your choice of source';
+      el.classList.toggle('off', r.kind === 'vendor' && (k === 'tiles' || k === 'style'));
+      el.classList.toggle('moved', r.kind === 'raster' && (k === 'style' || k === 'tiles'));
+    });
+    if (animate && !reduce) steps.forEach(s => {
+      const a = first.get(s), b = s.getBoundingClientRect(), dx = a.left - b.left, dy = a.top - b.top;
+      if (dx || dy) s.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'none' }], { duration: 450, easing: 'cubic-bezier(.2,.7,.2,1)' });
+    });
+    R('verdict').innerHTML = r.text;
+  }
+  document.querySelectorAll('.picker .chip').forEach(c => c.addEventListener('click', () => pickRenderer(c.dataset.r, true)));
+  pickRenderer('maplibre', false);
+
+  // ---------- recipes ----------
+  const recTabs = document.querySelectorAll('[data-rec][role="tab"]');
+  recTabs.forEach(t => t.addEventListener('click', () => {
+    recTabs.forEach(o => o.setAttribute('aria-selected', o === t));
+    document.querySelectorAll('.recipe').forEach(p => p.hidden = p.dataset.rec !== t.dataset.rec);
+  }));
+})();
+</script>
 </body>
 </html>

@@ -8,7 +8,7 @@ Interactive, single-file HTML artefacts — each one replaces a wall of markdown
 |---|----------|----------|------|
 | 01 | Berkshire Hathaway 13F — Q1 2026 | Investing | [`berkshire-13f-q1-2026.html`](berkshire-13f-q1-2026.html) |
 | 02 | America First, Arsenal Abroad — US National Defense Strategy | Investing · Geopolitics | [`us-national-defense-strategy.html`](us-national-defense-strategy.html) |
-| 03 | The Map Stack — How a Digital Map Gets Made | Work · Maps | [`map-stack-explained.html`](map-stack-explained.html) |
+| 03 | The Map Stack — How a Web Map Is Built | Work · Maps | [`map-stack-explained.html`](map-stack-explained.html) |
 | 04 | How Australia Is Cut Into Areas — ABS ASGS & Friends | Work · Reference | [`asgs-geography-explainer.html`](asgs-geography-explainer.html) |
 | 05 | Web Scraping: A Field Guide — Edition II | Learning · Technical | [`scraping-field-guide.html`](scraping-field-guide.html) |
 | 06 | My AI Learning Journey | Tools · Presentation | [`ai-learning-journey.html`](ai-learning-journey.html) |
