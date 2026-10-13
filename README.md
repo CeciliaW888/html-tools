@@ -15,6 +15,7 @@ Each file is one `.html` with no build step and no dependencies beyond Google Fo
 |------|------------|
 | [`index.html`](index.html) | Landing page — links to every tool and the gallery |
 | [`tools/motion-lab/`](tools/motion-lab/) | Motion Lab — an interactive motion-study tool |
+| [`tools/rubiks-revenge-guide/`](tools/rubiks-revenge-guide/) | Cubey's 4x4 Adventure — kid-friendly Rubik's Revenge guide with an interactive 3D cube |
 | [`artefacts/`](artefacts/) | Artefact gallery — see its [README](artefacts/README.md) |
 
 ## The artefact gallery

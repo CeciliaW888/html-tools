@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Cubey's 4x4 Adventure – Solve the Rubik's Revenge</title>
+<style>
+:root{color-scheme:light;--ink:#1f2340;--soft:#5b6080;--bg:#fff8ec;--card:#ffffff;--accent:#8b5cf6;}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Comic Sans MS","Chalkboard SE","Trebuchet MS",system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  background-image:radial-gradient(#ffe4b5 1.5px,transparent 1.5px);background-size:26px 26px;}
+header{text-align:center;padding:14px 12px 4px}
+header h1{margin:0;font-size:clamp(26px,4.4vw,44px);letter-spacing:.5px}
+header h1 span{display:inline-block;padding:0 4px;border-radius:10px}
+header p{margin:4px 0 0;color:var(--soft);font-size:18px}
+/* step map */
+#map{display:flex;gap:10px;overflow-x:auto;padding:12px 14px 14px;justify-content:center;flex-wrap:wrap}
+.dot{width:56px;height:56px;border-radius:50%;border:4px solid #fff;color:#fff;font-weight:800;font-size:22px;cursor:pointer;
+  box-shadow:0 4px 0 rgba(0,0,0,.15);transition:transform .15s;flex:0 0 auto;font-family:inherit}
+.dot:hover{transform:scale(1.08)} .dot.on{transform:scale(1.18);border-color:var(--ink)}
+.dot.done::after{content:"✓";position:relative;top:-24px;left:18px;font-size:16px;background:#22c55e;border-radius:50%;padding:0 4px;border:2px solid #fff}
+main{display:grid;grid-template-columns:minmax(320px,1.1fr) minmax(300px,1fr);gap:18px;max-width:1240px;margin:0 auto;padding:0 14px 30px}
+@media (max-width:860px){main{grid-template-columns:1fr}}
+.panel{background:var(--card);border-radius:26px;box-shadow:0 6px 0 rgba(0,0,0,.08),0 10px 30px rgba(0,0,0,.06);padding:14px}
+#cubePanel{position:sticky;top:8px;align-self:start}
+@media (max-width:860px){#cubePanel{position:relative;top:0}}
+#stage{position:relative;width:100%;height:min(54vh,470px);min-height:300px;border-radius:20px;overflow:hidden;
+  background:radial-gradient(circle at 50% 40%,#f3f0ff,#dfe7ff);touch-action:none;cursor:grab}
+#stage:active{cursor:grabbing}
+#stage canvas{display:block;width:100%;height:100%}
+#hint{position:absolute;left:10px;bottom:8px;font-size:15px;color:#5b6080;background:rgba(255,255,255,.8);padding:4px 10px;border-radius:12px;pointer-events:none}
+#yay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;pointer-events:none;flex-direction:column}
+#yay.show{display:flex}
+#yay b{font-size:clamp(28px,5vw,46px);color:#fff;background:#22c55e;padding:8px 22px;border-radius:24px;box-shadow:0 6px 0 #15803d;animation:pop .5s ease-out}
+.star{position:absolute;width:22px;height:22px;background:#facc15;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);animation:fly 1.2s ease-out forwards}
+@keyframes pop{0%{transform:scale(.2)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes fly{0%{transform:translate(0,0) scale(.3);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.3) rotate(200deg);opacity:0}}
+/* move label */
+#moveBox{display:flex;align-items:center;gap:12px;margin:12px 0 8px;min-height:74px}
+#note{min-width:96px;height:70px;border-radius:18px;background:var(--ink);color:#fff;font-size:34px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 10px;font-family:"Trebuchet MS",system-ui,sans-serif}
+#note small{font-size:28px;margin-left:6px;color:#facc15}
+#plain{font-size:clamp(19px,2.4vw,24px);line-height:1.25;font-weight:700}
+#plain .sub{display:block;font-size:15px;font-weight:400;color:var(--soft)}
+#seq{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.chip{min-width:46px;padding:6px 8px;border-radius:12px;background:#eef0fb;color:var(--ink);text-align:center;font-weight:800;font-size:19px;border:3px solid transparent;font-family:"Trebuchet MS",system-ui,sans-serif}
+.chip i{display:block;font-style:normal;font-size:15px;color:var(--soft);font-weight:400}
+.chip.past{background:#dcfce7;color:#15803d}
+.chip.now{border-color:var(--ink);background:#fde68a;transform:scale(1.08)}
+/* controls */
+#controls{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.btn{font-family:inherit;border:none;border-radius:20px;min-height:64px;font-size:20px;font-weight:800;color:#fff;cursor:pointer;
+  box-shadow:0 6px 0 rgba(0,0,0,.22);transition:transform .08s,box-shadow .08s;padding:6px 10px;touch-action:manipulation;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.22)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn svg{width:26px;height:26px;fill:#fff}
+.b-play{background:#22c55e}.b-back{background:#f97316}.b-fwd{background:#3b82f6}.b-reset{background:#ef4444}
+#extra{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.pill{font-family:inherit;border:3px solid #d8dbf0;background:#fff;border-radius:999px;padding:8px 16px;font-size:17px;font-weight:700;cursor:pointer;color:var(--ink);min-height:48px}
+.pill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+/* step card */
+#card h2{margin:4px 0 6px;font-size:clamp(26px,3.4vw,36px);display:flex;align-items:center;gap:12px}
+.badge{width:56px;height:56px;border-radius:50%;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:28px;flex:0 0 auto;box-shadow:0 4px 0 rgba(0,0,0,.15)}
+.spell{display:inline-block;margin:2px 0 10px;padding:6px 16px;border-radius:999px;font-size:19px;font-weight:800;color:#fff}
+.spell::before{content:"Spell: ";font-weight:400;opacity:.9}
+#say{list-style:none;padding:0;margin:0 0 10px}
+#say li{font-size:clamp(19px,2.3vw,23px);line-height:1.35;padding:8px 0 8px 44px;position:relative}
+#say li::before{content:counter(li);counter-increment:li;position:absolute;left:0;top:7px;width:32px;height:32px;border-radius:50%;background:#eef0fb;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:18px}
+#say{counter-reset:li}
+.row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:6px 0 12px}
+.goal{display:flex;flex-direction:column;align-items:center;gap:4px}
+.goal .g{display:grid;grid-template-columns:repeat(4,22px);gap:3px;padding:6px;background:#1f2340;border-radius:10px}
+.goal .g div{width:22px;height:22px;border-radius:4px}
+.goal .g div.x{animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+.goal span{font-size:15px;color:var(--soft)}
+.algbig{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+.algbig .chip{background:#fff;border:3px solid #e2e5f6}
+.show{width:100%;margin:6px 0 8px;font-size:24px;min-height:72px}
+details{background:#fff7e0;border-radius:16px;padding:10px 14px;margin-top:8px}
+summary{font-weight:800;cursor:pointer;font-size:18px}
+details p{margin:8px 0 2px;font-size:17px;line-height:1.45;font-family:system-ui,sans-serif}
+#nav{display:flex;gap:10px;margin-top:12px}
+#nav .btn{flex:1;background:#8b5cf6}
+footer{text-align:center;color:var(--soft);font-size:14px;padding:0 12px 24px;font-family:system-ui,sans-serif}
+#selftest{display:inline-block;margin-top:6px;padding:4px 10px;border-radius:10px;background:#eef0fb}
+#err{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:18px}
+</style>
+</head>
+<body>
+<header>
+  <h1><span style="color:#ef4444">Cubey's</span> <span style="color:#3b82f6">4x4</span> <span style="color:#22c55e">Adventure</span></h1>
+  <p>Solve the big Rubik's cube, one little step at a time!</p>
+</header>
+<nav id="map" aria-label="Steps"></nav>
+<main>
+  <section class="panel" id="cubePanel">
+    <div id="stage"><div id="hint">Drag to spin Cubey around</div><div id="yay"><b>Yay! Cubey is happy!</b></div>
+      <div id="err">The 3D cube needs internet the first time to load. Check the connection and refresh.</div></div>
+    <div id="moveBox"><div id="note">–</div><div id="plain">Press <b>Play</b> to watch the spell!<span class="sub">Glowing pieces are the ones this step is fixing.</span></div></div>
+    <div id="seq"></div>
+    <div id="controls">
+      <button class="btn b-back" id="bBack" aria-label="Step back"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM9.5 12l8.5 6V6z"/></svg>Back</button>
+      <button class="btn b-play" id="bPlay" aria-label="Play"><svg viewBox="0 0 24 24" id="playIcon"><path d="M8 5v14l11-7z"/></svg><span id="playTxt">Play</span></button>
+      <button class="btn b-fwd" id="bFwd" aria-label="Step forward">Next<svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zM16 6h2v12h-2z"/></svg></button>
+      <button class="btn b-reset" id="bReset" aria-label="Reset"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/></svg>Reset</button>
+    </div>
+    <div id="extra">
+      <span style="font-weight:800">Speed:</span>
+      <button class="pill" data-speed="1100">Snail</button>
+      <button class="pill on" data-speed="650">Bunny</button>
+      <button class="pill" data-speed="320">Rocket</button>
+      <button class="pill" id="bView" style="margin-left:auto">Front view</button>
+    </div>
+  </section>
+  <section class="panel" id="card">
+    <h2><span class="badge" id="cNum">0</span><span id="cTitle"></span></h2>
+    <div class="spell" id="cSpell"></div>
+    <ul id="say"></ul>
+    <div class="row"><div class="goal" id="cGoal"></div><div class="algbig" id="cAlg"></div></div>
+    <button class="btn show" id="bShow" style="background:#8b5cf6">Show me the spell!</button>
+    <details><summary>For grown-ups</summary><p id="cParent"></p></details>
+    <div id="nav"><button class="btn" id="bPrev">&#8592; Back step</button><button class="btn" id="bNext">Next step &#8594;</button></div>
+  </section>
+</main>
+<footer>Colours: yellow top, white bottom, green front, orange right, red left, blue back.<br>
+Small letters (r, l, u) = only the inner slice. "w" (Rw, Uw) = two layers together.<br><span id="selftest">Checking spells…</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ===== Pure 4x4 cube model (no three.js) — coords doubled: -3,-1,1,3 ===== */
+var CubeLogic = (function(){
+  var COORDS=[-3,-1,1,3];
+  var FACE_COLORS={U:'Y',D:'W',F:'G',B:'B',R:'O',L:'R'};
+  var FACE_NORMALS={U:[0,1,0],D:[0,-1,0],F:[0,0,1],B:[0,0,-1],R:[1,0,0],L:[-1,0,0]};
+  function rotVec(v,axis,q){ // q quarter turns, + = right-hand about +axis
+    q=((q%4)+4)%4; var x=v[0],y=v[1],z=v[2],t;
+    for(var i=0;i<q;i++){
+      if(axis==='x'){t=y;y=-z;z=t;}
+      else if(axis==='y'){t=x;x=z;z=-t;}
+      else {t=x;x=-y;y=t;}
+    }
+    return [x,y,z];
+  }
+  function matMul(A,B){var C=[[0,0,0],[0,0,0],[0,0,0]];for(var i=0;i<3;i++)for(var j=0;j<3;j++)for(var k=0;k<3;k++)C[i][j]+=A[i][k]*B[k][j];return C;}
+  function rotMat(axis,q){ // columns = images of basis vectors
+    var ex=rotVec([1,0,0],axis,q),ey=rotVec([0,1,0],axis,q),ez=rotVec([0,0,1],axis,q);
+    return [[ex[0],ey[0],ez[0]],[ex[1],ey[1],ez[1]],[ex[2],ey[2],ez[2]]];
+  }
+  function applyM(M,v){return [M[0][0]*v[0]+M[0][1]*v[1]+M[0][2]*v[2],M[1][0]*v[0]+M[1][1]*v[1]+M[1][2]*v[2],M[2][0]*v[0]+M[2][1]*v[1]+M[2][2]*v[2]];}
+
+  function newCube(){
+    var cubies=[],id=0;
+    COORDS.forEach(function(x){COORDS.forEach(function(y){COORDS.forEach(function(z){
+      if(Math.abs(x)!==3&&Math.abs(y)!==3&&Math.abs(z)!==3) return;
+      var st=[];
+      for(var f in FACE_NORMALS){var n=FACE_NORMALS[f];
+        if((n[0]&&n[0]*x===3)||(n[1]&&n[1]*y===3)||(n[2]&&n[2]*z===3)) st.push({n:n.slice(),c:FACE_COLORS[f]});}
+      var ext=(Math.abs(x)===3)+(Math.abs(y)===3)+(Math.abs(z)===3);
+      cubies.push({id:id++,home:[x,y,z],pos:[x,y,z],R:[[1,0,0],[0,1,0],[0,0,1]],stickers:st,
+        type: ext===3?'corner':(ext===2?'edge':'centre')});
+    });});});
+    return cubies;
+  }
+  // ---- move table ----
+  // base: axis, layers, q (quarter turns for the un-primed move, right-hand about +axis)
+  var BASE={
+    R:['x',[3],-1], L:['x',[-3],1], U:['y',[3],-1], D:['y',[-3],1], F:['z',[3],-1], B:['z',[-3],1],
+    Rw:['x',[3,1],-1], Lw:['x',[-3,-1],1], Uw:['y',[3,1],-1], Dw:['y',[-3,-1],1], Fw:['z',[3,1],-1], Bw:['z',[-3,-1],1],
+    r:['x',[1],-1], l:['x',[-1],1], u:['y',[1],-1], d:['y',[-1],1], f:['z',[1],-1], b:['z',[-1],1],
+    x:['x',[-3,-1,1,3],-1], y:['y',[-3,-1,1,3],-1], z:['z',[-3,-1,1,3],-1]
+  };
+  function parseMove(tok){
+    var m=/^([A-Za-z]w?)(2|'|2')?$/.exec(tok); if(!m||!BASE[m[1]]) throw new Error('Bad move '+tok);
+    var b=BASE[m[1]], mult=m[2]==="'"?-1:(m[2]&&m[2][0]==='2'?2:1);
+    return {tok:tok,base:m[1],axis:b[0],layers:b[1],q:b[2]*mult,mult:mult};
+  }
+  function parseAlg(s){return s.trim()?s.trim().split(/\s+/).map(parseMove):[];}
+  function invertToken(tok){var mv=parseMove(tok);if(mv.mult===2)return tok;return mv.mult===1?mv.base+"'":mv.base;}
+  function invertAlg(s){return s.trim().split(/\s+/).reverse().map(invertToken).join(' ');}
+  function axisIdx(a){return a==='x'?0:a==='y'?1:2;}
+  function layerSel(cubies,mv){var i=axisIdx(mv.axis);return cubies.filter(function(c){return mv.layers.indexOf(c.pos[i])>=0;});}
+  function applyMove(cubies,mv){
+    var M=rotMat(mv.axis,mv.q);
+    layerSel(cubies,mv).forEach(function(c){c.pos=applyM(M,c.pos);c.R=matMul(M,c.R);});
+  }
+  function applyAlg(cubies,s){parseAlg(s).forEach(function(mv){applyMove(cubies,mv);});}
+  // Colour seen at each (position, facing) sticker slot
+  function facelets(cubies){
+    var out={};
+    cubies.forEach(function(c){c.stickers.forEach(function(s){var n=applyM(c.R,s.n);out[c.pos.join(',')+'|'+n.join(',')]=s.c;});});
+    return out;
+  }
+  function faceOf(n){for(var f in FACE_NORMALS){var m=FACE_NORMALS[f];if(m[0]===n[0]&&m[1]===n[1]&&m[2]===n[2])return f;}}
+  // A cubie is "happy" if every sticker shows the colour of the face it sits on
+  function cubieHappy(c){return c.stickers.every(function(s){return FACE_COLORS[faceOf(applyM(c.R,s.n))]===s.c;});}
+  function isSolved(cubies){return cubies.every(cubieHappy);}
+  function sameColours(a,b){var fa=facelets(a),fb=facelets(b);for(var k in fa)if(fa[k]!==fb[k])return false;return true;}
+  function unhappy(cubies,type){return cubies.filter(function(c){return (!type||type==='all'||c.type===type)&&!cubieHappy(c);});}
+  function clone(cubies){return cubies.map(function(c){return {id:c.id,home:c.home.slice(),pos:c.pos.slice(),R:c.R.map(function(r){return r.slice();}),stickers:c.stickers,type:c.type};});}
+  return {newCube:newCube,parseMove:parseMove,parseAlg:parseAlg,invertAlg:invertAlg,applyMove:applyMove,applyAlg:applyAlg,
+    isSolved:isSolved,cubieHappy:cubieHappy,unhappy:unhappy,facelets:facelets,sameColours:sameColours,clone:clone,applyM:applyM,FACE_COLORS:FACE_COLORS};
+})();
+if(typeof module!=='undefined') module.exports=CubeLogic;
+
+/* ===== Lesson steps. Each demo starts from: solved cube + inverse(alg). Playing alg must solve it. ===== */
+var STEPS = [
+ {id:'moves', num:'0', colour:'#8b5cf6', title:'Meet Cubey!', spell:'Wiggle Warm-up',
+  alg:"R R' U U' F F' L L'", hl:'none', goal:null,
+  say:['Hold Cubey with <b>yellow on top</b> and <b>green facing you</b>.','Each letter is a side. A little dash ( \' ) means turn it the other way.'],
+  parent:'Let them do each turn on the real cube while the demo plays. R = Right, L = Left, U = Up (top), D = Down (bottom), F = Front, B = Back.'},
+ {id:'centres', num:'1', colour:'#ef4444', title:'Colour Islands', spell:'The Elevator',
+  alg:"r U r'", hl:'centre', goal:'centres',
+  say:['Each side has a middle island of <b>4 squares</b>.','Make every island one colour. Start with white, then yellow.','The Elevator lifts a piece up, turns, and brings it back down.'],
+  parent:'Small r = only the slice next to the right side. Do white then yellow (opposite). Then the sides in order going right: green, orange, blue, red.'},
+ {id:'edges', num:'2', colour:'#f97316', title:'Edge Buddies', spell:'Buddy Maker',
+  alg:"Uw' R U R' F R' F' R Uw", hl:'edge', goal:'edges',
+  say:['Edges come in <b>pairs</b> that look the same.','Find two buddies and put them side by side.','Buddy Maker: drop the middle, swap an edge in, lift it back.'],
+  parent:'Put the two matching edge pieces at the front-left and front-right of the middle layers, lined up. Uw\' joins them; the middle bit swaps in an unpaired edge; Uw restores the islands.'},
+ {id:'cross', num:'3', colour:'#eab308', title:'White Flower Cross', spell:'Flip Down',
+  alg:"F2", hl:'edge', goal:'cross',
+  say:['Now Cubey is a <b>big 3x3</b>! Buddies move together.','Put white on the <b>bottom</b>.','Make a white plus sign. Side colours match their islands.'],
+  parent:'Find a white edge on top, turn the top until its side colour sits above the matching island, then do F2.'},
+ {id:'corners', num:'4', colour:'#22c55e', title:'White Corners', spell:'Robot Dance',
+  alg:"R U R' U'", hl:'corner', goal:'layer1',
+  say:['Put a white corner on top, above where it belongs.','Do the Robot Dance until it jumps in.','Up-left-down-right, like a robot!'],
+  parent:'Hold the target slot at front-right-bottom. Repeat R U R\' U\' (up to 5 times) until the corner is solved.'},
+ {id:'middle', num:'5', colour:'#14b8a6', title:'Middle Belt', spell:'Go Right',
+  alg:"U R U' R' U' F' U F", hl:'edge', goal:'layer2',
+  say:['Find a top edge with <b>no yellow</b>.','Line it up with its island.','Go Right sends it down into the belt.'],
+  parent:'Edge goes front-to-right: U R U\' R\' U\' F\' U F. Mirror for the left side: U\' L\' U L U F U\' F\'.'},
+ {id:'ycross', num:'6', colour:'#3b82f6', title:'Yellow Cross', spell:'Fly the Rocket',
+  alg:"F R U R' U' F'", hl:'edge', goal:'ycross',
+  say:['Look at the top. Is there a yellow dot, L or line?','Fly the Rocket until you see a yellow <b>plus</b>.','Odd shape that won\'t fix? Use the <b>Flip Spell</b>!'],
+  parent:'L shape: point it to back-left. Line: hold it left-right. Dot: do it, then follow the L. If you ever see an odd number of yellow edge pieces on top, that is OLL parity (Flip Spell).'},
+ {id:'yface', num:'7', colour:'#6366f1', title:'Yellow Face', spell:'Swirly Whirly',
+  alg:"R U R' U R U2 R'", hl:'corner', goal:'yface',
+  say:['Make the whole top yellow.','Do Swirly Whirly, turn the top, try again.','Swirl, swirl, double swirl!'],
+  parent:'This is "Sune". If one corner is yellow-up, hold it front-left. Otherwise hold so a yellow sticker faces left on the front-left corner.'},
+ {id:'ycorners', num:'8', colour:'#a855f7', title:'Corner Hop', spell:'Corner Hop',
+  alg:"U R U' L' U R' U' L", hl:'corner', goal:'ycorners',
+  say:['Find a corner that is <b>already home</b>.','Hold it front-right.','Corner Hop swaps the other three around.'],
+  parent:'A corner is "home" when its colours match the sides around it, even if twisted. Repeat until all four are home.'},
+ {id:'yedges', num:'9', colour:'#ec4899', title:'Merry-Go-Round', spell:'Merry-Go-Round',
+  alg:"R U' R U R U R U' R' U' R2", hl:'edge', goal:'solved',
+  say:['Find a side that is <b>all done</b>. Hold it at the back.','Ride the Merry-Go-Round!','Two edges swapped across? Use the <b>Swap Spell</b>!'],
+  parent:'This is the U-perm. If no side is done, do it once from anywhere first. If only two opposite edges are swapped, that is PLL parity.'},
+ {id:'oll', num:'★', colour:'#0ea5e9', title:'Magic Spell 1: Flip Spell', spell:'Flip Spell',
+  alg:"r2 B2 U2 l U2 r' U2 r U2 F2 r F2 l' B2 r2", hl:'edge', goal:'flip',
+  say:['Use it when one top buddy-pair is <b>upside down</b>.','Hold the flipped pair at the <b>front</b>.','Say it like a song: <i>r2 B2 U2 l…</i>'],
+  parent:'OLL parity. Small r / l = inner slices only. Learn it in 3 chunks: (r2 B2 U2) (l U2 r\' U2 r U2) (F2 r F2 l\' B2 r2).'},
+ {id:'pll', num:'★', colour:'#d946ef', title:'Magic Spell 2: Swap Spell', spell:'Swap Spell',
+  alg:"r2 U2 r2 Uw2 r2 u2", hl:'edge', goal:'swap',
+  say:['Use it when the front and back top edges need to <b>swap</b>.','Hold them front and back.','Only 6 moves. Twos everywhere!'],
+  parent:'PLL parity. Small r and u = inner slices only; Uw2 = top two layers. If two side-by-side edges are swapped, do the Merry-Go-Round first to make them opposite.'}
+];
+if(typeof module!=='undefined') module.exports=STEPS;
+
+</script>
+<script>
+(function(){
+var C=CubeLogic;
+var COL={Y:0xffd500,W:0xffffff,G:0x009b48,B:0x0046ad,O:0xff5800,R:0xc41e3a};
+var CSS={Y:'#ffd500',W:'#ffffff',G:'#009b48',B:'#0046ad',O:'#ff5800',R:'#c41e3a','.':'#4a4f6e',x:'#ff3df0'};
+
+/* ---------- plain-English labels ---------- */
+var WORDS={
+ R:['right side','UP','DOWN','↑','↓'], L:['left side','DOWN','UP','↓','↑'],
+ U:['top','to the LEFT','to the RIGHT','←','→'], D:['bottom','to the RIGHT','to the LEFT','→','←'],
+ F:['front','like a clock','the other way','↻','↺'], B:['back','(its top goes left)','(its top goes right)','↺','↻'],
+ Rw:['right TWO layers','UP','DOWN','⇈','⇊'], Lw:['left TWO layers','DOWN','UP','⇊','⇈'],
+ Uw:['top TWO layers','to the LEFT','to the RIGHT','⇇','⇉'], Dw:['bottom TWO layers','to the RIGHT','to the LEFT','⇉','⇇'],
+ Fw:['front TWO layers','like a clock','the other way','↻','↺'], Bw:['back TWO layers','(top goes left)','(top goes right)','↺','↻'],
+ r:['inner slice next to the right','UP','DOWN','↑','↓'], l:['inner slice next to the left','DOWN','UP','↓','↑'],
+ u:['slice just under the top','to the LEFT','to the RIGHT','←','→'], d:['slice just above the bottom','to the RIGHT','to the LEFT','→','←'],
+ f:['slice just behind the front','like a clock','the other way','↻','↺'], b:['slice just in front of the back','(top goes left)','(top goes right)','↺','↻'],
+ x:['whole cube','tip back (front goes up)','tip forward (front goes down)','⤒','⤓'],
+ y:['whole cube','spin to the LEFT','spin to the RIGHT','⟲','⟳'],
+ z:['whole cube','tilt like a clock','tilt the other way','↻','↺']
+};
+function plain(tok){var m=C.parseMove(tok),w=WORDS[m.base];
+  if(m.base==='x'||m.base==='y'||m.base==='z') return m.mult===2?'Turn the whole cube twice':'Turn the '+w[0]+': '+(m.mult===1?w[1]:w[2]);
+  if(m.mult===2) return 'Turn the '+w[0]+' TWICE (half way round)';
+  return 'Turn the '+w[0]+' '+(m.mult===1?w[1]:w[2]);}
+function arrow(tok){var m=C.parseMove(tok),w=WORDS[m.base];return m.mult===2?'×2':(m.mult===1?w[3]:w[4]);}
+
+/* ---------- goal mini pictures ---------- */
+var GOALS={
+ centres:['....','.WW.','.WW.','....','Every side'],
+ edges:['.GG.','O..R','O..R','.BB.','Buddies together'],
+ cross:['.WW.','WWWW','WWWW','.WW.','Bottom'],
+ layer1:['WWWW','WWWW','WWWW','WWWW','Bottom'],
+ layer2:['....','GGGG','GGGG','GGGG','Each side'],
+ ycross:['.YY.','YYYY','YYYY','.YY.','Top'],
+ yface:['YYYY','YYYY','YYYY','YYYY','Top'],
+ ycorners:['G..G','GGGG','GGGG','GGGG','Each side'],
+ solved:['GGGG','GGGG','GGGG','GGGG','All done!'],
+ flip:['YYYY','YYYY','YYYY','YxxY','Top'],
+ swap:['GxxG','GGGG','GGGG','GGGG','Front']
+};
+function goalHTML(k){if(!k||!GOALS[k])return '';var g=GOALS[k],h='<div class="g">';
+  for(var r=0;r<4;r++)for(var c=0;c<4;c++){var ch=g[r][c];h+='<div class="'+(ch==='x'?'x':'')+'" style="background:'+CSS[ch]+'"></div>';}
+  return h+'</div><span>Goal: '+g[4]+'</span>';}
+
+/* ---------- self-test (pure logic) ---------- */
+function selfTest(){var res=[];STEPS.forEach(function(s){var c=C.newCube();C.applyAlg(c,C.invertAlg(s.alg));
+  var changed=C.unhappy(c,'all').length>0||s.id==='moves';C.applyAlg(c,s.alg);res.push({id:s.id,ok:C.isSolved(c)&&changed});});return res;}
+
+/* ---------- three.js scene ---------- */
+var stage=document.getElementById('stage');
+if(typeof THREE==='undefined'){document.getElementById('err').style.display='flex';console.error('THREE not loaded');return;}
+var renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+stage.insertBefore(renderer.domElement,stage.firstChild);
+var scene=new THREE.Scene();
+var camera=new THREE.PerspectiveCamera(36,1,0.1,100);
+camera.position.set(0,0,12.5);
+scene.add(new THREE.AmbientLight(0xffffff,0.62));
+var dl=new THREE.DirectionalLight(0xffffff,0.55);dl.position.set(4,8,10);scene.add(dl);
+var dl2=new THREE.DirectionalLight(0xffffff,0.25);dl2.position.set(-6,-3,4);scene.add(dl2);
+var root=new THREE.Group();scene.add(root);
+var VIEW=new THREE.Quaternion().setFromEuler(new THREE.Euler(0.52,-0.62,0,'XYZ'));
+root.quaternion.copy(VIEW);
+var pivot=new THREE.Group();root.add(pivot);
+
+function roundRect(w,r){var s=new THREE.Shape(),h=w/2;s.moveTo(-h+r,-h);s.lineTo(h-r,-h);s.quadraticCurveTo(h,-h,h,-h+r);s.lineTo(h,h-r);
+  s.quadraticCurveTo(h,h,h-r,h);s.lineTo(-h+r,h);s.quadraticCurveTo(-h,h,-h,h-r);s.lineTo(-h,-h+r);s.quadraticCurveTo(-h,-h,-h+r,-h);return new THREE.ShapeGeometry(s);}
+var bodyGeo=new THREE.BoxGeometry(0.97,0.97,0.97), stickGeo=roundRect(0.82,0.12);
+var Z=new THREE.Vector3(0,0,1);
+var state=C.newCube(), meshes={};
+state.forEach(function(c){
+  var g=new THREE.Group(), body=new THREE.Mesh(bodyGeo,new THREE.MeshLambertMaterial({color:0x15172a,emissive:0x000000}));
+  g.add(body); g.userData.body=body; g.userData.stickers=[];
+  c.stickers.forEach(function(s){var m=new THREE.MeshLambertMaterial({color:COL[s.c],emissive:0x000000,side:THREE.DoubleSide});
+    var p=new THREE.Mesh(stickGeo,m),n=new THREE.Vector3(s.n[0],s.n[1],s.n[2]);
+    p.position.copy(n).multiplyScalar(0.492);p.quaternion.setFromUnitVectors(Z,n);g.add(p);g.userData.stickers.push({mesh:p,base:new THREE.Color(COL[s.c])});});
+  root.add(g); meshes[c.id]=g;
+});
+var tmpM=new THREE.Matrix4();
+function sync(){state.forEach(function(c){var g=meshes[c.id];g.position.set(c.pos[0]*0.5,c.pos[1]*0.5,c.pos[2]*0.5);
+  var R=c.R;tmpM.set(R[0][0],R[0][1],R[0][2],0,R[1][0],R[1][1],R[1][2],0,R[2][0],R[2][1],R[2][2],0,0,0,0,1);g.quaternion.setFromRotationMatrix(tmpM);});}
+function resize(){var w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;
+  camera.position.z=w/h<0.9?15.5:12.5;camera.updateProjectionMatrix();}
+window.addEventListener('resize',resize);
+
+/* ---------- drag to rotate ---------- */
+var drag=null;
+stage.addEventListener('pointerdown',function(e){drag={x:e.clientX,y:e.clientY};stage.setPointerCapture(e.pointerId);});
+stage.addEventListener('pointermove',function(e){if(!drag)return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag={x:e.clientX,y:e.clientY};
+  var qy=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),dx*0.011),qx=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),dy*0.011);
+  root.quaternion.premultiply(qy).premultiply(qx);});
+['pointerup','pointercancel'].forEach(function(t){stage.addEventListener(t,function(){drag=null;});});
+var viewAnim=null;
+document.getElementById('bView').onclick=function(){viewAnim={from:root.quaternion.clone(),t0:performance.now()};};
+
+/* ---------- lesson player ---------- */
+var cur=0, moves=[], idx=0, playing=false, anim=null, speed=650, hlSet={}, done={};
+var $=function(id){return document.getElementById(id);};
+function setHighlight(step){hlSet={};if(step.hl!=='none')C.unhappy(state,step.hl).forEach(function(c){hlSet[c.id]=1;});}
+function loadStep(i){
+  stopPlay(); if(anim){finishAnim();} cur=i; var s=STEPS[i];
+  state=C.newCube(); C.applyAlg(state,C.invertAlg(s.alg)); moves=C.parseAlg(s.alg); idx=0;
+  setHighlight(s); sync(); hideYay();
+  $('cNum').textContent=s.num;$('cNum').style.background=s.colour;$('cTitle').textContent=s.title;
+  $('cSpell').textContent=s.spell;$('cSpell').style.background=s.colour;
+  $('say').innerHTML=s.say.map(function(t){return '<li>'+t+'</li>';}).join('');
+  $('cGoal').innerHTML=goalHTML(s.goal);
+  $('cAlg').innerHTML=moves.map(function(m){return '<span class="chip">'+m.tok+'<i>'+arrow(m.tok)+'</i></span>';}).join('');
+  $('cParent').textContent=s.parent; $('bShow').style.background=s.colour;
+  $('bPrev').disabled=i===0;$('bNext').disabled=i===STEPS.length-1;
+  document.querySelectorAll('.dot').forEach(function(d,k){d.classList.toggle('on',k===i);});
+  renderSeq();
+}
+function renderSeq(){
+  $('seq').innerHTML=moves.map(function(m,k){return '<span class="chip '+(k<idx?'past':(k===idx&&(playing||anim)?'now':''))+'">'+m.tok+'</span>';}).join('');
+  var showK=anim?anim.k:(idx>0?idx-1:-1);
+  if(showK>=0){var t=moves[showK].tok;$('note').innerHTML=t+'<small>'+arrow(t)+'</small>';$('plain').innerHTML=plain(t)+'<span class="sub">Move '+(showK+1)+' of '+moves.length+'</span>';}
+  else{$('note').textContent='Ready';$('plain').innerHTML='Press <b>Play</b> to watch the spell!<span class="sub">Glowing pieces are the ones this step is fixing.</span>';}
+  $('bBack').disabled=idx===0&&!anim; $('bFwd').disabled=idx>=moves.length&&!anim;
+  $('playTxt').textContent=playing?'Pause':(idx>=moves.length?'Again':'Play');
+  $('playIcon').innerHTML=playing?'<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>':'<path d="M8 5v14l11-7z"/>';
+}
+function startMove(dir){ // dir +1 forward, -1 back
+  if(anim)return false;
+  var k=dir>0?idx:idx-1; if(k<0||k>=moves.length)return false;
+  var mv=moves[k], q=dir>0?mv.q:-mv.q, lm={axis:mv.axis,layers:mv.layers,q:q};
+  var ai=mv.axis==='x'?0:mv.axis==='y'?1:2;
+  pivot.rotation.set(0,0,0);
+  state.forEach(function(c){if(mv.layers.indexOf(c.pos[ai])>=0)pivot.attach(meshes[c.id]);});
+  anim={lm:lm,k:k,dir:dir,t0:performance.now(),dur:speed*(Math.abs(q)===2?1.4:1)};
+  hideYay(); renderSeq(); return true;
+}
+function finishAnim(){
+  var a=anim; anim=null;
+  pivot.children.slice().forEach(function(g){root.attach(g);});
+  pivot.rotation.set(0,0,0);
+  C.applyMove(state,a.lm); idx+=a.dir; sync(); renderSeq();
+  if(idx>=moves.length&&a.dir>0){
+    if(C.isSolved(state)){done[cur]=1;markDone();showYay();}
+    else console.error('Step '+STEPS[cur].id+' did not end solved!');
+    stopPlay();
+  }
+}
+function tick(now){
+  if(anim){var t=Math.min(1,(now-anim.t0)/anim.dur),e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    pivot.rotation.set(0,0,0);pivot.rotation[anim.lm.axis]=anim.lm.q*Math.PI/2*e;
+    if(t>=1){finishAnim(); if(playing){setTimeout(function(){if(playing&&!anim)startMove(1);},Math.max(120,speed*0.35));}}}
+  if(viewAnim){var vt=Math.min(1,(now-viewAnim.t0)/500);root.quaternion.copy(viewAnim.from).slerp(VIEW,vt);if(vt>=1)viewAnim=null;}
+  var pulse=0.5+0.5*Math.sin(now/260), anyHL=Object.keys(hlSet).length>0;
+  for(var id in meshes){var g=meshes[id],on=!!hlSet[id];
+    g.userData.stickers.forEach(function(s){s.mesh.material.color.copy(s.base);
+      if(anyHL&&!on)s.mesh.material.color.multiplyScalar(0.55);
+      s.mesh.material.emissive.setRGB(on?0.28*pulse:0,on?0.28*pulse:0,on?0.22*pulse:0);});
+    g.userData.body.material.emissive.setRGB(on?0.55*pulse:0,on?0.45*pulse:0,on?0.05:0);}
+  renderer.render(scene,camera); requestAnimationFrame(tick);
+}
+function play(){ if(idx>=moves.length){loadStep(cur);} playing=true; renderSeq(); if(!anim)startMove(1);}
+function stopPlay(){playing=false;renderSeq();}
+$('bPlay').onclick=function(){playing?stopPlay():play();};
+$('bFwd').onclick=function(){stopPlay();startMove(1);};
+$('bBack').onclick=function(){stopPlay();startMove(-1);};
+$('bReset').onclick=function(){loadStep(cur);};
+$('bShow').onclick=function(){loadStep(cur);play();};
+$('bPrev').onclick=function(){if(cur>0)loadStep(cur-1);};
+$('bNext').onclick=function(){if(cur<STEPS.length-1)loadStep(cur+1);};
+document.querySelectorAll('[data-speed]').forEach(function(b){b.onclick=function(){speed=+b.dataset.speed;
+  document.querySelectorAll('[data-speed]').forEach(function(x){x.classList.toggle('on',x===b);});};});
+
+function markDone(){document.querySelectorAll('.dot').forEach(function(d,k){d.classList.toggle('done',!!done[k]);});}
+function showYay(){var y=$('yay');y.classList.add('show');y.querySelectorAll('.star').forEach(function(s){s.remove();});
+  for(var i=0;i<14;i++){var s=document.createElement('div');s.className='star';s.style.left='50%';s.style.top='50%';
+    var a=i/14*Math.PI*2;s.style.setProperty('--dx',Math.cos(a)*160+'px');s.style.setProperty('--dy',Math.sin(a)*130+'px');
+    s.style.background=['#facc15','#ef4444','#3b82f6','#22c55e','#f97316'][i%5];y.appendChild(s);}
+  clearTimeout(showYay.t);showYay.t=setTimeout(hideYay,2600);}
+function hideYay(){$('yay').classList.remove('show');}
+
+/* map */
+$('map').innerHTML=STEPS.map(function(s,k){return '<button class="dot" title="'+s.title+'" style="background:'+s.colour+'">'+s.num+'</button>';}).join('');
+document.querySelectorAll('.dot').forEach(function(d,k){d.onclick=function(){loadStep(k);};});
+
+resize();
+var hm=/step=(\d+)/.exec(location.hash||''), first=hm?Math.min(STEPS.length-1,+hm[1]):0;
+loadStep(first); requestAnimationFrame(tick);
+if(/autoplay/.test(location.hash||'')) setTimeout(play,600);
+
+/* self-test report */
+var st=selfTest(),allOk=st.every(function(r){return r.ok;});
+$('selftest').textContent=allOk?'All '+st.length+' spells checked: each one ends with a solved cube.':'Problem found in: '+st.filter(function(r){return !r.ok;}).map(function(r){return r.id;}).join(', ');
+console.log('SELFTEST '+(allOk?'PASS':'FAIL')+' '+JSON.stringify(st));
+setTimeout(function(){renderer.render(scene,camera);var gl=renderer.getContext(),px=new Uint8Array(4);
+  gl.readPixels(Math.floor(gl.drawingBufferWidth/2),Math.floor(gl.drawingBufferHeight/2),1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);
+  console.log('RENDERCHECK centre pixel rgba='+Array.from(px).join(',')+' meshes='+Object.keys(meshes).length+' calls='+renderer.info.render.calls);},400);
+window.__cubey={mesh:function(id){return meshes[id];},STEPS:STEPS,state:function(){return state;},loadStep:loadStep,startMove:startMove,isAnimating:function(){return !!anim;},idx:function(){return idx;},moves:function(){return moves;},C:C,setSpeed:function(v){speed=v;}};
+})();
+</script>
+</body>
+</html>
