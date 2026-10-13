@@ -5,125 +5,120 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Cubey's 4x4 Adventure – Solve the Rubik's Revenge</title>
 <style>
-:root{color-scheme:light;--ink:#1f2340;--soft:#5b6080;--bg:#fff8ec;--card:#ffffff;--accent:#8b5cf6;}
+:root{color-scheme:light;--ink:#1f2340;--soft:#5b6080;--bg:#fff8ec;--card:#ffffff;}
 *{box-sizing:border-box}
 body{margin:0;font-family:"Comic Sans MS","Chalkboard SE","Trebuchet MS",system-ui,sans-serif;background:var(--bg);color:var(--ink);
   background-image:radial-gradient(#ffe4b5 1.5px,transparent 1.5px);background-size:26px 26px;}
 header{text-align:center;padding:14px 12px 4px}
 header h1{margin:0;font-size:clamp(26px,4.4vw,44px);letter-spacing:.5px}
-header h1 span{display:inline-block;padding:0 4px;border-radius:10px}
 header p{margin:4px 0 0;color:var(--soft);font-size:18px}
-/* step map */
-#map{display:flex;gap:10px;overflow-x:auto;padding:12px 14px 14px;justify-content:center;flex-wrap:wrap}
-.dot{width:56px;height:56px;border-radius:50%;border:4px solid #fff;color:#fff;font-weight:800;font-size:22px;cursor:pointer;
-  box-shadow:0 4px 0 rgba(0,0,0,.15);transition:transform .15s;flex:0 0 auto;font-family:inherit}
-.dot:hover{transform:scale(1.08)} .dot.on{transform:scale(1.18);border-color:var(--ink)}
-.dot.done::after{content:"✓";position:relative;top:-24px;left:18px;font-size:16px;background:#22c55e;border-radius:50%;padding:0 4px;border:2px solid #fff}
+#map{display:flex;gap:8px;padding:12px 14px 14px;justify-content:center;flex-wrap:wrap;min-height:20px}
+.dot{width:48px;height:48px;border-radius:50%;border:4px solid #fff;color:#fff;font-weight:800;font-size:19px;cursor:pointer;
+  box-shadow:0 4px 0 rgba(0,0,0,.15);transition:transform .15s;flex:0 0 auto;font-family:inherit;position:relative}
+.dot:hover{transform:scale(1.08)} .dot.on{transform:scale(1.2);border-color:var(--ink)}
+.dot.done::after{content:"✓";position:absolute;top:-8px;right:-8px;font-size:13px;background:#22c55e;border-radius:50%;width:20px;height:20px;line-height:18px;border:2px solid #fff}
+.dot.mix{background:#64748b}
 main{display:grid;grid-template-columns:minmax(320px,1.1fr) minmax(300px,1fr);gap:18px;max-width:1240px;margin:0 auto;padding:0 14px 30px}
 @media (max-width:860px){main{grid-template-columns:1fr}}
 .panel{background:var(--card);border-radius:26px;box-shadow:0 6px 0 rgba(0,0,0,.08),0 10px 30px rgba(0,0,0,.06);padding:14px}
 #cubePanel{position:sticky;top:8px;align-self:start}
 @media (max-width:860px){#cubePanel{position:relative;top:0}}
-#stage{position:relative;width:100%;height:min(54vh,470px);min-height:300px;border-radius:20px;overflow:hidden;
+#stage{position:relative;width:100%;height:min(50vh,450px);min-height:290px;border-radius:20px;overflow:hidden;
   background:radial-gradient(circle at 50% 40%,#f3f0ff,#dfe7ff);touch-action:none;cursor:grab}
 #stage:active{cursor:grabbing}
 #stage canvas{display:block;width:100%;height:100%}
 #hint{position:absolute;left:10px;bottom:8px;font-size:15px;color:#5b6080;background:rgba(255,255,255,.8);padding:4px 10px;border-radius:12px;pointer-events:none}
+#holdTag{position:absolute;right:10px;top:8px;font-size:14px;background:rgba(255,255,255,.85);padding:4px 10px;border-radius:12px;pointer-events:none}
 #yay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;pointer-events:none;flex-direction:column}
 #yay.show{display:flex}
-#yay b{font-size:clamp(28px,5vw,46px);color:#fff;background:#22c55e;padding:8px 22px;border-radius:24px;box-shadow:0 6px 0 #15803d;animation:pop .5s ease-out}
+#yay b{font-size:clamp(26px,5vw,44px);color:#fff;background:#22c55e;padding:8px 22px;border-radius:24px;box-shadow:0 6px 0 #15803d;animation:pop .5s ease-out;text-align:center}
 .star{position:absolute;width:22px;height:22px;background:#facc15;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);animation:fly 1.2s ease-out forwards}
 @keyframes pop{0%{transform:scale(.2)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
 @keyframes fly{0%{transform:translate(0,0) scale(.3);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.3) rotate(200deg);opacity:0}}
-/* move label */
 #moveBox{display:flex;align-items:center;gap:12px;margin:12px 0 8px;min-height:74px}
-#note{min-width:96px;height:70px;border-radius:18px;background:var(--ink);color:#fff;font-size:34px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 10px;font-family:"Trebuchet MS",system-ui,sans-serif}
-#note small{font-size:28px;margin-left:6px;color:#facc15}
-#plain{font-size:clamp(19px,2.4vw,24px);line-height:1.25;font-weight:700}
+#note{min-width:96px;height:70px;border-radius:18px;background:var(--ink);color:#fff;font-size:32px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 10px;font-family:"Trebuchet MS",system-ui,sans-serif;white-space:nowrap}
+#note small{font-size:26px;margin-left:6px;color:#facc15}
+#plain{font-size:clamp(18px,2.3vw,23px);line-height:1.25;font-weight:700}
 #plain .sub{display:block;font-size:15px;font-weight:400;color:var(--soft)}
-#seq{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
-.chip{min-width:46px;padding:6px 8px;border-radius:12px;background:#eef0fb;color:var(--ink);text-align:center;font-weight:800;font-size:19px;border:3px solid transparent;font-family:"Trebuchet MS",system-ui,sans-serif}
-.chip i{display:block;font-style:normal;font-size:15px;color:var(--soft);font-weight:400}
+#seq{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px;max-height:150px;overflow:auto}
+.chip{min-width:44px;padding:6px 8px;border-radius:12px;background:#eef0fb;color:var(--ink);text-align:center;font-weight:800;font-size:18px;border:3px solid transparent;font-family:"Trebuchet MS",system-ui,sans-serif}
+.chip i{display:block;font-style:normal;font-size:14px;color:var(--soft);font-weight:400}
 .chip.past{background:#dcfce7;color:#15803d}
-.chip.now{border-color:var(--ink);background:#fde68a;transform:scale(1.08)}
-/* controls */
+.chip.now{border-color:var(--ink);background:#fde68a}
 #controls{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .btn{font-family:inherit;border:none;border-radius:20px;min-height:64px;font-size:20px;font-weight:800;color:#fff;cursor:pointer;
-  box-shadow:0 6px 0 rgba(0,0,0,.22);transition:transform .08s,box-shadow .08s;padding:6px 10px;touch-action:manipulation;display:flex;align-items:center;justify-content:center;gap:8px}
+  box-shadow:0 6px 0 rgba(0,0,0,.22);transition:transform .08s,box-shadow .08s;padding:6px 12px;touch-action:manipulation;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center}
 .btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.22)}
 .btn:disabled{opacity:.45;cursor:default}
-.btn svg{width:26px;height:26px;fill:#fff}
+.btn svg{width:26px;height:26px;fill:#fff;flex:0 0 auto}
 .b-play{background:#22c55e}.b-back{background:#f97316}.b-fwd{background:#3b82f6}.b-reset{background:#ef4444}
 #extra{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center}
 .pill{font-family:inherit;border:3px solid #d8dbf0;background:#fff;border-radius:999px;padding:8px 16px;font-size:17px;font-weight:700;cursor:pointer;color:var(--ink);min-height:48px}
 .pill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-/* step card */
-#card h2{margin:4px 0 6px;font-size:clamp(26px,3.4vw,36px);display:flex;align-items:center;gap:12px}
-.badge{width:56px;height:56px;border-radius:50%;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:28px;flex:0 0 auto;box-shadow:0 4px 0 rgba(0,0,0,.15)}
-.spell{display:inline-block;margin:2px 0 10px;padding:6px 16px;border-radius:999px;font-size:19px;font-weight:800;color:#fff}
+#card h2{margin:4px 0 6px;font-size:clamp(25px,3.3vw,34px);display:flex;align-items:center;gap:12px}
+.badge{width:54px;height:54px;border-radius:50%;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto;box-shadow:0 4px 0 rgba(0,0,0,.15)}
+.spell{display:inline-block;margin:2px 0 10px;padding:6px 16px;border-radius:999px;font-size:18px;font-weight:800;color:#fff}
 .spell::before{content:"Spell: ";font-weight:400;opacity:.9}
-#say{list-style:none;padding:0;margin:0 0 10px}
-#say li{font-size:clamp(19px,2.3vw,23px);line-height:1.35;padding:8px 0 8px 44px;position:relative}
-#say li::before{content:counter(li);counter-increment:li;position:absolute;left:0;top:7px;width:32px;height:32px;border-radius:50%;background:#eef0fb;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:18px}
-#say{counter-reset:li}
-.row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:6px 0 12px}
-.goal{display:flex;flex-direction:column;align-items:center;gap:4px}
-.goal .g{display:grid;grid-template-columns:repeat(4,22px);gap:3px;padding:6px;background:#1f2340;border-radius:10px}
-.goal .g div{width:22px;height:22px;border-radius:4px}
-.goal .g div.x{animation:blink 1s infinite}
-@keyframes blink{50%{opacity:.25}}
-.goal span{font-size:15px;color:var(--soft)}
-.algbig{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+.why{font-size:clamp(19px,2.3vw,23px);line-height:1.35;margin:4px 0 12px}
+.case{background:#f3f4ff;border-radius:20px;padding:14px 16px;margin:8px 0;border-left:8px solid #8b5cf6}
+.case .part{font-size:15px;color:var(--soft);margin-bottom:4px;font-family:system-ui,sans-serif}
+.case p{margin:0 0 10px;font-size:clamp(18px,2.2vw,22px);line-height:1.4}
+.algbig{display:flex;flex-wrap:wrap;gap:6px}
 .algbig .chip{background:#fff;border:3px solid #e2e5f6}
-.show{width:100%;margin:6px 0 8px;font-size:24px;min-height:72px}
-details{background:#fff7e0;border-radius:16px;padding:10px 14px;margin-top:8px}
+.algbig .chip.now{border-color:var(--ink);background:#fde68a}
+.algbig .chip.past{background:#dcfce7;border-color:#bbf7d0}
+.check{background:#ecfdf5;border:4px dashed #22c55e;border-radius:22px;padding:14px 16px;margin:8px 0}
+.check h3{margin:0 0 6px;font-size:26px;color:#15803d}
+.check p{margin:4px 0 10px;font-size:20px;line-height:1.35}
+.net{display:grid;grid-template-columns:repeat(16,1fr);gap:2px;max-width:380px;margin:6px auto 10px}
+.net div{aspect-ratio:1;border-radius:3px}
+.net .gap{background:transparent}
+.netlbl{text-align:center;font-size:14px;color:var(--soft);font-family:system-ui,sans-serif;margin-top:-4px}
+.row2{display:flex;gap:10px;flex-wrap:wrap}
+.row2 .btn{flex:1;min-width:170px}
+.tip{display:none;background:#fff7e0;border-radius:14px;padding:10px 14px;font-size:17px;line-height:1.45;font-family:system-ui,sans-serif;margin-top:10px}
+.tip.show{display:block}
+details{background:#fff7e0;border-radius:16px;padding:10px 14px;margin-top:10px}
 summary{font-weight:800;cursor:pointer;font-size:18px}
-details p{margin:8px 0 2px;font-size:17px;line-height:1.45;font-family:system-ui,sans-serif}
-#nav{display:flex;gap:10px;margin-top:12px}
-#nav .btn{flex:1;background:#8b5cf6}
-footer{text-align:center;color:var(--soft);font-size:14px;padding:0 12px 24px;font-family:system-ui,sans-serif}
+details p{margin:8px 0 2px;font-size:16px;line-height:1.45;font-family:system-ui,sans-serif}
+textarea{width:100%;font-size:18px;font-family:"Trebuchet MS",system-ui,sans-serif;border:3px solid #d8dbf0;border-radius:14px;padding:10px;min-height:80px}
+.err{color:#b91c1c;font-family:system-ui,sans-serif;font-size:16px;margin-top:6px}
+.prog{font-size:15px;color:var(--soft);font-family:system-ui,sans-serif;margin-top:8px}
+footer{text-align:center;color:var(--soft);font-size:14px;padding:0 12px 24px;font-family:system-ui,sans-serif;line-height:1.5}
 #selftest{display:inline-block;margin-top:6px;padding:4px 10px;border-radius:10px;background:#eef0fb}
-#err{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:18px}
+#err3d{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:18px}
 </style>
 </head>
 <body>
 <header>
   <h1><span style="color:#ef4444">Cubey's</span> <span style="color:#3b82f6">4x4</span> <span style="color:#22c55e">Adventure</span></h1>
-  <p>Solve the big Rubik's cube, one little step at a time!</p>
+  <p>Mix up the big cube, then solve it together, one step at a time!</p>
 </header>
 <nav id="map" aria-label="Steps"></nav>
 <main>
   <section class="panel" id="cubePanel">
-    <div id="stage"><div id="hint">Drag to spin Cubey around</div><div id="yay"><b>Yay! Cubey is happy!</b></div>
-      <div id="err">The 3D cube needs internet the first time to load. Check the connection and refresh.</div></div>
-    <div id="moveBox"><div id="note">–</div><div id="plain">Press <b>Play</b> to watch the spell!<span class="sub">Glowing pieces are the ones this step is fixing.</span></div></div>
+    <div id="stage"><div id="hint">Drag to look around Cubey</div><div id="holdTag"></div><div id="yay"><b id="yayTxt">Yay!</b></div>
+      <div id="err3d">The 3D cube needs internet the first time to load. Check the connection and refresh.</div></div>
+    <div id="moveBox"><div id="note">Ready</div><div id="plain">Press <b>Play</b>!<span class="sub"></span></div></div>
     <div id="seq"></div>
     <div id="controls">
-      <button class="btn b-back" id="bBack" aria-label="Step back"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM9.5 12l8.5 6V6z"/></svg>Back</button>
+      <button class="btn b-back" id="bBack" aria-label="Back one move"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM9.5 12l8.5 6V6z"/></svg>Back</button>
       <button class="btn b-play" id="bPlay" aria-label="Play"><svg viewBox="0 0 24 24" id="playIcon"><path d="M8 5v14l11-7z"/></svg><span id="playTxt">Play</span></button>
-      <button class="btn b-fwd" id="bFwd" aria-label="Step forward">Next<svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zM16 6h2v12h-2z"/></svg></button>
-      <button class="btn b-reset" id="bReset" aria-label="Reset"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/></svg>Reset</button>
+      <button class="btn b-fwd" id="bFwd" aria-label="Next move">Next<svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zM16 6h2v12h-2z"/></svg></button>
+      <button class="btn b-reset" id="bReset" aria-label="Restart this step"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/></svg>Redo</button>
     </div>
     <div id="extra">
       <span style="font-weight:800">Speed:</span>
       <button class="pill" data-speed="1100">Snail</button>
       <button class="pill on" data-speed="650">Bunny</button>
-      <button class="pill" data-speed="320">Rocket</button>
+      <button class="pill" data-speed="300">Rocket</button>
       <button class="pill" id="bView" style="margin-left:auto">Front view</button>
     </div>
   </section>
-  <section class="panel" id="card">
-    <h2><span class="badge" id="cNum">0</span><span id="cTitle"></span></h2>
-    <div class="spell" id="cSpell"></div>
-    <ul id="say"></ul>
-    <div class="row"><div class="goal" id="cGoal"></div><div class="algbig" id="cAlg"></div></div>
-    <button class="btn show" id="bShow" style="background:#8b5cf6">Show me the spell!</button>
-    <details><summary>For grown-ups</summary><p id="cParent"></p></details>
-    <div id="nav"><button class="btn" id="bPrev">&#8592; Back step</button><button class="btn" id="bNext">Next step &#8594;</button></div>
-  </section>
+  <section class="panel" id="card"></section>
 </main>
-<footer>Colours: yellow top, white bottom, green front, orange right, red left, blue back.<br>
-Small letters (r, l, u) = only the inner slice. "w" (Rw, Uw) = two layers together.<br><span id="selftest">Checking spells…</span></footer>
+<footer>Yellow on top and green in front to start. Small letters (r, l, u, d, f, b) turn only an inner slice. "w" (Rw, Uw) turns two layers. y spins the whole cube.<br>
+<span id="selftest">Checking the solver…</span></footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -197,70 +192,404 @@ var CubeLogic = (function(){
   function sameColours(a,b){var fa=facelets(a),fb=facelets(b);for(var k in fa)if(fa[k]!==fb[k])return false;return true;}
   function unhappy(cubies,type){return cubies.filter(function(c){return (!type||type==='all'||c.type===type)&&!cubieHappy(c);});}
   function clone(cubies){return cubies.map(function(c){return {id:c.id,home:c.home.slice(),pos:c.pos.slice(),R:c.R.map(function(r){return r.slice();}),stickers:c.stickers,type:c.type};});}
-  return {newCube:newCube,parseMove:parseMove,parseAlg:parseAlg,invertAlg:invertAlg,applyMove:applyMove,applyAlg:applyAlg,
+  return {rotVec:rotVec,BASE:BASE,newCube:newCube,parseMove:parseMove,parseAlg:parseAlg,invertAlg:invertAlg,applyMove:applyMove,applyAlg:applyAlg,
     isSolved:isSolved,cubieHappy:cubieHappy,unhappy:unhappy,facelets:facelets,sameColours:sameColours,clone:clone,applyM:applyM,FACE_COLORS:FACE_COLORS};
 })();
 if(typeof module!=='undefined') module.exports=CubeLogic;
 
-/* ===== Lesson steps. Each demo starts from: solved cube + inverse(alg). Playing alg must solve it. ===== */
-var STEPS = [
- {id:'moves', num:'0', colour:'#8b5cf6', title:'Meet Cubey!', spell:'Wiggle Warm-up',
-  alg:"R R' U U' F F' L L'", hl:'none', goal:null,
-  say:['Hold Cubey with <b>yellow on top</b> and <b>green facing you</b>.','Each letter is a side. A little dash ( \' ) means turn it the other way.'],
-  parent:'Let them do each turn on the real cube while the demo plays. R = Right, L = Left, U = Up (top), D = Down (bottom), F = Front, B = Back.'},
- {id:'centres', num:'1', colour:'#ef4444', title:'Colour Islands', spell:'The Elevator',
-  alg:"r U r'", hl:'centre', goal:'centres',
-  say:['Each side has a middle island of <b>4 squares</b>.','Make every island one colour. Start with white, then yellow.','The Elevator lifts a piece up, turns, and brings it back down.'],
-  parent:'Small r = only the slice next to the right side. Do white then yellow (opposite). Then the sides in order going right: green, orange, blue, red.'},
- {id:'edges', num:'2', colour:'#f97316', title:'Edge Buddies', spell:'Buddy Maker',
-  alg:"Uw' R U R' F R' F' R Uw", hl:'edge', goal:'edges',
-  say:['Edges come in <b>pairs</b> that look the same.','Find two buddies and put them side by side.','Buddy Maker: drop the middle, swap an edge in, lift it back.'],
-  parent:'Put the two matching edge pieces at the front-left and front-right of the middle layers, lined up. Uw\' joins them; the middle bit swaps in an unpaired edge; Uw restores the islands.'},
- {id:'cross', num:'3', colour:'#eab308', title:'White Flower Cross', spell:'Flip Down',
-  alg:"F2", hl:'edge', goal:'cross',
-  say:['Now Cubey is a <b>big 3x3</b>! Buddies move together.','Put white on the <b>bottom</b>.','Make a white plus sign. Side colours match their islands.'],
-  parent:'Find a white edge on top, turn the top until its side colour sits above the matching island, then do F2.'},
- {id:'corners', num:'4', colour:'#22c55e', title:'White Corners', spell:'Robot Dance',
-  alg:"R U R' U'", hl:'corner', goal:'layer1',
-  say:['Put a white corner on top, above where it belongs.','Do the Robot Dance until it jumps in.','Up-left-down-right, like a robot!'],
-  parent:'Hold the target slot at front-right-bottom. Repeat R U R\' U\' (up to 5 times) until the corner is solved.'},
- {id:'middle', num:'5', colour:'#14b8a6', title:'Middle Belt', spell:'Go Right',
-  alg:"U R U' R' U' F' U F", hl:'edge', goal:'layer2',
-  say:['Find a top edge with <b>no yellow</b>.','Line it up with its island.','Go Right sends it down into the belt.'],
-  parent:'Edge goes front-to-right: U R U\' R\' U\' F\' U F. Mirror for the left side: U\' L\' U L U F U\' F\'.'},
- {id:'ycross', num:'6', colour:'#3b82f6', title:'Yellow Cross', spell:'Fly the Rocket',
-  alg:"F R U R' U' F'", hl:'edge', goal:'ycross',
-  say:['Look at the top. Is there a yellow dot, L or line?','Fly the Rocket until you see a yellow <b>plus</b>.','Odd shape that won\'t fix? Use the <b>Flip Spell</b>!'],
-  parent:'L shape: point it to back-left. Line: hold it left-right. Dot: do it, then follow the L. If you ever see an odd number of yellow edge pieces on top, that is OLL parity (Flip Spell).'},
- {id:'yface', num:'7', colour:'#6366f1', title:'Yellow Face', spell:'Swirly Whirly',
-  alg:"R U R' U R U2 R'", hl:'corner', goal:'yface',
-  say:['Make the whole top yellow.','Do Swirly Whirly, turn the top, try again.','Swirl, swirl, double swirl!'],
-  parent:'This is "Sune". If one corner is yellow-up, hold it front-left. Otherwise hold so a yellow sticker faces left on the front-left corner.'},
- {id:'ycorners', num:'8', colour:'#a855f7', title:'Corner Hop', spell:'Corner Hop',
-  alg:"U R U' L' U R' U' L", hl:'corner', goal:'ycorners',
-  say:['Find a corner that is <b>already home</b>.','Hold it front-right.','Corner Hop swaps the other three around.'],
-  parent:'A corner is "home" when its colours match the sides around it, even if twisted. Repeat until all four are home.'},
- {id:'yedges', num:'9', colour:'#ec4899', title:'Merry-Go-Round', spell:'Merry-Go-Round',
-  alg:"R U' R U R U R U' R' U' R2", hl:'edge', goal:'solved',
-  say:['Find a side that is <b>all done</b>. Hold it at the back.','Ride the Merry-Go-Round!','Two edges swapped across? Use the <b>Swap Spell</b>!'],
-  parent:'This is the U-perm. If no side is done, do it once from anywhere first. If only two opposite edges are swapped, that is PLL parity.'},
- {id:'oll', num:'★', colour:'#0ea5e9', title:'Magic Spell 1: Flip Spell', spell:'Flip Spell',
-  alg:"r2 B2 U2 l U2 r' U2 r U2 F2 r F2 l' B2 r2", hl:'edge', goal:'flip',
-  say:['Use it when one top buddy-pair is <b>upside down</b>.','Hold the flipped pair at the <b>front</b>.','Say it like a song: <i>r2 B2 U2 l…</i>'],
-  parent:'OLL parity. Small r / l = inner slices only. Learn it in 3 chunks: (r2 B2 U2) (l U2 r\' U2 r U2) (F2 r F2 l\' B2 r2).'},
- {id:'pll', num:'★', colour:'#d946ef', title:'Magic Spell 2: Swap Spell', spell:'Swap Spell',
-  alg:"r2 U2 r2 Uw2 r2 u2", hl:'edge', goal:'swap',
-  say:['Use it when the front and back top edges need to <b>swap</b>.','Hold them front and back.','Only 6 moves. Twos everywhere!'],
-  parent:'PLL parity. Small r and u = inner slices only; Uw2 = top two layers. If two side-by-side edges are swapped, do the Merry-Go-Round first to make them opposite.'}
-];
-if(typeof module!=='undefined') module.exports=STEPS;
+/* ===== Fast sticker model: 96 sticker slots, each move = a permutation ===== */
+var SM = (function(CL){
+  var FACES=['U','D','F','B','R','L'];
+  var NRM={U:[0,1,0],D:[0,-1,0],F:[0,0,1],B:[0,0,-1],R:[1,0,0],L:[-1,0,0]};
+  var AXS={U:{r:[0,0,1],c:[1,0,0]},D:{r:[0,0,-1],c:[1,0,0]},F:{r:[0,-1,0],c:[1,0,0]},
+           B:{r:[0,-1,0],c:[-1,0,0]},R:{r:[0,-1,0],c:[0,0,-1]},L:{r:[0,-1,0],c:[0,0,1]}};
+  var AXIS_OF={U:'y',D:'y',F:'z',B:'z',R:'x',L:'x'};
+  var SLOTS=[],KEY={},FACE_SLOTS={},CENTRES={};
+  function k3(p){return p.map(function(v){return v===0?0:v;}).join(',');}
+  FACES.forEach(function(f){var n=NRM[f],a=AXS[f];FACE_SLOTS[f]=[];CENTRES[f]=[];
+    for(var i=0;i<4;i++)for(var j=0;j<4;j++){
+      var p=[0,1,2].map(function(k){return n[k]*3+a.r[k]*(2*i-3)+a.c[k]*(2*j-3);});
+      var s={face:f,i:i,j:j,pos:p,n:n,idx:SLOTS.length};
+      s.kind=((i===1||i===2)&&(j===1||j===2))?'centre':(((i===0||i===3)&&(j===0||j===3))?'corner':'edge');
+      KEY[k3(p)+'|'+k3(n)]=s.idx;SLOTS.push(s);FACE_SLOTS[f].push(s.idx);if(s.kind==='centre')CENTRES[f].push(s.idx);}
+  });
+  function slotAt(pos,n){return KEY[k3(pos)+'|'+k3(n)];}
+  var PERM={};
+  function perm(tok){
+    if(PERM[tok])return PERM[tok];
+    var mv=CL.parseMove(tok),ai=mv.axis==='x'?0:mv.axis==='y'?1:2,f=new Array(96);
+    SLOTS.forEach(function(s){
+      if(mv.layers.indexOf(s.pos[ai])>=0) f[s.idx]=slotAt(CL.rotVec(s.pos,mv.axis,mv.q),CL.rotVec(s.n,mv.axis,mv.q));
+      else f[s.idx]=s.idx;});
+    return (PERM[tok]=f);
+  }
+  function apply(st,tok){var f=perm(tok),o=new Array(96);for(var i=0;i<96;i++)o[f[i]]=st[i];return o;}
+  function applySeq(st,seq){for(var i=0;i<seq.length;i++)st=apply(st,seq[i]);return st;}
+  function track(slot,seq){for(var i=0;i<seq.length;i++)slot=perm(seq[i])[slot];return slot;}
+  function fromCubies(cubies){var fl=CL.facelets(cubies),st=new Array(96);
+    SLOTS.forEach(function(s){st[s.idx]=fl[k3(s.pos)+'|'+k3(s.n)];});return st;}
+  function solvedState(){var st=new Array(96);SLOTS.forEach(function(s){st[s.idx]=CL.FACE_COLORS[s.face];});return st;}
+
+  // ---- pieces ----
+  var EDGE_NAMES=['UF','UR','UB','UL','DF','DR','DB','DL','FR','FL','BR','BL'];
+  var EDGES={};
+  EDGE_NAMES.forEach(function(nm){var A=nm[0],B=nm[1],na=NRM[A],nb=NRM[B];
+    var e=[0,1,2].map(function(k){return (na[k]===0&&nb[k]===0)?1:0;});
+    var wings=[-1,1].map(function(t){var p=[0,1,2].map(function(k){return na[k]*3+nb[k]*3+e[k]*t;});
+      return {pos:p,a:slotAt(p,na),b:slotAt(p,nb)};});
+    EDGES[nm]={name:nm,A:A,B:B,wings:wings};});
+  var CORNER_NAMES=['UFR','UFL','UBR','UBL','DFR','DFL','DBR','DBL'];
+  var CORNERS={};
+  CORNER_NAMES.forEach(function(nm){var fs=nm.split('');
+    var p=[0,1,2].map(function(k){return fs.reduce(function(s,f){return s+NRM[f][k]*3;},0);});
+    CORNERS[nm]={name:nm,faces:fs,slots:fs.map(function(f){return slotAt(p,NRM[f]);})};});
+
+  return {FACES:FACES,NRM:NRM,AXIS_OF:AXIS_OF,SLOTS:SLOTS,FACE_SLOTS:FACE_SLOTS,CENTRES:CENTRES,slotAt:slotAt,perm:perm,
+    apply:apply,applySeq:applySeq,track:track,fromCubies:fromCubies,solvedState:solvedState,
+    EDGE_NAMES:EDGE_NAMES,EDGES:EDGES,CORNER_NAMES:CORNER_NAMES,CORNERS:CORNERS};
+})(CubeLogic);
+if(typeof module!=='undefined') module.exports=SM;
+
+/* ===== Beginner reduction solver: works on the REAL current state ===== */
+var Solver = (function(SM){
+  var COLNAME={W:'white',Y:'yellow',G:'green',B:'blue',O:'orange',R:'red'};
+  var FACENAME={U:'top',D:'bottom',F:'front',B:'back',R:'right',L:'left'};
+  var SPELLS={
+    elevator:'The Elevator', buddy:'Buddy Maker', flipdown:'Flip Down', robot:'Robot Dance',
+    goright:'Go Right', goleft:'Go Left', rocket:'Fly the Rocket', swirly:'Swirly Whirly',
+    hop:'Corner Hop', merry:'Merry-Go-Round', flip:'Flip Spell', swap:'Swap Spell'};
+  var ALG={
+    buddyMids:["R U R'","R U' R'","F' U' F","F' U F","R F' U R' F","R U R' F R' F' R"].map(function(a){return a.split(' ');}),
+    goRight:"U R U' R' U' F' U F".split(' '),
+    goLeft:"U' L' U L U F U' F'".split(' '),
+    robot:"R U R' U'".split(' '),
+    rocket:"F R U R' U' F'".split(' '),
+    swirly:"R U R' U R U2 R'".split(' '),
+    hop:"R' F R' B2 R F' R' B2 R2".split(' '),
+    merry:"R U' R U R U R U' R' U' R2".split(' '),
+    flip:"r2 B2 U2 l U2 r' U2 r U2 F2 r F2 l' B2 r2".split(' '),
+    swap:"r2 U2 r2 Uw2 r2 u2".split(' ')
+  };
+  var TARGET={D:'W',U:'Y',F:'G',R:'O',B:'B',L:'R'}; // centre colours we build (yellow top, green front)
+  function pw(f,n){n=((n%4)+4)%4;return n===0?null:(n===1?f:(n===2?f+'2':f+"'"));}
+  function inv(t){if(/2$/.test(t))return t;return /'$/.test(t)?t.slice(0,-1):t+"'";}
+  function cn(c){return COLNAME[c];}
+  function an(c){return /^[aeiou]/.test(COLNAME[c])?'An':'A';}
+  function simplify(seq){var out=[];seq.forEach(function(t){if(!t)return;
+      var m=/^([A-Za-z]w?)(2|')?$/.exec(t),b=m[1],n=m[2]==="'"?3:(m[2]==='2'?2:1);
+      if(out.length){var p=/^([A-Za-z]w?)(2|')?$/.exec(out[out.length-1]);if(p[1]===b){var pn=p[2]==="'"?3:(p[2]==='2'?2:1),tot=(pn+n)%4;out.pop();if(tot)out.push(pw(b,tot));return;}}
+      out.push(t);});return out;}
+  function cnt(st,f,c){return SM.CENTRES[f].filter(function(s){return st[s]===c;}).length;}
+  function centreCol(st,f){return st[SM.CENTRES[f][0]];}
+  function centresDone(st){return SM.FACES.every(function(f){var c=centreCol(st,f);return cnt(st,f,c)===4;});}
+  function centresTarget(st){return SM.FACES.every(function(f){return cnt(st,f,TARGET[f])===4;});}
+  function isPaired(st,e){var w=SM.EDGES[e].wings;return st[w[0].a]===st[w[1].a]&&st[w[0].b]===st[w[1].b];}
+  function pairedCount(st){return SM.EDGE_NAMES.filter(function(e){return isPaired(st,e);}).length;}
+  function faceSolved(st,f){var c=st[SM.FACE_SLOTS[f][0]];return SM.FACE_SLOTS[f].every(function(s){return st[s]===c;});}
+  function isSolved(st){return SM.FACES.every(function(f){return faceSolved(st,f);});}
+
+  /* ---------- 3x3-level helpers (after reduction) ---------- */
+  function edgeCols(st,e){var w=SM.EDGES[e].wings[1];var o={};o[SM.EDGES[e].A]=st[w.a];o[SM.EDGES[e].B]=st[w.b];return o;}
+  function findEdge(st,c1,c2){for(var i=0;i<12;i++){var e=SM.EDGE_NAMES[i],E=SM.EDGES[e],w=E.wings[1];
+      var a=st[w.a],b=st[w.b];if((a===c1&&b===c2)||(a===c2&&b===c1)){var r={slot:e};r[c1]=(a===c1?E.A:E.B);r[c2]=(a===c1?E.B:E.A);return r;}}
+    return null;}
+  function cornerCols(st,k){var C=SM.CORNERS[k],o={};C.faces.forEach(function(f,i){o[f]=st[C.slots[i]];});return o;}
+  function findCorner(st,cols){for(var i=0;i<8;i++){var k=SM.CORNER_NAMES[i],o=cornerCols(st,k),vals=Object.keys(o).map(function(f){return o[f];});
+      if(cols.every(function(c){return vals.indexOf(c)>=0;})){var r={slot:k,faceOf:{}};Object.keys(o).forEach(function(f){r.faceOf[o[f]]=f;});return r;}}return null;}
+  function faceOfCentre(st,c){for(var i=0;i<6;i++)if(centreCol(st,SM.FACES[i])===c)return SM.FACES[i];}
+  function edgeHome(st,e){var o=edgeCols(st,e);return Object.keys(o).every(function(f){return o[f]===centreCol(st,f);});}
+  function cornerHome(st,k){var o=cornerCols(st,k);return Object.keys(o).every(function(f){return o[f]===centreCol(st,f);});}
+  function cornerPlaced(st,k){var o=cornerCols(st,k),want=SM.CORNERS[k].faces.map(function(f){return centreCol(st,f);}).sort().join('');
+    return Object.keys(o).map(function(f){return o[f];}).sort().join('')===want;}
+  var CROSS=['DF','DR','DB','DL'],MID=['FR','FL','BR','BL'],UE=['UF','UR','UB','UL'],UC=['UFR','UFL','UBL','UBR'],DC=['DFR','DFL','DBR','DBL'];
+  function crossDone(st){return CROSS.every(function(e){return edgeHome(st,e);});}
+  function layer1Done(st){return crossDone(st)&&DC.every(function(k){return cornerHome(st,k);});}
+  function layer2Done(st){return layer1Done(st)&&MID.every(function(e){return edgeHome(st,e);});}
+  function yCrossDone(st){return layer2Done(st)&&UE.every(function(e){return edgeCols(st,e).U===centreCol(st,'U');});}
+  function yFaceDone(st){return layer2Done(st)&&faceSolved(st,'U');}
+  function cornersDone(st){return yFaceDone(st)&&UC.every(function(k){return cornerHome(st,k);});}
+  // which y-turns (0..3) puts colour c on the front centre
+  function yTo(st,c){for(var k=0;k<4;k++){var s=st;for(var i=0;i<k;i++)s=SM.apply(s,'y');if(centreCol(s,'F')===c)return k;}return 0;}
+
+  function solve(start){
+    var st=start.slice(),phases=[],P=null;
+    function phase(o){P={id:o.id,title:o.title,spell:o.spell||'',why:o.why,goal:o.goal,chunks:[]};phases.push(P);}
+    function chunk(text,moves,hl,spell){moves=simplify((moves||[]).filter(Boolean));
+      P.chunks.push({text:text,moves:moves,hl:hl||[],spell:spell||''});st=SM.applySeq(st,moves);}
+    function endPhase(check){P.ok=check(st);if(!P.chunks.length)chunk('Already done! Nothing to do here.',[],[]);P.endState=st.slice();}
+
+    /* ===== 1. CENTRES ("Colour Islands") ===== */
+    var protectedF=[];
+    var CPH=[{f:['D'],id:'c-white',title:'White Island',goal:'island-W'},{f:['U'],id:'c-yellow',title:'Yellow Island',goal:'island-Y'},
+             {f:['F'],id:'c-green',title:'Green Island',goal:'island-G'},{f:['R'],id:'c-orange',title:'Orange Island',goal:'island-O'},
+             {f:['B','L'],id:'c-last',title:'Blue & Red Islands',goal:'islands'}];
+    CPH.forEach(function(ph){
+      var T0=ph.f[0];
+      phase({id:ph.id,title:ph.title,spell:SPELLS.elevator,goal:ph.goal,
+        why:ph.f.length>1?'The last two middles finish together, so every side knows its colour.':
+          'Every side needs a middle island of 4 squares all one colour. This one goes on the '+FACENAME[T0]+'.'});
+      ph.f.forEach(function(T){var col=TARGET[T],guard=0;
+        while(cnt(st,T,col)<4&&guard++<40){
+          var best=null,before=cnt(st,T,col);
+          SM.FACES.forEach(function(X){
+            if(X===T||protectedF.indexOf(X)>=0||cnt(st,X,col)===0)return;
+            var aT=SM.AXIS_OF[T],aX=SM.AXIS_OF[X],axes=['x','y','z'].filter(function(a){return a!==aT&&a!==aX;});
+            var slices=[];axes.forEach(function(a){slices=slices.concat({x:['r','l'],y:['u','d'],z:['f','b']}[a]);});
+            slices.forEach(function(s){[1,2,3].forEach(function(k){for(var a=0;a<4;a++)for(var b=0;b<4;b++)for(var c=1;c<4;c++){
+              var sk=pw(s,k),seq=[pw(X,a),pw(T,b),sk,pw(T,c),inv(sk)].filter(Boolean);
+              var s2=SM.applySeq(st,seq),ok=protectedF.every(function(f){return cnt(s2,f,TARGET[f])===4;});
+              if(!ok)continue;var gain=cnt(s2,T,col)-before;if(gain<=0)continue;
+              if(!best||gain>best.gain||(gain===best.gain&&seq.length<best.seq.length))best={gain:gain,seq:seq,X:X};}});});
+          });
+          if(!best)throw new Error('centre stuck '+T);
+          var hl=[],src={};SM.FACES.forEach(function(f){if(f===T)return;SM.CENTRES[f].forEach(function(c){if(st[c]===col&&SM.SLOTS[SM.track(c,best.seq)].face===T){hl.push(c);src[f]=1;}});});
+          var srcF=Object.keys(src)[0]||best.X;
+          chunk((hl.length>1?'Two '+cn(col)+' pieces are':an(col)+' '+cn(col)+' piece is')+' on the '+FACENAME[srcF]+' side. '+
+            (hl.length>1?'Line them up':'Line it up')+', ride the Elevator to the '+FACENAME[T]+', turn, and ride back.',best.seq,hl,SPELLS.elevator);
+        }
+        protectedF.push(T);});
+      endPhase(function(s){return protectedF.every(function(f){return cnt(s,f,TARGET[f])===4;});});
+    });
+
+    /* ===== 2. EDGE PAIRING ("Edge Buddies") ===== */
+    phase({id:'edges',title:'Edge Buddies',spell:SPELLS.buddy,goal:'edges',
+      why:'Each edge comes as two buddies. Once all buddies are together, Cubey solves like a small 3x3.'});
+    var OUTER=[];['U','D','F','B','R','L'].forEach(function(f){OUTER.push(f,f+"'",f+'2');});
+    var FLup=SM.EDGES.FL.wings[1],FLdn=SM.EDGES.FL.wings[0],FRup=SM.EDGES.FR.wings[1],FRdn=SM.EDGES.FR.wings[0];
+    function wingsAll(){var r=[];SM.EDGE_NAMES.forEach(function(e){SM.EDGES[e].wings.forEach(function(w){r.push({e:e,a:w.a,b:w.b});});});return r;}
+    function setupsFor(s,A,B){ // BFS outer moves so A,B sit FL/FR in different layers
+      var start={a1:A.a,b1:A.b,a2:B.a,b2:B.b,seq:[]},seen={},q=[start],out=[];
+      seen[[A.a,A.b,B.a,B.b].join()]=1;
+      function at(x,w){return x===w.a||x===w.b;}
+      while(q.length&&out.length<4){var n=q.shift();
+        var combos=[[FLup,FRdn,"u'"],[FLdn,FRup,'d']];
+        for(var ci=0;ci<2;ci++){var c=combos[ci];
+          if((at(n.a1,c[0])&&at(n.a2,c[1]))||(at(n.a2,c[0])&&at(n.a1,c[1]))){
+            var s2=SM.applySeq(s,n.seq.concat([c[2]]));if(isPaired(s2,'FR'))out.push({seq:n.seq,slice:c[2]});}}
+        if(n.seq.length>=4)continue;
+        for(var i=0;i<OUTER.length;i++){var m=OUTER[i],f=SM.perm(m);
+          if(n.seq.length&&n.seq[n.seq.length-1][0]===m[0])continue;
+          var k=[f[n.a1],f[n.b1],f[n.a2],f[n.b2]];if(seen[k.join()])continue;seen[k.join()]=1;
+          q.push({a1:k[0],b1:k[1],a2:k[2],b2:k[3],seq:n.seq.concat([m])});}}
+      return out;}
+    function pairCandidates(s){
+      var before=pairedCount(s),res=[],ws=wingsAll();
+      ws.forEach(function(A){if(isPaired(s,A.e))return;
+        var B=ws.filter(function(w){return w!==A&&!(w.a===A.a)&&((s[w.a]===s[A.a]&&s[w.b]===s[A.b])||(s[w.a]===s[A.b]&&s[w.b]===s[A.a]));})[0];
+        if(!B||B.e===A.e)return;
+        setupsFor(s,A,B).forEach(function(su){for(var m=0;m<4;m++)ALG.buddyMids.forEach(function(mid){
+          var seq=su.seq.concat([su.slice,pw('U',m)]).concat(mid).concat([inv(su.slice)]).filter(Boolean);
+          var s2=SM.applySeq(s,seq);if(!centresTarget(s2))return;
+          res.push({gain:pairedCount(s2)-before,seq:seq,A:A,B:B,setup:su.seq.length,state:s2});});});});
+      res.sort(function(x,y){return (y.gain-x.gain)||(x.seq.length-y.seq.length);});
+      return res;}
+    function twoSlotFix(s){ // last-two-edges style: put two unpaired dedges front-left & front-right, then slice-trick
+      var un=SM.EDGE_NAMES.filter(function(e){return !isPaired(s,e);});if(un.length<2)return null;
+      var before=pairedCount(s),FLs=[SM.EDGES.FL.wings[0].a,SM.EDGES.FL.wings[0].b,SM.EDGES.FL.wings[1].a,SM.EDGES.FL.wings[1].b],
+          FRs=[SM.EDGES.FR.wings[0].a,SM.EDGES.FR.wings[0].b,SM.EDGES.FR.wings[1].a,SM.EDGES.FR.wings[1].b];
+      for(var i=0;i<un.length;i++)for(var j=i+1;j<un.length;j++){
+        var t1=SM.EDGES[un[i]].wings[0].a,t2=SM.EDGES[un[j]].wings[0].a,q=[{a:t1,b:t2,seq:[]}],seen={},setups=[];seen[t1+','+t2]=1;
+        while(q.length&&setups.length<24){var n=q.shift();
+          if((FLs.indexOf(n.a)>=0&&FRs.indexOf(n.b)>=0)||(FRs.indexOf(n.a)>=0&&FLs.indexOf(n.b)>=0))setups.push(n.seq);
+          if(n.seq.length>=4)continue;
+          for(var k=0;k<OUTER.length;k++){var m=OUTER[k],f=SM.perm(m);if(n.seq.length&&n.seq[n.seq.length-1][0]===m[0])continue;
+            var key=f[n.a]+','+f[n.b];if(seen[key])continue;seen[key]=1;q.push({a:f[n.a],b:f[n.b],seq:n.seq.concat([m])});}}
+        var bestF=null;
+        setups.forEach(function(su){["d","u'","d'","u"].forEach(function(sl){for(var mU=0;mU<4;mU++)ALG.buddyMids.forEach(function(mid){
+          var seq=su.concat([sl,pw('U',mU)]).concat(mid).concat([inv(sl)]).filter(Boolean),s2=SM.applySeq(s,seq);
+          if(!centresTarget(s2))return;var g=pairedCount(s2)-before;
+          if(g>0&&(!bestF||g>bestF.gain||(g===bestF.gain&&seq.length<bestF.seq.length)))bestF={gain:g,seq:seq,e1:un[i],e2:un[j]};});});});
+        if(bestF)return bestF;}
+      return null;}
+    var guardE=0;
+    while(pairedCount(st)<12&&guardE++<30){
+      var pc=pairedCount(st),pick=null;
+      if(pc<10){var cands=pairCandidates(st);pick=cands.filter(function(c){return c.gain>0;})[0]||null;}
+      if(pick){var cs=st[pick.A.a],cb=st[pick.A.b];
+        chunk('The '+cn(cs)+'-'+cn(cb)+' buddies are apart. '+(pick.setup?'Turn the outside so one is front-left and one is front-right, then':'They are already front-left and front-right, so')+
+          ' Buddy Maker: slide the middle to join them, tuck the pair away, slide back.',pick.seq,[pick.A.a,pick.A.b,pick.B.a,pick.B.b],SPELLS.buddy);
+        continue;}
+      var fx=twoSlotFix(st);if(!fx)throw new Error('edge pairing stuck at '+pc);
+      var w1=SM.EDGES[fx.e1].wings,w2=SM.EDGES[fx.e2].wings;
+      chunk((pc>=10?'Last two edges! ':'')+'Two edges are mixed up. Put them front-left and front-right, then a special Buddy Maker fixes '+(fx.gain>1?'both':'one')+' at once.',
+        fx.seq,[w1[0].a,w1[0].b,w1[1].a,w1[1].b,w2[0].a,w2[0].b,w2[1].a,w2[1].b],SPELLS.buddy);
+    }
+    endPhase(function(s){return pairedCount(s)===12&&centresTarget(s);});
+
+    /* ===== 3. WHITE CROSS ===== */
+    phase({id:'cross',title:'White Cross',spell:SPELLS.flipdown,goal:'cross',
+      why:'Now we solve like a 3x3, starting with a white plus sign on the bottom. It is the base for everything.'});
+    ['G','O','B','R'].forEach(function(X){
+      var k=yTo(st,X),moves=[],text=[];
+      var s=SM.applySeq(st,[pw('y',k)].filter(Boolean));
+      var loc=findEdge(s,'W',X),hlE=loc.slot;
+      if(k)text.push('Spin Cubey so the '+cn(X)+' side faces you.');
+      if(loc.slot==='DF'&&loc.W==='D'){chunk((k?text.join(' ')+' ':'')+'The white-'+cn(X)+' edge is already home!',[pw('y',k)],[]);return;}
+      var pre=[];
+      if(loc.slot[0]==='D'){pre=[loc.slot[1]+'2'];text.push('The white-'+cn(X)+' edge is on the bottom in the wrong spot, so lift it to the top.');}
+      else if(MID.indexOf(loc.slot)>=0){pre={FR:["R","U","R'"],FL:["L'","U'","L"],BR:["R'","U","R"],BL:["L","U'","L'"]}[loc.slot];
+        text.push('The white-'+cn(X)+' edge is stuck in the middle, so pop it up to the top.');}
+      else text.push('The white-'+cn(X)+' edge is in the top layer.');
+      var s2=SM.applySeq(s,pre),l2=findEdge(s2,'W',X),m=0;
+      for(;m<4;m++){var s3=SM.applySeq(s2,[pw('U',m)].filter(Boolean));if(findEdge(s3,'W',X).slot==='UF')break;}
+      var s3b=SM.applySeq(s2,[pw('U',m)].filter(Boolean)),l3=findEdge(s3b,'W',X);
+      var fin=l3.W==='U'?['F2']:["U'","R'","F","R"];
+      text.push((m?'Turn the top to bring it to the front. ':'')+(l3.W==='U'?'White is facing up, so Flip Down!':'White is facing you, so do the side-step: U\' R\' F R.'));
+      var seq=[pw('y',k)].concat(pre,[pw('U',m)],fin);
+      // highlight in st (before y): track back position of edge
+      var e0=findEdge(st,'W',X),E0=SM.EDGES[e0.slot];
+      chunk(text.join(' ').replace('. Turn','. Turn'),seq,[E0.wings[0].a,E0.wings[0].b,E0.wings[1].a,E0.wings[1].b],l3.W==='U'?SPELLS.flipdown:'');
+    });
+    endPhase(crossDone);
+
+    /* ===== 4. WHITE CORNERS ===== */
+    phase({id:'corners',title:'White Corners',spell:SPELLS.robot,goal:'layer1',
+      why:'Four white corners finish the whole bottom layer.'});
+    [['G','O'],['O','B'],['B','R'],['R','G']].forEach(function(pair){
+      var X=pair[0],Y=pair[1],k=yTo(st,X),s=SM.applySeq(st,[pw('y',k)].filter(Boolean)),text=[];
+      // after y, front=X, right should be Y
+      var nm=cn(X)+'-'+cn(Y);
+      var c0=findCorner(st,['W',X,Y]),C0=SM.CORNERS[c0.slot];
+      if(k)text.push('Spin Cubey so '+cn(X)+' faces you and '+cn(Y)+' is on the right.');
+      var loc=findCorner(s,['W',X,Y]);
+      if(loc.slot==='DFR'&&cornerHome(s,'DFR')){chunk((text.length?text.join(' ')+' ':'')+'The white-'+nm+' corner is already home!',[pw('y',k)],[]);return;}
+      var pre=[];
+      if(loc.slot[0]==='D'){pre={DFR:["R","U","R'"],DFL:["L'","U'","L"],DBR:["R'","U'","R"],DBL:["L","U","L'"]}[loc.slot];
+        text.push('The white-'+nm+' corner is stuck on the bottom, so lift it to the top first.');}
+      else text.push('The white-'+nm+' corner is on top.');
+      var s2=SM.applySeq(s,pre),m=0;
+      for(;m<4;m++){if(findCorner(SM.applySeq(s2,[pw('U',m)].filter(Boolean)),['W',X,Y]).slot==='UFR')break;}
+      var s3=SM.applySeq(s2,[pw('U',m)].filter(Boolean)),reps=0,s4=s3;
+      while(!cornerHome(s4,'DFR')&&reps<6){s4=SM.applySeq(s4,ALG.robot);reps++;}
+      if(m)text.push('Turn the top so it sits right above its home.');
+      text.push('Robot Dance '+(reps===1?'once':reps+' times')+' until it jumps in!');
+      var seq=[pw('y',k)].concat(pre,[pw('U',m)]);for(var r=0;r<reps;r++)seq=seq.concat(ALG.robot);
+      chunk(text.join(' '),seq,C0.slots.slice(),SPELLS.robot);
+    });
+    endPhase(layer1Done);
+
+    /* ===== 5. MIDDLE BELT ===== */
+    phase({id:'middle',title:'Middle Belt',spell:SPELLS.goright,goal:'layer2',
+      why:'Four edges with no yellow go into the middle belt. Then two layers are done!'});
+    [['G','O'],['O','B'],['B','R'],['R','G']].forEach(function(pair){
+      var X=pair[0],Y=pair[1],nm=cn(X)+'-'+cn(Y),text=[],seq=[];
+      var e0=findEdge(st,X,Y),E0=SM.EDGES[e0.slot],hl=[E0.wings[0].a,E0.wings[0].b,E0.wings[1].a,E0.wings[1].b];
+      var s=st,loc=findEdge(s,X,Y);
+      if(MID.indexOf(loc.slot)>=0){
+        if(edgeHome(s,loc.slot)){chunk('The '+nm+' edge is already home!',[],[]);return;}
+        // spin so its slot is front-right, pop it out with Go Right
+        var k1=0;for(;k1<4;k1++){var t=SM.applySeq(s,[pw('y',k1)].filter(Boolean));if(findEdge(t,X,Y).slot==='FR')break;}
+        seq=seq.concat([pw('y',k1)],ALG.goRight);s=SM.applySeq(s,[pw('y',k1)].filter(Boolean).concat(ALG.goRight));
+        text.push('The '+nm+' edge is in the belt the wrong way. Hold it front-right and Go Right to pop it out.');
+        loc=findEdge(s,X,Y);
+      } else text.push('The '+nm+' edge is on top.');
+      var side=loc[X][0]==='U'?Y:X,topc=side===X?Y:X;   // colour on the side face
+      var k=yTo(s,side);s=SM.applySeq(s,[pw('y',k)].filter(Boolean));seq.push(pw('y',k));
+      var m=0;for(;m<4;m++){if(findEdge(SM.applySeq(s,[pw('U',m)].filter(Boolean)),X,Y).slot==='UF')break;}
+      s=SM.applySeq(s,[pw('U',m)].filter(Boolean));seq.push(pw('U',m));
+      var right=centreCol(s,'R')===topc;
+      seq=seq.concat(right?ALG.goRight:ALG.goLeft);
+      text.push('Spin and turn the top so its '+cn(side)+' side matches the '+cn(side)+' middle. Its '+cn(topc)+' side wants to go '+(right?'right, so Go Right!':'left, so Go Left!'));
+      chunk(text.join(' '),seq,hl,right?SPELLS.goright:SPELLS.goleft);
+    });
+    endPhase(layer2Done);
+
+    /* ===== 6. YELLOW CROSS (+ OLL parity) ===== */
+    phase({id:'ycross',title:'Yellow Cross',spell:SPELLS.rocket,goal:'ycross',
+      why:'Now make a yellow plus sign on top, without breaking the bottom.'});
+    function yUp(s){return UE.filter(function(e){return edgeCols(s,e).U==='Y';});}
+    function ueHL(s){var r=[];UE.forEach(function(e){SM.EDGES[e].wings.forEach(function(w){r.push(w.a,w.b);});});return r;}
+    var gy=0;
+    while(yUp(st).length<4&&gy++<6){
+      var up=yUp(st),n=up.length;
+      if(n%2===1){var m=0;for(;m<4;m++){var t=SM.applySeq(st,[pw('U',m)].filter(Boolean));if(edgeCols(t,'UF').U!=='Y')break;}
+        var dn=UE.filter(function(e){return edgeCols(st,e).U!=='Y';});
+        chunk('Odd shape: '+(n===1?'only one':'three')+' yellow edge'+(n===1?' is':'s are')+' up. That can only happen on a 4x4! Hold an upside-down pair at the front and cast the Flip Spell.',
+          [pw('U',m)].concat(ALG.flip),[].concat.apply([],dn.slice(0,1).map(function(e){var w=SM.EDGES[e].wings;return [w[0].a,w[0].b,w[1].a,w[1].b];})),SPELLS.flip);
+        continue;}
+      var m2=0,desc;
+      if(n===0)desc='Only the yellow dot. Fly the Rocket!';
+      else{var opp=(up.indexOf('UF')>=0&&up.indexOf('UB')>=0)||(up.indexOf('UL')>=0&&up.indexOf('UR')>=0);
+        for(;m2<4;m2++){var t2=SM.applySeq(st,[pw('U',m2)].filter(Boolean)),u2=yUp(t2);
+          if(opp?(u2.indexOf('UL')>=0&&u2.indexOf('UR')>=0):(u2.indexOf('UB')>=0&&u2.indexOf('UL')>=0))break;}
+        desc=opp?'A yellow line! Hold it sideways (left to right) and Fly the Rocket.':'A yellow L! Point it to the back-left and Fly the Rocket.';}
+      chunk(desc,[pw('U',m2)].concat(ALG.rocket),ueHL(st),SPELLS.rocket);
+    }
+    endPhase(yCrossDone);
+
+    /* ===== 7. YELLOW FACE ===== */
+    phase({id:'yface',title:'Yellow Face',spell:SPELLS.swirly,goal:'yface',
+      why:'Twist the top corners so the whole top turns yellow.'});
+    function cUp(s){return UC.filter(function(k){return cornerCols(s,k).U==='Y';}).length;}
+    var gf=0;
+    while(!faceSolved(st,'U')&&gf++<8){
+      var nu=cUp(st),mm=0,want,txt;
+      if(nu===0){want=function(s){return cornerCols(s,'UFL').L==='Y';};txt='No yellow corners on top. Turn the top so the front-left corner has yellow looking left, then Swirly Whirly!';}
+      else if(nu===1){want=function(s){return cornerCols(s,'UFL').U==='Y';};txt='One yellow corner (a little fish!). Put it at the front-left, then Swirly Whirly!';}
+      else{want=function(s){return cornerCols(s,'UFL').F==='Y';};txt=nu+' yellow corners. Turn the top so the front-left corner has yellow looking at you, then Swirly Whirly!';}
+      for(;mm<4;mm++){if(want(SM.applySeq(st,[pw('U',mm)].filter(Boolean))))break;}
+      if(mm===4)mm=0;
+      var hlc=[];UC.forEach(function(k){hlc=hlc.concat(SM.CORNERS[k].slots);});
+      chunk(txt,[pw('U',mm)].concat(ALG.swirly),hlc,SPELLS.swirly);
+    }
+    endPhase(yFaceDone);
+
+    /* ===== 8. CORNER HOP (permute corners) ===== */
+    phase({id:'hop',title:'Corner Hop',spell:SPELLS.hop,goal:'ycorners',
+      why:'Each top corner has to sit between its two matching colours.'});
+    function solvableByU(s){for(var m=0;m<4;m++){var t=SM.applySeq(s,[pw('U',m)].filter(Boolean));if(UC.every(function(k){return cornerHome(t,k);}))return m;}return -1;}
+    function headlights(s){var sides=['F','R','B','L'],pairs={F:['UFL','UFR'],R:['UFR','UBR'],B:['UBR','UBL'],L:['UBL','UFL']};
+      return sides.filter(function(f){return cornerCols(s,pairs[f][0])[f]===cornerCols(s,pairs[f][1])[f];});}
+    var gh=0;
+    while(solvableByU(st)<0&&gh++<4){
+      var hlts=headlights(st),best=null;
+      for(var a=0;a<4;a++){var t=SM.applySeq(st,[pw('U',a)].filter(Boolean).concat(ALG.hop));var sb=solvableByU(t);
+        var score=(sb>=0?10:0)+headlights(t).length;if(!best||score>best.score)best={a:a,score:score};}
+      var hc=[];UC.forEach(function(k){hc=hc.concat(SM.CORNERS[k].slots);});
+      chunk(hlts.length?'Look for "headlights": two corners on one side with the same colour. Put them at the back, then Corner Hop!':
+        'No headlights yet. Do one Corner Hop from anywhere to make some.',[pw('U',best.a)].concat(ALG.hop),hc,SPELLS.hop);
+    }
+    var mu=solvableByU(st);if(mu>0)chunk('Turn the top so every corner sits between its colours.',[pw('U',mu)],[]);
+    endPhase(cornersDone);
+
+    /* ===== 9. LAST EDGES (+ PLL parity) ===== */
+    phase({id:'merry',title:'Merry-Go-Round',spell:SPELLS.merry,goal:'solved',
+      why:'Last job: slide the top edges around until every side matches.'});
+    function edgesHomeCount(s){return UE.filter(function(e){return edgeHome(s,e);}).length;}
+    function edgeParityOdd(s){var order=['F','R','B','L'],p=UE.map(function(e){var c=edgeCols(s,e),side=Object.keys(c).filter(function(f){return f!=='U';})[0];
+        return order.indexOf(faceOfCentre(s,c[side]));});
+      var seen=[],cyc=0;for(var i=0;i<4;i++){if(seen[i])continue;var j=i,len=0;while(!seen[j]){seen[j]=1;j=p[j];len++;}cyc+=len-1;}return cyc%2===1;}
+    var gm=0;
+    while(edgesHomeCount(st)<4&&gm++<6){
+      var ueAll=[];UE.forEach(function(e){SM.EDGES[e].wings.forEach(function(w){ueAll.push(w.a,w.b);});});
+      if(edgeParityOdd(st)){var bp=null;
+        for(var k=0;k<4;k++){var t=SM.applySeq(st,[pw('y',k)].filter(Boolean).concat(ALG.swap)),sc=edgesHomeCount(t);if(!bp||sc>bp.sc)bp={k:k,sc:sc};}
+        chunk('Two top edges need to swap places. A 3x3 can\'t do that, but a 4x4 can! Hold the swappers front and back and cast the Swap Spell.',
+          [pw('y',bp.k)].concat(ALG.swap),ueAll,SPELLS.swap);continue;}
+      var bm=null;
+      for(var k2=0;k2<4;k2++){var t3=SM.applySeq(st,[pw('y',k2)].filter(Boolean).concat(ALG.merry)),sc2=edgesHomeCount(t3);if(!bm||sc2>bm.sc)bm={k:k2,sc:sc2};}
+      var done1=edgesHomeCount(st)>=1;
+      chunk(done1?'One side is all finished. Hold that side at the back and ride the Merry-Go-Round!':'No side is finished yet. Ride the Merry-Go-Round once to make one.',
+        [pw('y',bm.k)].concat(ALG.merry),ueAll,SPELLS.merry);
+    }
+    var kf=yTo(st,'G');
+    if(kf)chunk('Spin Cubey so green faces you again. Cubey is solved!',[pw('y',kf)],[]);
+    endPhase(function(s){return isSolved(s)&&centreCol(s,'F')==='G'&&centreCol(s,'U')==='Y';});
+
+    return {phases:phases,end:st};
+  }
+  return {solve:solve,isSolved:isSolved,centresDone:centresDone,pairedCount:pairedCount,crossDone:crossDone,layer1Done:layer1Done,
+    layer2Done:layer2Done,yCrossDone:yCrossDone,yFaceDone:yFaceDone,cornersDone:cornersDone,COLNAME:COLNAME,FACENAME:FACENAME,TARGET:TARGET};
+})(SM);
+if(typeof module!=='undefined') module.exports=Solver;
 
 </script>
 <script>
 (function(){
 var C=CubeLogic;
 var COL={Y:0xffd500,W:0xffffff,G:0x009b48,B:0x0046ad,O:0xff5800,R:0xc41e3a};
-var CSS={Y:'#ffd500',W:'#ffffff',G:'#009b48',B:'#0046ad',O:'#ff5800',R:'#c41e3a','.':'#4a4f6e',x:'#ff3df0'};
+var CSS={Y:'#ffd500',W:'#ffffff',G:'#009b48',B:'#0046ad',O:'#ff5800',R:'#c41e3a'};
+var PALETTE=['#ef4444','#f97316','#eab308','#22c55e','#14b8a6','#3b82f6','#6366f1','#a855f7','#ec4899','#0ea5e9','#d946ef','#84cc16','#f43f5e'];
 
 /* ---------- plain-English labels ---------- */
 var WORDS={
@@ -272,184 +601,279 @@ var WORDS={
  Fw:['front TWO layers','like a clock','the other way','↻','↺'], Bw:['back TWO layers','(top goes left)','(top goes right)','↺','↻'],
  r:['inner slice next to the right','UP','DOWN','↑','↓'], l:['inner slice next to the left','DOWN','UP','↓','↑'],
  u:['slice just under the top','to the LEFT','to the RIGHT','←','→'], d:['slice just above the bottom','to the RIGHT','to the LEFT','→','←'],
- f:['slice just behind the front','like a clock','the other way','↻','↺'], b:['slice just in front of the back','(top goes left)','(top goes right)','↺','↻'],
- x:['whole cube','tip back (front goes up)','tip forward (front goes down)','⤒','⤓'],
- y:['whole cube','spin to the LEFT','spin to the RIGHT','⟲','⟳'],
- z:['whole cube','tilt like a clock','tilt the other way','↻','↺']
+ f:['slice just behind the front','like a clock','the other way','↻','↺'], b:['slice just in front of the back','(top goes left)','(top goes right)','↺','↻']
 };
-function plain(tok){var m=C.parseMove(tok),w=WORDS[m.base];
-  if(m.base==='x'||m.base==='y'||m.base==='z') return m.mult===2?'Turn the whole cube twice':'Turn the '+w[0]+': '+(m.mult===1?w[1]:w[2]);
-  if(m.mult===2) return 'Turn the '+w[0]+' TWICE (half way round)';
+function plain(tok){var m=C.parseMove(tok);
+  if(m.base==='y') return m.mult===2?'Spin the WHOLE cube half way round':'Spin the WHOLE cube to the '+(m.mult===1?'LEFT':'RIGHT');
+  if(m.base==='x') return m.mult===2?'Flip the WHOLE cube over':'Tip the WHOLE cube '+(m.mult===1?'back (front goes up)':'forward (front goes down)');
+  if(m.base==='z') return m.mult===2?'Turn the WHOLE cube upside down sideways':'Tilt the WHOLE cube '+(m.mult===1?'like a clock':'the other way');
+  var w=WORDS[m.base]; if(m.mult===2) return 'Turn the '+w[0]+' TWICE (half way round)';
   return 'Turn the '+w[0]+' '+(m.mult===1?w[1]:w[2]);}
-function arrow(tok){var m=C.parseMove(tok),w=WORDS[m.base];return m.mult===2?'×2':(m.mult===1?w[3]:w[4]);}
+function arrow(tok){var m=C.parseMove(tok);if(m.mult===2)return '×2';
+  if(m.base==='y')return m.mult===1?'⟲':'⟳';if(m.base==='x')return m.mult===1?'⤒':'⤓';if(m.base==='z')return m.mult===1?'↻':'↺';
+  var w=WORDS[m.base];return m.mult===1?w[3]:w[4];}
 
-/* ---------- goal mini pictures ---------- */
-var GOALS={
- centres:['....','.WW.','.WW.','....','Every side'],
- edges:['.GG.','O..R','O..R','.BB.','Buddies together'],
- cross:['.WW.','WWWW','WWWW','.WW.','Bottom'],
- layer1:['WWWW','WWWW','WWWW','WWWW','Bottom'],
- layer2:['....','GGGG','GGGG','GGGG','Each side'],
- ycross:['.YY.','YYYY','YYYY','.YY.','Top'],
- yface:['YYYY','YYYY','YYYY','YYYY','Top'],
- ycorners:['G..G','GGGG','GGGG','GGGG','Each side'],
- solved:['GGGG','GGGG','GGGG','GGGG','All done!'],
- flip:['YYYY','YYYY','YYYY','YxxY','Top'],
- swap:['GxxG','GGGG','GGGG','GGGG','Front']
-};
-function goalHTML(k){if(!k||!GOALS[k])return '';var g=GOALS[k],h='<div class="g">';
-  for(var r=0;r<4;r++)for(var c=0;c<4;c++){var ch=g[r][c];h+='<div class="'+(ch==='x'?'x':'')+'" style="background:'+CSS[ch]+'"></div>';}
-  return h+'</div><span>Goal: '+g[4]+'</span>';}
+/* ---------- per-phase extras ---------- */
+var GOALTXT={'c-white':'The middle of the bottom is all white.','c-yellow':'The middle of the top is all yellow.','c-green':'The middle of the front is all green.',
+ 'c-orange':'The middle of the right is all orange.','c-last':'Every side has a middle that is one colour.','edges':'Every edge has its buddy right next to it.',
+ 'cross':'A white plus sign on the bottom, and each arm matches its side.','corners':'The whole bottom layer is finished.','middle':'The bottom two layers are finished.',
+ 'ycross':'A yellow plus sign on top.','yface':'The whole top is yellow.','hop':'Every top corner sits between its own colours.','merry':'Cubey is solved!'};
+var PARENT={'c-white':'Centres are built with "slice in, turn, slice out" (small letters are inner slices). Nothing else matters yet, so edges and corners look messy. That is fine.',
+ 'c-yellow':'Same trick, but now the white centre must stay safe. The slice always comes back, so white is never broken.',
+ 'c-green':'Side centres use the u/d slices (just under the top / above the bottom) so the top and bottom centres stay untouched.',
+ 'c-orange':'Orange goes on the right of green when yellow is on top. If it ends up on the left, the centres are in the wrong order.',
+ 'c-last':'The last two centres finish together. Small moves, lots of checking.',
+ 'edges':'Buddy Maker = setup with outer turns, then slice (u\' or d) to join the buddies, an outer-only "tuck" that stores the new pair, then slice back to fix the centres. Outer turns never split a finished pair.',
+ 'cross':'From here it is a normal 3x3 beginner solve, using only outer layers. y = spin the whole cube so a new colour faces you.',
+ 'corners':'Hold the target slot front-right-bottom. R U R\' U\' repeats; never more than 5 times.',
+ 'middle':'Go Right = U R U\' R\' U\' F\' U F. Go Left = U\' L\' U L U F U\' F\'.',
+ 'ycross':'Fly the Rocket = F R U R\' U\' F\'. If an odd number of yellow edges point up, that is OLL parity: only 4x4s have it. The Flip Spell fixes it.',
+ 'yface':'Swirly Whirly is the Sune: R U R\' U R U2 R\'.',
+ 'hop':'Corner Hop is an A-perm: R\' F R\' B2 R F\' R\' B2 R2. "Headlights" = two corners on one side with matching colours.',
+ 'merry':'Merry-Go-Round is a U-perm: R U\' R U R U R U\' R\' U\' R2. If two edges need swapping, that is PLL parity: the Swap Spell (r2 U2 r2 Uw2 r2 u2) fixes it.'};
 
-/* ---------- self-test (pure logic) ---------- */
-function selfTest(){var res=[];STEPS.forEach(function(s){var c=C.newCube();C.applyAlg(c,C.invertAlg(s.alg));
-  var changed=C.unhappy(c,'all').length>0||s.id==='moves';C.applyAlg(c,s.alg);res.push({id:s.id,ok:C.isSolved(c)&&changed});});return res;}
+/* ---------- scrambles ---------- */
+function randomScramble(n){var fam=[['R','L','Rw'],['U','D','Uw'],['F','B','Fw']],suf=['',"'",'2'],out=[],lastAx=-1,used=[];
+  while(out.length<n){var ax=Math.floor(Math.random()*3),f=fam[ax][Math.floor(Math.random()*3)];
+    if(ax===lastAx&&used.indexOf(f)>=0)continue;if(ax!==lastAx)used=[];used.push(f);lastAx=ax;out.push(f+suf[Math.floor(Math.random()*3)]);}
+  return out;}
+function parseScramble(txt){var toks=txt.replace(/[’‘`´]/g,"'").trim().split(/\s+/).filter(Boolean),bad=[];
+  toks=toks.map(function(t){return t.replace(/^([RLUDFB])w?2'$/,'$12').replace(/^([RLUDFB]w)2'$/,'$12');});
+  toks.forEach(function(t){try{C.parseMove(t);}catch(e){bad.push(t);}});
+  return {toks:toks,bad:bad};}
 
-/* ---------- three.js scene ---------- */
+/* ---------- 3D scene ---------- */
 var stage=document.getElementById('stage');
-if(typeof THREE==='undefined'){document.getElementById('err').style.display='flex';console.error('THREE not loaded');return;}
+if(typeof THREE==='undefined'){document.getElementById('err3d').style.display='flex';console.error('THREE not loaded');return;}
 var renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
 stage.insertBefore(renderer.domElement,stage.firstChild);
-var scene=new THREE.Scene();
-var camera=new THREE.PerspectiveCamera(36,1,0.1,100);
-camera.position.set(0,0,12.5);
+var scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(36,1,0.1,100);camera.position.set(0,0,12.5);
 scene.add(new THREE.AmbientLight(0xffffff,0.62));
 var dl=new THREE.DirectionalLight(0xffffff,0.55);dl.position.set(4,8,10);scene.add(dl);
 var dl2=new THREE.DirectionalLight(0xffffff,0.25);dl2.position.set(-6,-3,4);scene.add(dl2);
 var root=new THREE.Group();scene.add(root);
-var VIEW=new THREE.Quaternion().setFromEuler(new THREE.Euler(0.52,-0.62,0,'XYZ'));
-root.quaternion.copy(VIEW);
+var VIEW=new THREE.Quaternion().setFromEuler(new THREE.Euler(0.52,-0.62,0,'XYZ'));root.quaternion.copy(VIEW);
 var pivot=new THREE.Group();root.add(pivot);
-
 function roundRect(w,r){var s=new THREE.Shape(),h=w/2;s.moveTo(-h+r,-h);s.lineTo(h-r,-h);s.quadraticCurveTo(h,-h,h,-h+r);s.lineTo(h,h-r);
   s.quadraticCurveTo(h,h,h-r,h);s.lineTo(-h+r,h);s.quadraticCurveTo(-h,h,-h,h-r);s.lineTo(-h,-h+r);s.quadraticCurveTo(-h,-h,-h+r,-h);return new THREE.ShapeGeometry(s);}
-var bodyGeo=new THREE.BoxGeometry(0.97,0.97,0.97), stickGeo=roundRect(0.82,0.12);
-var Z=new THREE.Vector3(0,0,1);
-var state=C.newCube(), meshes={};
+var bodyGeo=new THREE.BoxGeometry(0.97,0.97,0.97),stickGeo=roundRect(0.82,0.12),Z=new THREE.Vector3(0,0,1);
+var state=C.newCube(),meshes={};
 state.forEach(function(c){
-  var g=new THREE.Group(), body=new THREE.Mesh(bodyGeo,new THREE.MeshLambertMaterial({color:0x15172a,emissive:0x000000}));
-  g.add(body); g.userData.body=body; g.userData.stickers=[];
+  var g=new THREE.Group(),body=new THREE.Mesh(bodyGeo,new THREE.MeshLambertMaterial({color:0x15172a,emissive:0x000000}));
+  g.add(body);g.userData.body=body;g.userData.stickers=[];
   c.stickers.forEach(function(s){var m=new THREE.MeshLambertMaterial({color:COL[s.c],emissive:0x000000,side:THREE.DoubleSide});
     var p=new THREE.Mesh(stickGeo,m),n=new THREE.Vector3(s.n[0],s.n[1],s.n[2]);
     p.position.copy(n).multiplyScalar(0.492);p.quaternion.setFromUnitVectors(Z,n);g.add(p);g.userData.stickers.push({mesh:p,base:new THREE.Color(COL[s.c])});});
-  root.add(g); meshes[c.id]=g;
-});
+  root.add(g);meshes[c.id]=g;});
 var tmpM=new THREE.Matrix4();
 function sync(){state.forEach(function(c){var g=meshes[c.id];g.position.set(c.pos[0]*0.5,c.pos[1]*0.5,c.pos[2]*0.5);
   var R=c.R;tmpM.set(R[0][0],R[0][1],R[0][2],0,R[1][0],R[1][1],R[1][2],0,R[2][0],R[2][1],R[2][2],0,0,0,0,1);g.quaternion.setFromRotationMatrix(tmpM);});}
-function resize(){var w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;
-  camera.position.z=w/h<0.9?15.5:12.5;camera.updateProjectionMatrix();}
+function resize(){var w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.position.z=w/h<0.9?15.5:12.5;camera.updateProjectionMatrix();}
 window.addEventListener('resize',resize);
-
-/* ---------- drag to rotate ---------- */
 var drag=null;
 stage.addEventListener('pointerdown',function(e){drag={x:e.clientX,y:e.clientY};stage.setPointerCapture(e.pointerId);});
 stage.addEventListener('pointermove',function(e){if(!drag)return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag={x:e.clientX,y:e.clientY};
-  var qy=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),dx*0.011),qx=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),dy*0.011);
-  root.quaternion.premultiply(qy).premultiply(qx);});
+  root.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),dx*0.011)).premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),dy*0.011));});
 ['pointerup','pointercancel'].forEach(function(t){stage.addEventListener(t,function(){drag=null;});});
-var viewAnim=null;
-document.getElementById('bView').onclick=function(){viewAnim={from:root.quaternion.clone(),t0:performance.now()};};
+var viewAnim=null;document.getElementById('bView').onclick=function(){viewAnim={from:root.quaternion.clone(),t0:performance.now()};};
 
-/* ---------- lesson player ---------- */
-var cur=0, moves=[], idx=0, playing=false, anim=null, speed=650, hlSet={}, done={};
+/* ---------- program (a list of moves split into phases and chunks) ---------- */
 var $=function(id){return document.getElementById(id);};
-function setHighlight(step){hlSet={};if(step.hl!=='none')C.unhappy(state,step.hl).forEach(function(c){hlSet[c.id]=1;});}
-function loadStep(i){
-  stopPlay(); if(anim){finishAnim();} cur=i; var s=STEPS[i];
-  state=C.newCube(); C.applyAlg(state,C.invertAlg(s.alg)); moves=C.parseAlg(s.alg); idx=0;
-  setHighlight(s); sync(); hideYay();
-  $('cNum').textContent=s.num;$('cNum').style.background=s.colour;$('cTitle').textContent=s.title;
-  $('cSpell').textContent=s.spell;$('cSpell').style.background=s.colour;
-  $('say').innerHTML=s.say.map(function(t){return '<li>'+t+'</li>';}).join('');
-  $('cGoal').innerHTML=goalHTML(s.goal);
-  $('cAlg').innerHTML=moves.map(function(m){return '<span class="chip">'+m.tok+'<i>'+arrow(m.tok)+'</i></span>';}).join('');
-  $('cParent').textContent=s.parent; $('bShow').style.background=s.colour;
-  $('bPrev').disabled=i===0;$('bNext').disabled=i===STEPS.length-1;
-  document.querySelectorAll('.dot').forEach(function(d,k){d.classList.toggle('on',k===i);});
-  renderSeq();
+var MODE='mix',prog=null,base=null,idx=0,anim=null,playing=false,speed=650,hlSet={},hlChunk=-1,curPhase=0,checkMode=false,scr=[],typing=false,parseErr='',showTip=false;
+function cloneCubies(cs){return C.clone(cs);}
+function mixProgram(moves){return {kind:'mix',moves:moves.slice(),chunks:[{text:'',moves:moves.slice(),hl:[],start:0,end:moves.length,phase:0}],
+  phases:[{id:'mix',title:'Mix it up!',start:0,end:moves.length,chunks:[0]}]};}
+function solveProgram(plan){var p={kind:'solve',moves:[],chunks:[],phases:[]},carry='';
+  plan.phases.forEach(function(ph,pi){var P={id:ph.id,title:ph.title,spell:ph.spell,why:ph.why,ok:ph.ok,start:p.moves.length,chunks:[],note:''};
+    ph.chunks.forEach(function(ch){
+      if(!ch.moves.length){carry+=(carry?' ':'')+ch.text;return;}
+      var c={text:(carry?carry+' ':'')+ch.text,moves:ch.moves,hl:ch.hl,spell:ch.spell,start:p.moves.length,phase:pi};carry='';
+      p.moves=p.moves.concat(ch.moves);c.end=p.moves.length;P.chunks.push(p.chunks.length);p.chunks.push(c);});
+    if(carry){P.note=carry;carry='';}
+    P.end=p.moves.length;p.phases.push(P);});
+  return p;}
+function chunkIndexAt(i){var cs=prog.chunks;for(var k=0;k<cs.length;k++)if(i>=cs[k].start&&i<cs[k].end)return k;
+  for(k=cs.length-1;k>=0;k--)if(cs[k].end===i)return k;return -1;}
+function setProgram(p,baseCubies){prog=p;base=cloneCubies(baseCubies);state=cloneCubies(base);idx=0;curPhase=0;checkMode=false;hlChunk=-1;
+  sync();updateHighlight();renderMap();render();}
+function stateAt(i){var s=cloneCubies(base);for(var k=0;k<i;k++)C.applyMove(s,C.parseMove(prog.moves[k]));return s;}
+function jumpTo(i){stopPlay();if(anim)finishAnim(true);state=stateAt(i);idx=i;sync();hlChunk=-1;updateHighlight();render();}
+function updateHighlight(){
+  var ci=(checkMode||idx>=prog.moves.length)?-1:chunkIndexAt(idx);
+  if(ci===hlChunk)return;hlChunk=ci;hlSet={};
+  if(ci<0)return;var ch=prog.chunks[ci];if(!ch.hl||!ch.hl.length)return;
+  var s0=(idx===ch.start)?state:stateAt(ch.start);
+  ch.hl.forEach(function(slot){var p=SM.SLOTS[slot].pos;s0.forEach(function(c){if(c.pos[0]===p[0]&&c.pos[1]===p[1]&&c.pos[2]===p[2])hlSet[c.id]=1;});});
 }
-function renderSeq(){
-  $('seq').innerHTML=moves.map(function(m,k){return '<span class="chip '+(k<idx?'past':(k===idx&&(playing||anim)?'now':''))+'">'+m.tok+'</span>';}).join('');
-  var showK=anim?anim.k:(idx>0?idx-1:-1);
-  if(showK>=0){var t=moves[showK].tok;$('note').innerHTML=t+'<small>'+arrow(t)+'</small>';$('plain').innerHTML=plain(t)+'<span class="sub">Move '+(showK+1)+' of '+moves.length+'</span>';}
-  else{$('note').textContent='Ready';$('plain').innerHTML='Press <b>Play</b> to watch the spell!<span class="sub">Glowing pieces are the ones this step is fixing.</span>';}
-  $('bBack').disabled=idx===0&&!anim; $('bFwd').disabled=idx>=moves.length&&!anim;
-  $('playTxt').textContent=playing?'Pause':(idx>=moves.length?'Again':'Play');
-  $('playIcon').innerHTML=playing?'<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>':'<path d="M8 5v14l11-7z"/>';
-}
-function startMove(dir){ // dir +1 forward, -1 back
-  if(anim)return false;
-  var k=dir>0?idx:idx-1; if(k<0||k>=moves.length)return false;
-  var mv=moves[k], q=dir>0?mv.q:-mv.q, lm={axis:mv.axis,layers:mv.layers,q:q};
-  var ai=mv.axis==='x'?0:mv.axis==='y'?1:2;
+
+/* ---------- moving ---------- */
+function startMove(dir){
+  if(anim)return false;var k=dir>0?idx:idx-1;if(k<0||k>=prog.moves.length)return false;
+  var mv=C.parseMove(prog.moves[k]),q=dir>0?mv.q:-mv.q,ai=mv.axis==='x'?0:mv.axis==='y'?1:2;
   pivot.rotation.set(0,0,0);
   state.forEach(function(c){if(mv.layers.indexOf(c.pos[ai])>=0)pivot.attach(meshes[c.id]);});
-  anim={lm:lm,k:k,dir:dir,t0:performance.now(),dur:speed*(Math.abs(q)===2?1.4:1)};
-  hideYay(); renderSeq(); return true;
-}
-function finishAnim(){
-  var a=anim; anim=null;
-  pivot.children.slice().forEach(function(g){root.attach(g);});
-  pivot.rotation.set(0,0,0);
-  C.applyMove(state,a.lm); idx+=a.dir; sync(); renderSeq();
-  if(idx>=moves.length&&a.dir>0){
-    if(C.isSolved(state)){done[cur]=1;markDone();showYay();}
-    else console.error('Step '+STEPS[cur].id+' did not end solved!');
-    stopPlay();
-  }
+  anim={lm:{axis:mv.axis,layers:mv.layers,q:q},k:k,dir:dir,t0:performance.now(),dur:speed*(Math.abs(q)===2?1.4:1)*(mv.layers.length===4?1.2:1)};
+  hideYay();renderLeft();return true;}
+function finishAnim(silent){
+  var a=anim;anim=null;pivot.children.slice().forEach(function(g){root.attach(g);});pivot.rotation.set(0,0,0);
+  C.applyMove(state,a.lm);idx+=a.dir;sync();
+  if(silent)return;
+  if(MODE==='solve'&&a.dir>0&&idx===prog.phases[curPhase].end){checkMode=true;stopPlay();}
+  if(MODE==='mix'&&idx===prog.moves.length){stopPlay();showYay('All mixed up!');}
+  updateHighlight();render();
 }
 function tick(now){
   if(anim){var t=Math.min(1,(now-anim.t0)/anim.dur),e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
     pivot.rotation.set(0,0,0);pivot.rotation[anim.lm.axis]=anim.lm.q*Math.PI/2*e;
-    if(t>=1){finishAnim(); if(playing){setTimeout(function(){if(playing&&!anim)startMove(1);},Math.max(120,speed*0.35));}}}
+    if(t>=1){finishAnim();if(playing)setTimeout(function(){if(playing&&!anim)stepForward();},Math.max(120,speed*0.35));}}
   if(viewAnim){var vt=Math.min(1,(now-viewAnim.t0)/500);root.quaternion.copy(viewAnim.from).slerp(VIEW,vt);if(vt>=1)viewAnim=null;}
-  var pulse=0.5+0.5*Math.sin(now/260), anyHL=Object.keys(hlSet).length>0;
+  var pulse=0.5+0.5*Math.sin(now/260),anyHL=false;for(var h in hlSet){anyHL=true;break;}
   for(var id in meshes){var g=meshes[id],on=!!hlSet[id];
-    g.userData.stickers.forEach(function(s){s.mesh.material.color.copy(s.base);
-      if(anyHL&&!on)s.mesh.material.color.multiplyScalar(0.55);
+    g.userData.stickers.forEach(function(s){s.mesh.material.color.copy(s.base);if(anyHL&&!on)s.mesh.material.color.multiplyScalar(0.5);
       s.mesh.material.emissive.setRGB(on?0.28*pulse:0,on?0.28*pulse:0,on?0.22*pulse:0);});
     g.userData.body.material.emissive.setRGB(on?0.55*pulse:0,on?0.45*pulse:0,on?0.05:0);}
-  renderer.render(scene,camera); requestAnimationFrame(tick);
-}
-function play(){ if(idx>=moves.length){loadStep(cur);} playing=true; renderSeq(); if(!anim)startMove(1);}
-function stopPlay(){playing=false;renderSeq();}
-$('bPlay').onclick=function(){playing?stopPlay():play();};
-$('bFwd').onclick=function(){stopPlay();startMove(1);};
-$('bBack').onclick=function(){stopPlay();startMove(-1);};
-$('bReset').onclick=function(){loadStep(cur);};
-$('bShow').onclick=function(){loadStep(cur);play();};
-$('bPrev').onclick=function(){if(cur>0)loadStep(cur-1);};
-$('bNext').onclick=function(){if(cur<STEPS.length-1)loadStep(cur+1);};
-document.querySelectorAll('[data-speed]').forEach(function(b){b.onclick=function(){speed=+b.dataset.speed;
-  document.querySelectorAll('[data-speed]').forEach(function(x){x.classList.toggle('on',x===b);});};});
+  renderer.render(scene,camera);requestAnimationFrame(tick);}
+function stepForward(){
+  if(anim)return false;
+  if(MODE==='solve'){
+    var P=prog.phases[curPhase];
+    if(idx>=P.end){ if(curPhase<prog.phases.length-1){nextPhase();} else {stopPlay();return false;} }
+    P=prog.phases[curPhase];
+    if(P.start===P.end){checkMode=true;stopPlay();render();return false;}
+  }
+  return startMove(1);}
+function stepBack(){
+  if(anim)return false;
+  if(MODE==='solve'){checkMode=false;var P=prog.phases[curPhase];
+    if(idx<=P.start){if(curPhase===0)return false;curPhase--;renderMap();}}
+  var ok=startMove(-1);if(!ok)render();return ok;}
+function nextPhase(){if(curPhase<prog.phases.length-1){curPhase++;checkMode=false;showTip=false;
+  if(idx!==prog.phases[curPhase].start)jumpTo(prog.phases[curPhase].start);
+  if(prog.phases[curPhase].start===prog.phases[curPhase].end)checkMode=true;hlChunk=-1;updateHighlight();renderMap();render();}}
+function play(){playing=true;renderLeft();
+  if(MODE==='mix'&&idx>=prog.moves.length){jumpTo(0);playing=true;}
+  if(!stepForward()){playing=false;}renderLeft();}
+function stopPlay(){playing=false;renderLeft();}
 
-function markDone(){document.querySelectorAll('.dot').forEach(function(d,k){d.classList.toggle('done',!!done[k]);});}
-function showYay(){var y=$('yay');y.classList.add('show');y.querySelectorAll('.star').forEach(function(s){s.remove();});
-  for(var i=0;i<14;i++){var s=document.createElement('div');s.className='star';s.style.left='50%';s.style.top='50%';
-    var a=i/14*Math.PI*2;s.style.setProperty('--dx',Math.cos(a)*160+'px');s.style.setProperty('--dy',Math.sin(a)*130+'px');
-    s.style.background=['#facc15','#ef4444','#3b82f6','#22c55e','#f97316'][i%5];y.appendChild(s);}
+/* ---------- rendering: left panel ---------- */
+function renderLeft(){
+  if(!prog)return;
+  var ci=chunkIndexAt(anim?anim.k:idx),ch=ci>=0?prog.chunks[ci]:null;
+  if(MODE==='solve'&&checkMode)ch=null;
+  var list=ch?ch.moves:[],off=ch?ch.start:0,cur=anim?anim.k:idx;
+  $('seq').innerHTML=list.map(function(m,k){var g=off+k;return '<span class="chip '+(g<cur?'past':(g===cur&&(anim||playing)?'now':''))+'">'+m+'</span>';}).join('');
+  var showK=anim?anim.k:(idx>0?idx-1:-1);
+  if(showK>=0&&!(MODE==='solve'&&checkMode&&!anim)&&showK<prog.moves.length){var t=prog.moves[showK];$('note').innerHTML=t+'<small>'+arrow(t)+'</small>';
+    $('plain').innerHTML=plain(t)+'<span class="sub">Move '+(showK+1)+' of '+prog.moves.length+(MODE==='mix'?' in the mix-up':'')+'</span>';}
+  else{$('note').textContent=checkMode?'Check!':'Ready';
+    $('plain').innerHTML=checkMode?'Look at your cube<span class="sub">Does it match the picture?</span>':'Press <b>Play</b> or <b>Next</b>!<span class="sub">Glowing pieces are the ones we are moving.</span>';}
+  var P=MODE==='solve'?prog.phases[curPhase]:null;
+  $('bBack').disabled=!!anim||idx===0;
+  $('bFwd').disabled=!!anim||(idx>=prog.moves.length&&(!P||curPhase===prog.phases.length-1));
+  $('playTxt').textContent=playing?'Pause':'Play';
+  $('playIcon').innerHTML=playing?'<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>':'<path d="M8 5v14l11-7z"/>';
+  $('bReset').lastChild.textContent=MODE==='mix'?'Restart':'Redo step';
+  var fc=SM.fromCubies(state)[SM.CENTRES.F[0]],uc=SM.fromCubies(state)[SM.CENTRES.U[0]];
+  $('holdTag').textContent=MODE==='solve'&&curPhase>=6?'Front: '+Solver.COLNAME[fc]+' · Top: '+Solver.COLNAME[uc]:'Yellow top · Green front';
+}
+/* ---------- rendering: map + card ---------- */
+function renderMap(){
+  if(MODE==='mix'){$('map').innerHTML='<button class="dot mix on" title="Mix it up">M</button>';return;}
+  $('map').innerHTML='<button class="dot mix" title="New mix-up" data-k="-1">M</button>'+prog.phases.map(function(p,k){
+    return '<button class="dot'+(k===curPhase?' on':'')+(k<curPhase?' done':'')+'" data-k="'+k+'" title="'+p.title+'" style="background:'+PALETTE[k%PALETTE.length]+'">'+(k+1)+'</button>';}).join('');
+  Array.prototype.forEach.call(document.querySelectorAll('#map .dot'),function(d){d.onclick=function(){var k=+d.dataset.k;
+    if(k<0){goMix(true);return;}curPhase=k;checkMode=false;showTip=false;jumpTo(prog.phases[k].start);if(prog.phases[k].start===prog.phases[k].end){checkMode=true;render();}renderMap();};});
+}
+function netHTML(cubies){var st=SM.fromCubies(cubies),pos={U:[0,4],L:[4,0],F:[4,4],R:[4,8],B:[4,12],D:[8,4]},grid=[];
+  for(var r=0;r<12;r++){grid.push([]);for(var c=0;c<16;c++)grid[r].push(null);}
+  SM.SLOTS.forEach(function(s){var o=pos[s.face];grid[o[0]+s.i][o[1]+s.j]=st[s.idx];});
+  var h='<div class="net">';grid.forEach(function(row){row.forEach(function(v){h+=v?'<div style="background:'+CSS[v]+';box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)"></div>':'<div class="gap"></div>';});});
+  return h+'</div><div class="netlbl">Top above, bottom below. Middle row: left · front · right · back.</div>';}
+function chipsHTML(ch){var cur=anim?anim.k:idx;return '<div class="algbig">'+ch.moves.map(function(m,k){var g=ch.start+k;
+  return '<span class="chip '+(g<cur?'past':(g===cur?'now':''))+'">'+m+'<i>'+arrow(m)+'</i></span>';}).join('')+'</div>';}
+function render(){renderLeft();var h='';
+  if(MODE==='mix'){
+    var atEnd=idx>=prog.moves.length&&!anim;
+    h+='<h2><span class="badge" style="background:#64748b">M</span>Mix it up!</h2>';
+    h+='<p class="why">Hold your cube with <b>yellow on top</b> and <b>green facing you</b>. Do each turn with Cubey. Don\'t spin the whole cube!</p>';
+    h+='<div class="case"><div class="part">The mix-up ('+scr.length+' turns)</div>'+chipsHTML(prog.chunks[0])+'</div>';
+    if(typing){h+='<textarea id="scrIn" placeholder="Type or paste a mix-up, e.g. R U2 Fw\' L D Rw2">'+scr.join(' ')+'</textarea>'+(parseErr?'<div class="err">'+parseErr+'</div>':'')+
+      '<div class="row2" style="margin-top:8px"><button class="btn" id="bUse" style="background:#22c55e">Use this mix-up</button><button class="btn" id="bCancel" style="background:#94a3b8">Cancel</button></div>';}
+    else h+='<div class="row2"><button class="btn" id="bNew" style="background:#8b5cf6">New mix-up</button><button class="btn" id="bType" style="background:#0ea5e9">Type my own</button></div>';
+    if(atEnd){h+='<div class="check"><h3>Check your cube!</h3><p>Your cube should look like this now (green in front, yellow on top).</p>'+netHTML(state)+
+      '<button class="btn" id="bSolve" style="background:#22c55e;width:100%;font-size:26px;min-height:76px">Solve it!</button></div>';}
+    else h+='<div class="row2" style="margin-top:10px"><button class="btn" id="bInstant" style="background:#64748b">Skip: mix it instantly</button></div>';
+    h+='<details><summary>For grown-ups</summary><p>Hold the cube yellow on top and green in front, then do the turns as shown. The solver then works out every step from this exact mix. If you type your own mix-up, use R L U D F B with \' or 2, Rw/Uw/Fw for two layers, and small r/l/u/d/f/b for single inner slices.</p></details>';
+    $('card').innerHTML=h;
+    if($('bNew'))$('bNew').onclick=function(){scr=randomScramble(25);goMix(false);};
+    if($('bType'))$('bType').onclick=function(){typing=true;parseErr='';render();};
+    if($('bCancel'))$('bCancel').onclick=function(){typing=false;render();};
+    if($('bUse'))$('bUse').onclick=function(){var r=parseScramble($('scrIn').value);
+      if(!r.toks.length){parseErr='Type at least one turn.';render();return;}
+      if(r.bad.length){parseErr='I don\'t know these turns: '+r.bad.join(', ');render();return;}
+      scr=r.toks;typing=false;goMix(false);};
+    if($('bInstant'))$('bInstant').onclick=function(){jumpTo(prog.moves.length);};
+    if($('bSolve'))$('bSolve').onclick=startSolve;
+    return;}
+  var P=prog.phases[curPhase],col=PALETTE[curPhase%PALETTE.length];
+  h+='<h2><span class="badge" style="background:'+col+'">'+(curPhase+1)+'</span>'+P.title+'</h2>';
+  if(P.spell)h+='<div class="spell" style="background:'+col+'">'+P.spell+'</div>';
+  h+='<p class="why">'+P.why+'</p>';
+  if(checkMode){var last=curPhase===prog.phases.length-1;
+    h+='<div class="check"><h3>'+(last?'You did it!':'Check your cube!')+'</h3>'+(P.note?'<p>'+P.note+'</p>':'')+'<p>'+GOALTXT[P.id]+' Does your cube look like this?</p>'+netHTML(state);
+    h+=last?'<button class="btn" id="bAgain" style="background:#8b5cf6;width:100%">Mix it up again!</button>':
+      '<div class="row2"><button class="btn" id="bYes" style="background:#22c55e">It matches! Next step</button><button class="btn" id="bNo" style="background:#f97316">Mine looks different</button></div>'+
+      '<div class="tip'+(showTip?' show':'')+'">No problem! Press <b>Back</b> to go one move at a time and undo each turn on your cube until it matches the 3D Cubey. Then press <b>Next</b> and try again slowly on Snail speed.</div>';
+    h+='</div>';}
+  else{var ci=chunkIndexAt(anim?anim.k:idx),ch=prog.chunks[ci];
+    if(ch&&ch.phase===curPhase){var parts=P.chunks.length,pn=P.chunks.indexOf(ci)+1;
+      h+='<div class="case" style="border-left-color:'+col+'"><div class="part">Part '+pn+' of '+parts+(ch.spell?' · '+ch.spell:'')+'</div><p>'+ch.text+'</p>'+chipsHTML(ch)+'</div>';}}
+  h+='<details><summary>For grown-ups</summary><p>'+(PARENT[P.id]||'')+'</p></details>';
+  h+='<div class="prog">Step '+(curPhase+1)+' of '+prog.phases.length+' · move '+Math.min(idx,prog.moves.length)+' of '+prog.moves.length+'</div>';
+  $('card').innerHTML=h;
+  if($('bYes'))$('bYes').onclick=function(){nextPhase();};
+  if($('bNo'))$('bNo').onclick=function(){showTip=!showTip;render();};
+  if($('bAgain'))$('bAgain').onclick=function(){goMix(true);};
+  if(checkMode&&curPhase===prog.phases.length-1&&idx===prog.moves.length)showYay('Cubey is solved!');
+}
+function goMix(newScr){stopPlay();if(anim)finishAnim(true);MODE='mix';typing=false;if(newScr)scr=randomScramble(25);setProgram(mixProgram(scr),C.newCube());}
+function startSolve(){var st=SM.fromCubies(state),plan=Solver.solve(st);MODE='solve';window.__lastPlan=plan;setProgram(solveProgram(plan),state);
+  if(prog.phases[0].start===prog.phases[0].end){checkMode=true;render();}}
+
+/* ---------- celebration ---------- */
+function showYay(txt){var y=$('yay');$('yayTxt').textContent=txt||'Yay!';y.classList.add('show');y.querySelectorAll('.star').forEach(function(s){s.remove();});
+  for(var i=0;i<14;i++){var s=document.createElement('div');s.className='star';s.style.left='50%';s.style.top='50%';var a=i/14*Math.PI*2;
+    s.style.setProperty('--dx',Math.cos(a)*160+'px');s.style.setProperty('--dy',Math.sin(a)*130+'px');s.style.background=PALETTE[i%PALETTE.length];y.appendChild(s);}
   clearTimeout(showYay.t);showYay.t=setTimeout(hideYay,2600);}
 function hideYay(){$('yay').classList.remove('show');}
 
-/* map */
-$('map').innerHTML=STEPS.map(function(s,k){return '<button class="dot" title="'+s.title+'" style="background:'+s.colour+'">'+s.num+'</button>';}).join('');
-document.querySelectorAll('.dot').forEach(function(d,k){d.onclick=function(){loadStep(k);};});
+/* ---------- controls ---------- */
+$('bPlay').onclick=function(){playing?stopPlay():play();};
+$('bFwd').onclick=function(){stopPlay();if(MODE==='solve'&&checkMode&&idx>=prog.phases[curPhase].end){nextPhase();return;}stepForward();};
+$('bBack').onclick=function(){stopPlay();stepBack();};
+$('bReset').onclick=function(){if(MODE==='mix'){jumpTo(0);return;}checkMode=false;jumpTo(prog.phases[curPhase].start);};
+document.querySelectorAll('[data-speed]').forEach(function(b){b.onclick=function(){speed=+b.dataset.speed;
+  document.querySelectorAll('[data-speed]').forEach(function(x){x.classList.toggle('on',x===b);});};});
 
-resize();
-var hm=/step=(\d+)/.exec(location.hash||''), first=hm?Math.min(STEPS.length-1,+hm[1]):0;
-loadStep(first); requestAnimationFrame(tick);
-if(/autoplay/.test(location.hash||'')) setTimeout(play,600);
+/* ---------- start ---------- */
+resize();scr=randomScramble(25);goMix(false);requestAnimationFrame(tick);
 
-/* self-test report */
-var st=selfTest(),allOk=st.every(function(r){return r.ok;});
-$('selftest').textContent=allOk?'All '+st.length+' spells checked: each one ends with a solved cube.':'Problem found in: '+st.filter(function(r){return !r.ok;}).map(function(r){return r.id;}).join(', ');
-console.log('SELFTEST '+(allOk?'PASS':'FAIL')+' '+JSON.stringify(st));
-setTimeout(function(){renderer.render(scene,camera);var gl=renderer.getContext(),px=new Uint8Array(4);
+/* ---------- self-check: solve a few random mix-ups in the background ---------- */
+setTimeout(function(){var ok=0,n=5,moves=[];
+  for(var i=0;i<n;i++){var s=SM.applySeq(SM.solvedState(),randomScramble(25)),pl=Solver.solve(s),t=s;
+    pl.phases.forEach(function(p){p.chunks.forEach(function(c){t=SM.applySeq(t,c.moves);});});
+    var good=pl.phases.every(function(p){return p.ok;})&&t.join()===SM.solvedState().join();if(good)ok++;
+    moves.push(pl.phases.reduce(function(a,p){return a+p.chunks.reduce(function(b,c){return b+c.moves.length;},0);},0));}
+  $('selftest').textContent=ok===n?'Solver self-check: '+n+' random mix-ups solved (about '+Math.round(moves.reduce(function(a,b){return a+b;},0)/n)+' moves each).':'Solver self-check found a problem ('+ok+'/'+n+').';
+  console.log('SELFTEST '+(ok===n?'PASS':'FAIL')+' '+ok+'/'+n);
+  renderer.render(scene,camera);var gl=renderer.getContext(),px=new Uint8Array(4);
   gl.readPixels(Math.floor(gl.drawingBufferWidth/2),Math.floor(gl.drawingBufferHeight/2),1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);
-  console.log('RENDERCHECK centre pixel rgba='+Array.from(px).join(',')+' meshes='+Object.keys(meshes).length+' calls='+renderer.info.render.calls);},400);
-window.__cubey={mesh:function(id){return meshes[id];},STEPS:STEPS,state:function(){return state;},loadStep:loadStep,startMove:startMove,isAnimating:function(){return !!anim;},idx:function(){return idx;},moves:function(){return moves;},C:C,setSpeed:function(v){speed=v;}};
+  console.log('RENDERCHECK centre pixel rgba='+Array.from(px).join(','));},800);
+
+window.__cubey={get state(){return state;},get idx(){return idx;},get prog(){return prog;},get mode(){return MODE;},get curPhase(){return curPhase;},get checkMode(){return checkMode;},
+  mesh:function(id){return meshes[id];},startMove:startMove,stepForward:stepForward,stepBack:stepBack,nextPhase:nextPhase,isAnimating:function(){return !!anim;},
+  setSpeed:function(v){speed=v;},goMix:goMix,setScramble:function(t){scr=t;goMix(false);},jumpTo:jumpTo,startSolve:startSolve,hl:function(){return Object.keys(hlSet);},C:C};
 })();
 </script>
 </body>
